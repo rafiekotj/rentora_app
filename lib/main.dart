@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
-// import 'package:rentora_app/views/auth/login.dart';
-import 'package:rentora_app/views/home/home.dart';
+import 'package:rentora_app/core/constants/app_color.dart';
+import 'package:rentora_app/services/local/preference_handler.dart';
+import 'package:rentora_app/views/splash_screen.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await PreferenceHandler().init();
   runApp(const MyApp());
 }
 
@@ -14,8 +17,13 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Rentora',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(fontFamily: 'Inter'),
-      home: HomePage(),
+      theme: ThemeData(
+        fontFamily: 'Inter',
+        textSelectionTheme: TextSelectionThemeData(
+          selectionHandleColor: AppColor.secondary,
+        ),
+      ),
+      home: SplashScreen(),
     );
   }
 }

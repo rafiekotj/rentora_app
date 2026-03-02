@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/symbols.dart';
-import 'package:rentora_app/utils/constant/app_color.dart';
+import 'package:rentora_app/core/constants/app_color.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});

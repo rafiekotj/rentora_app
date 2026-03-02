@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:rentora_app/utils/constant/app_color.dart';
+import 'package:rentora_app/core/constants/app_color.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
