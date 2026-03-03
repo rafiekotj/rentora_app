@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:rentora_app/core/constants/app_color.dart';
-import 'package:rentora_app/services/local/preference_handler.dart';
+import 'package:rentora_app/services/local_storage/preference_handler.dart';
 import 'package:rentora_app/views/splash_screen.dart';
 
 void main() async {

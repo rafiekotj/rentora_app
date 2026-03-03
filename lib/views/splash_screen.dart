@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:rentora_app/core/constants/app_color.dart';
 import 'package:rentora_app/core/extensions/navigator_extension.dart';
 import 'package:rentora_app/views/auth/login_screen.dart';
-import 'package:rentora_app/views/home/home_screen.dart';
-import 'package:rentora_app/services/local/preference_handler.dart';
+import 'package:rentora_app/views/home/bottom_navbar.dart';
+import 'package:rentora_app/services/local_storage/preference_handler.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -28,7 +28,7 @@ class _SplashScreenState extends State<SplashScreen> {
       print("Sudah Login");
     }
     if (data == true) {
-      context.pushAndRemoveAll(HomePage());
+      context.pushAndRemoveAll(BottomNavbar());
     } else {
       context.pushAndRemoveAll(LoginPage());
     }
