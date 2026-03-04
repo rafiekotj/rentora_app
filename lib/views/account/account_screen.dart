@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:rentora_app/core/constants/app_color.dart';
+import 'package:rentora_app/views/seller/seller_home_screen.dart';
 
 class AccountPage extends StatefulWidget {
   const AccountPage({super.key});
@@ -59,7 +60,7 @@ class _AccountPageState extends State<AccountPage> {
                       child: Icon(
                         Symbols.person,
                         size: 32,
-                        color: Color(0xff2563EB),
+                        color: AppColor.primary,
                       ),
                     ),
 
@@ -103,6 +104,17 @@ class _AccountPageState extends State<AccountPage> {
                     ),
                   ],
                 ),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const SellerHomeScreen(),
+                    ),
+                  );
+                },
+                child: Text("Seller"),
               ),
             ],
           ),
