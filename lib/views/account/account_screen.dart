@@ -15,6 +15,7 @@ class _AccountScreenState extends State<AccountScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppColor.backgroundLight,
       appBar: AppBar(
         toolbarHeight: 58,
         backgroundColor: AppColor.primary,

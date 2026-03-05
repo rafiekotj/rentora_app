@@ -4,6 +4,7 @@ import 'package:rentora_app/core/extensions/navigator_extension.dart';
 import 'package:rentora_app/models/user_model.dart';
 import 'package:rentora_app/services/database/db_helper.dart';
 import 'package:rentora_app/views/auth/login_screen.dart';
+import 'package:rentora_app/views/home/home_screen.dart';
 import 'package:rentora_app/widgets/custom_button.dart';
 import 'package:rentora_app/widgets/custom_text_field.dart';
 
@@ -143,9 +144,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 // ===== BUTTON DAFTAR =====
                 CustomButton(
                   text: "Daftar",
-                  onPressed: () {
+                  onPressed: () async {
                     if (_formKey.currentState!.validate()) {
-                      DBHelper.registerUser(
+                      // Simpan user
+                      await DBHelper.registerUser(
                         UserModel(
                           email: emailController.text,
                           password: passwordController.text,
@@ -153,11 +155,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         ),
                       );
 
+                      // Tampilkan snack bar sukses
                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text("Pendaftaran Berhasil")),
+                        const SnackBar(content: Text("Pendaftaran Berhasil")),
                       );
 
-                      context.push(LoginScreen());
+                      // Langsung pindah ke HomeScreen
+                      context.pushReplacement(const HomeScreen());
                     }
                   },
                 ),

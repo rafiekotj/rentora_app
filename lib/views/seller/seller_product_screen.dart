@@ -1,6 +1,9 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:rentora_app/core/constants/app_color.dart';
+import 'package:rentora_app/models/produk_model.dart';
+import 'package:rentora_app/services/database/db_helper.dart';
 import 'package:rentora_app/views/seller/seller_cu_product_screen.dart';
 
 class SellerProductScreen extends StatefulWidget {
@@ -11,6 +14,22 @@ class SellerProductScreen extends StatefulWidget {
 }
 
 class _SellerProductScreenState extends State<SellerProductScreen> {
+  List<ProdukModel> produkList = [];
+
+  Future<void> loadProduk() async {
+    final data = await DBHelper.getAllProduk();
+
+    setState(() {
+      produkList = data;
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    loadProduk();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -36,7 +55,7 @@ class _SellerProductScreenState extends State<SellerProductScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ===== SORT & FILTER =====
+            //  SORT & FILTER
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
               child: Row(
@@ -107,211 +126,14 @@ class _SellerProductScreenState extends State<SellerProductScreen> {
 
             const SizedBox(height: 8),
 
-            Container(
-              padding: const EdgeInsets.all(12),
-              margin: const EdgeInsets.only(bottom: 8),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    width: 80,
-                    height: 80,
-                    decoration: BoxDecoration(
-                      color: Colors.grey.shade200,
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: const Icon(Symbols.image, color: Colors.grey),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          "Kamera Canon EOS 1500D",
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                          ),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        const SizedBox(height: 4),
-                        const Text(
-                          "Kamera & Fotografi",
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: AppColor.textHint,
-                          ),
-                        ),
-                        const SizedBox(height: 6),
-                        Row(
-                          children: const [
-                            Text(
-                              "Rp 150.000 ",
-                              style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
-                                color: AppColor.secondary,
-                              ),
-                            ),
-                            Text(
-                              "/ hari",
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: AppColor.textHint,
-                              ),
-                            ),
-                          ],
-                        ),
+            ListView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: produkList.length,
+              itemBuilder: (context, index) {
+                final produk = produkList[index];
 
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            const Text(
-                              "Stok: 2",
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: AppColor.textSecondary,
-                              ),
-                            ),
-                            Row(
-                              children: [
-                                IconButton(
-                                  onPressed: () {},
-                                  icon: const Icon(
-                                    Icons.edit_outlined,
-                                    size: 20,
-                                    color: Colors.orange,
-                                  ),
-                                ),
-                                IconButton(
-                                  onPressed: () {},
-                                  icon: const Icon(
-                                    Icons.delete_outline,
-                                    size: 20,
-                                    color: Colors.red,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            Container(
-              padding: const EdgeInsets.all(12),
-              margin: const EdgeInsets.only(bottom: 8),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    width: 80,
-                    height: 80,
-                    decoration: BoxDecoration(
-                      color: Colors.grey.shade200,
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: const Icon(Symbols.image, color: Colors.grey),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          "Kamera Canon EOS 1500D",
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                          ),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        const SizedBox(height: 4),
-                        const Text(
-                          "Kamera & Fotografi",
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: AppColor.textHint,
-                          ),
-                        ),
-                        const SizedBox(height: 6),
-                        Row(
-                          children: const [
-                            Text(
-                              "Rp 150.000 ",
-                              style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
-                                color: AppColor.secondary,
-                              ),
-                            ),
-                            Text(
-                              "/ hari",
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: AppColor.textHint,
-                              ),
-                            ),
-                          ],
-                        ),
-
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            const Text(
-                              "Stok: 2",
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: AppColor.textSecondary,
-                              ),
-                            ),
-                            Row(
-                              children: [
-                                IconButton(
-                                  onPressed: () {},
-                                  icon: const Icon(
-                                    Icons.edit_outlined,
-                                    size: 20,
-                                    color: Colors.orange,
-                                  ),
-                                ),
-                                IconButton(
-                                  onPressed: () {},
-                                  icon: const Icon(
-                                    Icons.delete_outline,
-                                    size: 20,
-                                    color: Colors.red,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            Stack(
-              children: [
-                Container(
+                return Container(
                   padding: const EdgeInsets.all(12),
                   margin: const EdgeInsets.only(bottom: 8),
                   decoration: BoxDecoration(
@@ -321,6 +143,7 @@ class _SellerProductScreenState extends State<SellerProductScreen> {
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      // IMAGE
                       Container(
                         width: 80,
                         height: 80,
@@ -328,61 +151,155 @@ class _SellerProductScreenState extends State<SellerProductScreen> {
                           color: Colors.grey.shade200,
                           borderRadius: BorderRadius.circular(6),
                         ),
-                        child: const Icon(Symbols.image, color: Colors.grey),
+                        child: produk.images.isNotEmpty
+                            ? ClipRRect(
+                                borderRadius: BorderRadius.circular(6),
+                                child: Image.file(
+                                  File(produk.images.first),
+                                  fit: BoxFit.cover,
+                                ),
+                              )
+                            : const Icon(Symbols.image, color: Colors.grey),
                       ),
+
                       const SizedBox(width: 12),
+
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text(
-                              "Lighting Studio Kit",
-                              style: TextStyle(
+                            // NAMA PRODUK
+                            Text(
+                              produk.namaProduk,
+                              style: const TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w600,
                               ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
                             ),
+
                             const SizedBox(height: 4),
-                            const Text(
-                              "Peralatan Event",
-                              style: TextStyle(
+
+                            // KATEGORI
+                            Text(
+                              produk.kategori,
+                              style: const TextStyle(
                                 fontSize: 12,
                                 color: AppColor.textHint,
                               ),
                             ),
+
                             const SizedBox(height: 6),
-                            const Text(
-                              "Rp 200.000 / hari",
-                              style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
-                                color: AppColor.secondary,
-                              ),
+
+                            Row(
+                              children: [
+                                Text(
+                                  "Rp ${produk.hargaPerHari}",
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600,
+                                    color: AppColor.secondary,
+                                  ),
+                                ),
+                                const Text(
+                                  " / hari",
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: AppColor.textHint,
+                                  ),
+                                ),
+                              ],
                             ),
 
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                const Text(
-                                  "Stok: 0",
-                                  style: TextStyle(
+                                // STOK
+                                Text(
+                                  "Stok: ${produk.stok}",
+                                  style: const TextStyle(
                                     fontSize: 12,
-                                    color: Colors.red,
-                                    fontWeight: FontWeight.w600,
+                                    color: AppColor.textSecondary,
                                   ),
                                 ),
+
                                 Row(
                                   children: [
+                                    // EDIT
                                     IconButton(
-                                      onPressed: () {},
+                                      onPressed: () async {
+                                        await Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) =>
+                                                SellerCuProductScreen(
+                                                  produk: produk,
+                                                ),
+                                          ),
+                                        );
+
+                                        loadProduk();
+                                      },
                                       icon: const Icon(
                                         Icons.edit_outlined,
                                         size: 20,
                                         color: Colors.orange,
                                       ),
                                     ),
+
+                                    // DELETE
                                     IconButton(
-                                      onPressed: () {},
+                                      onPressed: () async {
+                                        final confirm = await showDialog<bool>(
+                                          context: context,
+                                          builder: (context) => AlertDialog(
+                                            title: const Text(
+                                              "Konfirmasi Hapus",
+                                            ),
+                                            content: const Text(
+                                              "Apakah kamu yakin ingin menghapus produk ini?",
+                                            ),
+                                            actions: [
+                                              TextButton(
+                                                onPressed: () => Navigator.pop(
+                                                  context,
+                                                  false,
+                                                ),
+                                                child: const Text("Batal"),
+                                              ),
+                                              TextButton(
+                                                onPressed: () => Navigator.pop(
+                                                  context,
+                                                  true,
+                                                ),
+                                                child: const Text(
+                                                  "Hapus",
+                                                  style: TextStyle(
+                                                    color: Colors.red,
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        );
+
+                                        if (confirm == true) {
+                                          await DBHelper.deleteProduk(
+                                            produk.id!,
+                                          );
+                                          loadProduk();
+                                          ScaffoldMessenger.of(
+                                            context,
+                                          ).showSnackBar(
+                                            const SnackBar(
+                                              content: Text(
+                                                "Produk berhasil dihapus",
+                                              ),
+                                            ),
+                                          );
+                                        }
+                                      },
                                       icon: const Icon(
                                         Icons.delete_outline,
                                         size: 20,
@@ -398,18 +315,8 @@ class _SellerProductScreenState extends State<SellerProductScreen> {
                       ),
                     ],
                   ),
-                ),
-
-                Positioned.fill(
-                  child: Container(
-                    margin: const EdgeInsets.only(bottom: 8),
-                    decoration: BoxDecoration(
-                      color: Colors.grey.withOpacity(0.5),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                ),
-              ],
+                );
+              },
             ),
           ],
         ),
@@ -429,13 +336,15 @@ class _SellerProductScreenState extends State<SellerProductScreen> {
         ),
         child: SafeArea(
           child: ElevatedButton(
-            onPressed: () {
-              Navigator.push(
+            onPressed: () async {
+              await Navigator.push(
                 context,
                 MaterialPageRoute(
                   builder: (context) => const SellerCuProductScreen(),
                 ),
               );
+
+              loadProduk();
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColor.primary,

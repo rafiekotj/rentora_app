@@ -15,7 +15,6 @@ class PreferenceHandler {
 
   //CREATE
   Future<void> storingIsLogin(bool isLogin) async {
-    // final prefs = await SharedPreferences.getInstance();
     _preferences.setBool(_isLogin, isLogin);
   }
 

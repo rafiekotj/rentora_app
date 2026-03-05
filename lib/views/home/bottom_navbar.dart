@@ -34,9 +34,7 @@ class _BottomNavbarState extends State<BottomNavbar> {
     return Scaffold(
       body: _widgetOptions.elementAt(_selectedIndex),
       bottomNavigationBar: BottomNavigationBar(
-        // TAMBAHKAN BARIS INI:
         type: BottomNavigationBarType.fixed,
-
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(
             icon: Icon(Symbols.home, weight: 700),
