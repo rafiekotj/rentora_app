@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 
-class TransactionPage extends StatefulWidget {
-  const TransactionPage({super.key});
+class TransactionScreen extends StatefulWidget {
+  const TransactionScreen({super.key});
 
   @override
-  State<TransactionPage> createState() => _TransactionPageState();
+  State<TransactionScreen> createState() => _TransactionScreenState();
 }
 
-class _TransactionPageState extends State<TransactionPage> {
+class _TransactionScreenState extends State<TransactionScreen> {
   @override
   Widget build(BuildContext context) {
     return const Placeholder();

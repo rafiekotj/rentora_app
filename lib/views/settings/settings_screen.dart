@@ -35,7 +35,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               isOutlined: true,
               onPressed: () {
                 PreferenceHandler().deleteIsLogin();
-                context.pushAndRemoveAll(LoginPage());
+                context.pushAndRemoveAll(LoginScreen());
               },
             ),
           ],

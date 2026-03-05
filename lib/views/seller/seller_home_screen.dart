@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:rentora_app/core/constants/app_color.dart';
 import 'package:rentora_app/views/seller/seller_product_screen.dart';
-import 'package:rentora_app/views/settings/settings_screen.dart';
 
 class SellerHomeScreen extends StatefulWidget {
   const SellerHomeScreen({super.key});
@@ -30,59 +29,41 @@ class _SellerHomeScreenState extends State<SellerHomeScreen> {
             onPressed: () {},
             icon: const Icon(Symbols.notifications, weight: 600),
           ),
-          IconButton(
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const SettingsScreen()),
-              );
-            },
-            icon: const Icon(Symbols.settings, weight: 600),
-          ),
 
           const SizedBox(width: 8),
         ],
       ),
       body: SingleChildScrollView(
-        padding: EdgeInsets.all(8),
         child: Column(
           children: [
             Container(
-              height: 104,
-              padding: EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.all(Radius.circular(8)),
-                gradient: LinearGradient(
-                  colors: [Color(0xff3B82F6), Color(0xff1E40AF)],
-                  begin: Alignment.centerLeft,
-                  end: Alignment.centerRight,
-                ),
-              ),
-              child: Row(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+              decoration: BoxDecoration(color: AppColor.primary),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  CircleAvatar(
-                    radius: 28,
-                    backgroundColor: Colors.white,
-                    child: Icon(
-                      Symbols.person,
-                      size: 32,
-                      color: AppColor.primary,
-                    ),
-                  ),
-
-                  SizedBox(width: 24),
-
-                  Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                  Row(
                     children: [
-                      Text(
-                        "rafie@gmail.com",
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.w600,
-                          color: AppColor.textOnPrimary,
-                        ),
+                      CircleAvatar(
+                        radius: 28,
+                        backgroundColor: Colors.white,
+                        child: Icon(Icons.person, size: 30),
+                      ),
+
+                      const SizedBox(width: 16),
+
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: const [
+                          Text(
+                            "rafie@gmail.com",
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w600,
+                              color: AppColor.textOnPrimary,
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
@@ -90,222 +71,378 @@ class _SellerHomeScreenState extends State<SellerHomeScreen> {
               ),
             ),
 
-            SizedBox(height: 8),
-
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
+            Padding(
+              padding: EdgeInsets.all(8),
+              child: Column(
                 children: [
-                  Expanded(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: const [
-                        Text(
-                          "0",
-                          style: TextStyle(
-                            fontSize: 22,
-                            fontWeight: FontWeight.w500,
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: const [
+                              Text(
+                                "0",
+                                style: TextStyle(
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              SizedBox(height: 8),
+                              Text(
+                                "Perlu Dikirim",
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: AppColor.textSecondary,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                        SizedBox(height: 8),
-                        Text(
-                          "Perlu Dikirim",
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: AppColor.textSecondary,
+
+                        Expanded(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: const [
+                              Text(
+                                "0",
+                                style: TextStyle(
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              SizedBox(height: 8),
+                              Text(
+                                "Pembatalan",
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: AppColor.textSecondary,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        Expanded(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: const [
+                              Text(
+                                "0",
+                                style: TextStyle(
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              SizedBox(height: 8),
+                              Text(
+                                "Pengembalian",
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: AppColor.textSecondary,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        Expanded(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: const [
+                              Text(
+                                "0",
+                                style: TextStyle(
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              SizedBox(height: 8),
+                              Text(
+                                "Penilaian Perlu\nDibalas",
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: AppColor.textSecondary,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ],
                     ),
                   ),
 
-                  Expanded(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: const [
-                        Text(
-                          "0",
-                          style: TextStyle(
-                            fontSize: 22,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        SizedBox(height: 8),
-                        Text(
-                          "Pembatalan",
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: AppColor.textSecondary,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
+                  SizedBox(height: 8),
 
-                  Expanded(
+                  Container(
+                    color: Colors.white,
+                    padding: const EdgeInsets.all(16),
                     child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: const [
-                        Text(
-                          "0",
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          "Menu Seller",
                           style: TextStyle(
-                            fontSize: 22,
-                            fontWeight: FontWeight.w500,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
-                        SizedBox(height: 8),
-                        Text(
-                          "Pengembalian",
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: AppColor.textSecondary,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
 
-                  Expanded(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: const [
-                        Text(
-                          "0",
-                          style: TextStyle(
-                            fontSize: 22,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        SizedBox(height: 8),
-                        Text(
-                          "Penilaian Perlu\nDibalas",
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: AppColor.textSecondary,
-                          ),
+                        const SizedBox(height: 16),
+
+                        Column(
+                          children: [
+                            GestureDetector(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        const SellerProductScreen(),
+                                  ),
+                                );
+                              },
+                              child: Container(
+                                padding: const EdgeInsets.all(14),
+                                decoration: BoxDecoration(
+                                  border: Border.all(color: AppColor.border),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Row(
+                                  children: const [
+                                    Icon(
+                                      Symbols.inventory_2,
+                                      size: 24,
+                                      weight: 600,
+                                      color: Color(0xFF5C6BC0),
+                                    ),
+                                    SizedBox(width: 12),
+                                    Expanded(
+                                      child: Text(
+                                        "Produk",
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                    ),
+                                    Icon(
+                                      Symbols.chevron_right,
+                                      size: 20,
+                                      weight: 600,
+                                      color: AppColor.textHint,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+
+                            const SizedBox(height: 8),
+
+                            GestureDetector(
+                              onTap: () {},
+                              child: Container(
+                                padding: const EdgeInsets.all(14),
+                                decoration: BoxDecoration(
+                                  border: Border.all(color: AppColor.border),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Row(
+                                  children: const [
+                                    Icon(
+                                      Symbols.receipt_long,
+                                      size: 24,
+                                      weight: 600,
+                                      color: Color(0xFFFFA000),
+                                    ),
+                                    SizedBox(width: 12),
+                                    Expanded(
+                                      child: Text(
+                                        "Pesanan",
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                    ),
+                                    Icon(
+                                      Symbols.chevron_right,
+                                      size: 20,
+                                      weight: 600,
+                                      color: AppColor.textHint,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+
+                            const SizedBox(height: 8),
+
+                            GestureDetector(
+                              onTap: () {},
+                              child: Container(
+                                padding: const EdgeInsets.all(14),
+                                decoration: BoxDecoration(
+                                  border: Border.all(color: AppColor.border),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Row(
+                                  children: const [
+                                    Icon(
+                                      Symbols.account_balance_wallet,
+                                      size: 24,
+                                      weight: 600,
+                                      color: Color(0xFF00A86B),
+                                    ),
+                                    SizedBox(width: 12),
+                                    Expanded(
+                                      child: Text(
+                                        "Keuangan",
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                    ),
+                                    Icon(
+                                      Symbols.chevron_right,
+                                      size: 20,
+                                      weight: 600,
+                                      color: AppColor.textHint,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+
+                            const SizedBox(height: 8),
+
+                            GestureDetector(
+                              onTap: () {},
+                              child: Container(
+                                padding: const EdgeInsets.all(14),
+                                decoration: BoxDecoration(
+                                  border: Border.all(color: AppColor.border),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Row(
+                                  children: const [
+                                    Icon(
+                                      Symbols.insights,
+                                      size: 24,
+                                      weight: 600,
+                                      color: Color(0xFF3949AB),
+                                    ),
+                                    SizedBox(width: 12),
+                                    Expanded(
+                                      child: Text(
+                                        "Performa",
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                    ),
+                                    Icon(
+                                      Symbols.chevron_right,
+                                      size: 20,
+                                      weight: 600,
+                                      color: AppColor.textHint,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+
+                            const SizedBox(height: 8),
+
+                            GestureDetector(
+                              onTap: () {},
+                              child: Container(
+                                padding: const EdgeInsets.all(14),
+                                decoration: BoxDecoration(
+                                  border: Border.all(color: AppColor.border),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Row(
+                                  children: const [
+                                    Icon(
+                                      Symbols.percent_discount,
+                                      size: 24,
+                                      weight: 600,
+                                      color: Color(0xFFFF6F61),
+                                    ),
+                                    SizedBox(width: 12),
+                                    Expanded(
+                                      child: Text(
+                                        "Promosi Toko",
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                    ),
+                                    Icon(
+                                      Symbols.chevron_right,
+                                      size: 20,
+                                      weight: 600,
+                                      color: AppColor.textHint,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+
+                            const SizedBox(height: 8),
+
+                            GestureDetector(
+                              onTap: () {},
+                              child: Container(
+                                padding: const EdgeInsets.all(14),
+                                decoration: BoxDecoration(
+                                  border: Border.all(color: AppColor.border),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Row(
+                                  children: const [
+                                    Icon(
+                                      Symbols.help,
+                                      size: 24,
+                                      weight: 600,
+                                      color: Color(0xFF0097A7),
+                                    ),
+                                    SizedBox(width: 12),
+                                    Expanded(
+                                      child: Text(
+                                        "Pusat Bantuan",
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                    ),
+                                    Icon(
+                                      Symbols.chevron_right,
+                                      size: 20,
+                                      weight: 600,
+                                      color: AppColor.textHint,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
                   ),
                 ],
-              ),
-            ),
-
-            SizedBox(height: 8),
-
-            Container(
-              width: double.infinity,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(12),
-                child: Column(
-                  children: [
-                    ListTile(
-                      leading: const Icon(
-                        Symbols.inventory_2,
-                        color: AppColor.primary,
-                      ),
-                      title: const Text(
-                        "Produk",
-                        style: TextStyle(fontWeight: FontWeight.w500),
-                      ),
-                      trailing: const Icon(
-                        Symbols.chevron_right,
-                        color: AppColor.textHint,
-                      ),
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const SellerProductScreen(),
-                          ),
-                        );
-                      },
-                    ),
-
-                    const Divider(
-                      height: 1,
-                      color: AppColor.divider,
-                      indent: 16,
-                      endIndent: 16,
-                    ),
-
-                    ListTile(
-                      leading: const Icon(
-                        Symbols.receipt_long,
-                        color: AppColor.primary,
-                      ),
-                      title: const Text(
-                        "Pesanan",
-                        style: TextStyle(fontWeight: FontWeight.w500),
-                      ),
-                      trailing: const Icon(
-                        Symbols.chevron_right,
-                        color: AppColor.textHint,
-                      ),
-                      onTap: () {},
-                    ),
-
-                    const Divider(
-                      height: 1,
-                      color: AppColor.divider,
-                      indent: 16,
-                      endIndent: 16,
-                    ),
-
-                    ListTile(
-                      leading: const Icon(
-                        Symbols.account_balance_wallet,
-                        color: AppColor.primary,
-                      ),
-                      title: const Text(
-                        "Keuangan",
-                        style: TextStyle(fontWeight: FontWeight.w500),
-                      ),
-                      trailing: const Icon(
-                        Symbols.chevron_right,
-                        color: AppColor.textHint,
-                      ),
-                      onTap: () {},
-                    ),
-
-                    const Divider(
-                      height: 1,
-                      color: AppColor.divider,
-                      indent: 16,
-                      endIndent: 16,
-                    ),
-
-                    ListTile(
-                      leading: const Icon(
-                        Symbols.insights,
-                        color: AppColor.primary,
-                      ),
-                      title: const Text(
-                        "Performa",
-                        style: TextStyle(fontWeight: FontWeight.w500),
-                      ),
-                      trailing: const Icon(
-                        Symbols.chevron_right,
-                        color: AppColor.textHint,
-                      ),
-                      onTap: () {},
-                    ),
-                  ],
-                ),
               ),
             ),
           ],

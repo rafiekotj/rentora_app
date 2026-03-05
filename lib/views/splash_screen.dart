@@ -30,7 +30,7 @@ class _SplashScreenState extends State<SplashScreen> {
     if (data == true) {
       context.pushAndRemoveAll(BottomNavbar());
     } else {
-      context.pushAndRemoveAll(LoginPage());
+      context.pushAndRemoveAll(LoginScreen());
     }
   }
 

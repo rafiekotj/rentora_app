@@ -17,10 +17,10 @@ class _BottomNavbarState extends State<BottomNavbar> {
   int _selectedIndex = 0;
 
   static const List<Widget> _widgetOptions = <Widget>[
-    HomePage(),
-    NotificationPage(),
-    TransactionPage(),
-    AccountPage(),
+    HomeScreen(),
+    NotificationScreen(),
+    TransactionScreen(),
+    AccountScreen(),
   ];
 
   void _onItemTapped(int index) {
