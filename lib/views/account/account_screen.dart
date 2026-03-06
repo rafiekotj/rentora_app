@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:rentora_app/core/constants/app_color.dart';
+import 'package:rentora_app/services/local_storage/preference_handler.dart';
 import 'package:rentora_app/views/seller/seller_home_screen.dart';
 import 'package:rentora_app/views/settings/settings_screen.dart';
 
@@ -12,6 +13,21 @@ class AccountScreen extends StatefulWidget {
 }
 
 class _AccountScreenState extends State<AccountScreen> {
+  String _email = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserData();
+  }
+
+  Future<void> _loadUserData() async {
+    final email = await PreferenceHandler.getUserEmail();
+    setState(() {
+      _email = email ?? 'user@example.com';
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -26,54 +42,51 @@ class _AccountScreenState extends State<AccountScreen> {
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => const SettingsScreen()),
+                MaterialPageRoute(builder: (context) => SettingsScreen()),
               );
             },
-            icon: const Icon(Symbols.settings, weight: 600),
+            icon: Icon(Symbols.settings, weight: 600),
           ),
-
-          const SizedBox(width: 8),
+          SizedBox(width: 8),
         ],
       ),
       body: SingleChildScrollView(
         child: Column(
           children: [
+            // PROFIL AKUN
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 20),
               decoration: BoxDecoration(color: AppColor.primary),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              child: Row(
                 children: [
-                  Row(
+                  CircleAvatar(
+                    radius: 28,
+                    backgroundColor: Colors.white,
+                    child: Icon(Icons.person, size: 30),
+                  ),
+
+                  SizedBox(width: 16),
+
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      CircleAvatar(
-                        radius: 28,
-                        backgroundColor: Colors.white,
-                        child: Icon(Icons.person, size: 30),
+                      Text(
+                        _email,
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
+                          color: AppColor.textOnPrimary,
+                        ),
                       ),
 
-                      const SizedBox(width: 16),
+                      SizedBox(height: 8),
 
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: const [
-                          Text(
-                            "rafie@gmail.com",
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w600,
-                              color: AppColor.textOnPrimary,
-                            ),
-                          ),
-                          SizedBox(height: 8),
-                          Text(
-                            "12 Pengikut • 72 Mengikuti",
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: AppColor.textOnPrimary,
-                            ),
-                          ),
-                        ],
+                      Text(
+                        "12 Pengikut • 72 Mengikuti",
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: AppColor.textOnPrimary,
+                        ),
                       ),
                     ],
                   ),
@@ -81,127 +94,39 @@ class _AccountScreenState extends State<AccountScreen> {
               ),
             ),
 
+            // PEMINJAMAN SAYA SECTION
             Padding(
               padding: EdgeInsets.all(8),
               child: Column(
                 children: [
-                  Container(
-                    color: Colors.white,
-                    padding: const EdgeInsets.all(16),
+                  SectionCard(
+                    title: "Peminjaman Saya",
                     child: Column(
                       children: [
                         Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
-                            Text(
-                              "Pesanan Saya",
-                              style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                            GestureDetector(
+                            OrderStatusItem(
+                              icon: Symbols.receipt_long,
+                              label: "Belum Bayar",
                               onTap: () {},
-                              child: Row(
-                                children: [
-                                  Text(
-                                    "Riwayat Pesanan",
-                                    style: TextStyle(
-                                      color: AppColor.textSecondary,
-                                      fontSize: 12,
-                                    ),
-                                  ),
-                                  Icon(
-                                    Symbols.chevron_right,
-                                    size: 16,
-                                    weight: 600,
-                                    color: AppColor.textHint,
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-
-                        const SizedBox(height: 16),
-
-                        Row(
-                          children: [
-                            Expanded(
-                              child: GestureDetector(
-                                onTap: () {},
-                                child: Column(
-                                  children: const [
-                                    Icon(
-                                      Symbols.receipt_long,
-                                      size: 28,
-                                      weight: 600,
-                                    ),
-                                    SizedBox(height: 6),
-                                    Text(
-                                      "Belum Bayar",
-                                      style: TextStyle(fontSize: 12),
-                                    ),
-                                  ],
-                                ),
-                              ),
                             ),
 
-                            Expanded(
-                              child: GestureDetector(
-                                onTap: () {},
-                                child: Column(
-                                  children: const [
-                                    Icon(
-                                      Symbols.inventory_2,
-                                      size: 28,
-                                      weight: 600,
-                                    ),
-                                    SizedBox(height: 6),
-                                    Text(
-                                      "Diambil",
-                                      style: TextStyle(fontSize: 12),
-                                    ),
-                                  ],
-                                ),
-                              ),
+                            OrderStatusItem(
+                              icon: Symbols.inventory_2,
+                              label: "Diambil",
+                              onTap: () {},
                             ),
 
-                            Expanded(
-                              child: GestureDetector(
-                                onTap: () {},
-                                child: Column(
-                                  children: const [
-                                    Icon(
-                                      Symbols.assignment_return,
-                                      size: 28,
-                                      weight: 600,
-                                    ),
-                                    SizedBox(height: 6),
-                                    Text(
-                                      "Pengembalian",
-                                      style: TextStyle(fontSize: 12),
-                                    ),
-                                  ],
-                                ),
-                              ),
+                            OrderStatusItem(
+                              icon: Symbols.assignment_return,
+                              label: "Pengembalian",
+                              onTap: () {},
                             ),
 
-                            Expanded(
-                              child: GestureDetector(
-                                onTap: () {},
-                                child: Column(
-                                  children: const [
-                                    Icon(Symbols.star, size: 28, weight: 600),
-                                    SizedBox(height: 6),
-                                    Text(
-                                      "Ulasan",
-                                      style: TextStyle(fontSize: 12),
-                                    ),
-                                  ],
-                                ),
-                              ),
+                            OrderStatusItem(
+                              icon: Symbols.star,
+                              label: "Ulasan",
+                              onTap: () {},
                             ),
                           ],
                         ),
@@ -209,245 +134,74 @@ class _AccountScreenState extends State<AccountScreen> {
                     ),
                   ),
 
-                  const SizedBox(height: 8),
-
-                  Container(
-                    color: Colors.white,
-                    padding: const EdgeInsets.all(16),
+                  // AKTIVITAS SECTION
+                  SectionCard(
+                    title: "Aktivitas",
                     child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
-                          "Aktivitas",
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                          ),
+                        MenuItemCard(
+                          icon: Symbols.receipt_long,
+                          text: "Riwayat Pesanan",
+                          iconColor: Colors.blue,
+                          onTap: () {},
                         ),
 
-                        const SizedBox(height: 16),
+                        SizedBox(height: 8),
 
-                        Column(
-                          children: [
-                            GestureDetector(
-                              onTap: () {},
-                              child: Container(
-                                padding: const EdgeInsets.all(14),
-                                decoration: BoxDecoration(
-                                  border: Border.all(color: AppColor.border),
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: Row(
-                                  children: const [
-                                    Icon(
-                                      Symbols.favorite,
-                                      size: 24,
-                                      weight: 600,
-                                      color: Colors.red,
-                                    ),
-                                    SizedBox(width: 12),
-                                    Expanded(
-                                      child: Text(
-                                        "Favorit Saya",
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.w500,
-                                        ),
-                                      ),
-                                    ),
-                                    Icon(
-                                      Symbols.chevron_right,
-                                      size: 20,
-                                      weight: 600,
-                                      color: AppColor.textHint,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
+                        MenuItemCard(
+                          icon: Symbols.favorite,
+                          text: "Favorit Saya",
+                          iconColor: Colors.red,
+                          onTap: () {},
+                        ),
 
-                            const SizedBox(height: 8),
+                        SizedBox(height: 8),
 
-                            GestureDetector(
-                              onTap: () {},
-                              child: Container(
-                                padding: const EdgeInsets.all(14),
-                                decoration: BoxDecoration(
-                                  border: Border.all(color: AppColor.border),
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: Row(
-                                  children: const [
-                                    Icon(
-                                      Symbols.history,
-                                      size: 24,
-                                      weight: 600,
-                                      color: Colors.orange,
-                                    ),
-                                    SizedBox(width: 12),
-                                    Expanded(
-                                      child: Text(
-                                        "Terakhir Dilihat",
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.w500,
-                                        ),
-                                      ),
-                                    ),
-                                    Icon(
-                                      Symbols.chevron_right,
-                                      size: 20,
-                                      weight: 600,
-                                      color: AppColor.textHint,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
+                        MenuItemCard(
+                          icon: Symbols.history,
+                          text: "Terakhir Dilihat",
+                          iconColor: Colors.orange,
+                          onTap: () {},
+                        ),
 
-                            const SizedBox(height: 8),
+                        SizedBox(height: 8),
 
-                            GestureDetector(
-                              onTap: () {},
-                              child: Container(
-                                padding: const EdgeInsets.all(14),
-                                decoration: BoxDecoration(
-                                  border: Border.all(color: AppColor.border),
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: Row(
-                                  children: const [
-                                    Icon(
-                                      Symbols.shopping_bag,
-                                      size: 24,
-                                      weight: 600,
-                                      color: Colors.teal,
-                                    ),
-                                    SizedBox(width: 12),
-                                    Expanded(
-                                      child: Text(
-                                        "Beli Lagi",
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.w500,
-                                        ),
-                                      ),
-                                    ),
-                                    Icon(
-                                      Symbols.chevron_right,
-                                      size: 20,
-                                      weight: 600,
-                                      color: AppColor.textHint,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
+                        MenuItemCard(
+                          icon: Symbols.shopping_bag,
+                          text: "Beli Lagi",
+                          iconColor: Colors.teal,
+                          onTap: () {},
+                        ),
 
-                            const SizedBox(height: 8),
+                        SizedBox(height: 8),
 
-                            GestureDetector(
-                              onTap: () {},
-                              child: Container(
-                                padding: const EdgeInsets.all(14),
-                                decoration: BoxDecoration(
-                                  border: Border.all(color: AppColor.border),
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: Row(
-                                  children: const [
-                                    Icon(
-                                      Symbols.workspace_premium,
-                                      size: 24,
-                                      weight: 600,
-                                      color: Colors.indigo,
-                                    ),
-                                    SizedBox(width: 12),
-                                    Expanded(
-                                      child: Text(
-                                        "Member Rentora",
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.w500,
-                                        ),
-                                      ),
-                                    ),
-                                    Icon(
-                                      Symbols.chevron_right,
-                                      size: 20,
-                                      weight: 600,
-                                      color: AppColor.textHint,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ],
+                        MenuItemCard(
+                          icon: Symbols.workspace_premium,
+                          text: "Member Rentora",
+                          iconColor: Colors.indigo,
+                          onTap: () {},
                         ),
                       ],
                     ),
                   ),
 
-                  const SizedBox(height: 8),
-
-                  Container(
-                    color: Colors.white,
-                    padding: const EdgeInsets.all(16),
+                  // SELLER SECTION
+                  SectionCard(
+                    title: "Seller",
                     child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
-                          "Seller",
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-
-                        const SizedBox(height: 16),
-
-                        Column(
-                          children: [
-                            GestureDetector(
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) =>
-                                        const SellerHomeScreen(),
-                                  ),
-                                );
-                              },
-                              child: Container(
-                                padding: const EdgeInsets.all(14),
-                                decoration: BoxDecoration(
-                                  border: Border.all(color: AppColor.border),
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: Row(
-                                  children: const [
-                                    Icon(
-                                      Symbols.storefront,
-                                      size: 24,
-                                      weight: 600,
-                                      color: Colors.blue,
-                                    ),
-                                    SizedBox(width: 12),
-                                    Expanded(
-                                      child: Text(
-                                        "Toko Saya",
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.w500,
-                                        ),
-                                      ),
-                                    ),
-                                    Icon(
-                                      Symbols.chevron_right,
-                                      size: 20,
-                                      weight: 600,
-                                      color: AppColor.textHint,
-                                    ),
-                                  ],
-                                ),
+                        MenuItemCard(
+                          icon: Symbols.storefront,
+                          text: "Toko Saya",
+                          iconColor: Colors.blue,
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => SellerHomeScreen(),
                               ),
-                            ),
-                          ],
+                            );
+                          },
                         ),
                       ],
                     ),
@@ -455,6 +209,105 @@ class _AccountScreenState extends State<AccountScreen> {
                 ],
               ),
             ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class OrderStatusItem extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+
+  const OrderStatusItem({
+    super.key,
+    required this.icon,
+    required this.label,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: GestureDetector(
+        onTap: onTap,
+        child: Column(
+          children: [
+            Icon(icon, size: 28, weight: 600),
+            SizedBox(height: 6),
+            Text(label, style: TextStyle(fontSize: 12)),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class SectionCard extends StatelessWidget {
+  final String title;
+  final Widget child;
+
+  const SectionCard({super.key, required this.title, required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.all(16),
+      margin: EdgeInsets.only(bottom: 8),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+          ),
+          SizedBox(height: 16),
+          child,
+        ],
+      ),
+    );
+  }
+}
+
+class MenuItemCard extends StatelessWidget {
+  final IconData icon;
+  final String text;
+  final Color iconColor;
+  final VoidCallback onTap;
+
+  const MenuItemCard({
+    super.key,
+    required this.icon,
+    required this.text,
+    this.iconColor = Colors.black,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          border: Border.all(color: AppColor.border),
+          borderRadius: BorderRadius.circular(8),
+          color: Colors.white,
+        ),
+        child: Row(
+          children: [
+            Icon(icon, size: 24, color: iconColor),
+            SizedBox(width: 12),
+            Expanded(
+              child: Text(text, style: TextStyle(fontWeight: FontWeight.w500)),
+            ),
+            Icon(Symbols.chevron_right, size: 20, color: AppColor.textHint),
           ],
         ),
       ),

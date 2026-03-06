@@ -7,6 +7,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:rentora_app/core/constants/app_color.dart';
 import 'package:rentora_app/models/produk_model.dart';
 import 'package:rentora_app/services/database/db_helper.dart';
+import 'package:rentora_app/widgets/custom_button.dart';
 
 class SellerCuProductScreen extends StatefulWidget {
   final ProdukModel? produk;
@@ -69,20 +70,19 @@ class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
   }
 
   Future<void> _simpanProduk() async {
-    // validasi sama seperti sebelumnya
     if (_images.isEmpty ||
         _namaProdukController.text.isEmpty ||
         _deskripsiProdukController.text.isEmpty ||
         _selectedKategori == null ||
         (_hargaPerHari == null || _hargaPerHari!.isEmpty)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Lengkapi semua data produk")),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Lengkapi semua data produk")));
       return;
     }
 
     final produk = ProdukModel(
-      id: widget.produk?.id, // pakai id lama kalau edit
+      id: widget.produk?.id,
       images: _images.map((e) => e.path).toList(),
       namaProduk: _namaProdukController.text,
       deskripsiProduk: _deskripsiProdukController.text,
@@ -95,23 +95,21 @@ class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
 
     try {
       if (widget.produk != null) {
-        await DBHelper.updateProduk(produk); // edit
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Produk berhasil diupdate")),
-        );
+        await DBHelper.updateProduk(produk);
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text("Produk berhasil diupdate")));
       } else {
-        await DBHelper.insertProduk(produk); // tambah baru
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Produk berhasil disimpan")),
-        );
+        await DBHelper.insertProduk(produk);
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text("Produk berhasil disimpan")));
       }
 
       Navigator.pop(context);
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Terjadi kesalahan saat menyimpan produk"),
-        ),
+        SnackBar(content: Text("Terjadi kesalahan saat menyimpan produk")),
       );
     }
   }
@@ -119,8 +117,6 @@ class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
   @override
   void initState() {
     super.initState();
-
-    // Kalau edit, isi field dengan data produk
     if (widget.produk != null) {
       _namaProdukController.text = widget.produk!.namaProduk;
       _deskripsiProdukController.text = widget.produk!.deskripsiProduk;
@@ -141,17 +137,17 @@ class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
         toolbarHeight: 58,
         backgroundColor: AppColor.primary,
         foregroundColor: AppColor.textOnPrimary,
-        title: const Text(
+        title: Text(
           "Tambah Produk",
           style: TextStyle(fontWeight: FontWeight.w600),
         ),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(8),
+        padding: EdgeInsets.all(8),
         child: Column(
           children: [
             Container(
-              padding: const EdgeInsets.symmetric(vertical: 16),
+              padding: EdgeInsets.symmetric(vertical: 16),
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(8),
@@ -162,12 +158,12 @@ class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      padding: EdgeInsets.symmetric(horizontal: 16),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           RichText(
-                            text: const TextSpan(
+                            text: TextSpan(
                               text: "Foto Produk ",
                               style: TextStyle(
                                 fontSize: 14,
@@ -182,7 +178,7 @@ class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
                             ),
                           ),
 
-                          const SizedBox(height: 12),
+                          SizedBox(height: 12),
 
                           SingleChildScrollView(
                             scrollDirection: Axis.horizontal,
@@ -190,7 +186,7 @@ class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
                               children: [
                                 ..._images.map((image) {
                                   return Padding(
-                                    padding: const EdgeInsets.only(right: 10),
+                                    padding: EdgeInsets.only(right: 10),
                                     child: Stack(
                                       children: [
                                         Container(
@@ -221,12 +217,12 @@ class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
                                               });
                                             },
                                             child: Container(
-                                              decoration: const BoxDecoration(
+                                              decoration: BoxDecoration(
                                                 color: AppColor.error,
                                                 shape: BoxShape.circle,
                                               ),
-                                              padding: const EdgeInsets.all(4),
-                                              child: const Icon(
+                                              padding: EdgeInsets.all(4),
+                                              child: Icon(
                                                 Icons.close,
                                                 color: Colors.white,
                                                 size: 8,
@@ -256,7 +252,7 @@ class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
                                       child: Column(
                                         mainAxisAlignment:
                                             MainAxisAlignment.center,
-                                        children: const [
+                                        children: [
                                           Icon(
                                             Icons.add,
                                             color: AppColor.primary,
@@ -281,7 +277,7 @@ class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
                       ),
                     ),
 
-                    const Divider(
+                    Divider(
                       height: 32,
                       indent: 16,
                       endIndent: 16,
@@ -289,7 +285,7 @@ class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
                     ),
 
                     Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      padding: EdgeInsets.symmetric(horizontal: 16),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -297,7 +293,7 @@ class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               RichText(
-                                text: const TextSpan(
+                                text: TextSpan(
                                   text: "Nama Produk ",
                                   style: TextStyle(
                                     color: AppColor.textPrimary,
@@ -313,7 +309,7 @@ class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
                               ),
                               Text(
                                 "${_namaProdukController.text.length}/255",
-                                style: const TextStyle(
+                                style: TextStyle(
                                   color: AppColor.textHint,
                                   fontSize: 12,
                                 ),
@@ -326,7 +322,7 @@ class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
                             onChanged: (value) {
                               setState(() {});
                             },
-                            decoration: const InputDecoration(
+                            decoration: InputDecoration(
                               counterText: "",
                               hintText: "Masukkan Nama Produk",
                               hintStyle: TextStyle(
@@ -342,7 +338,7 @@ class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
                       ),
                     ),
 
-                    const Divider(
+                    Divider(
                       height: 32,
                       indent: 16,
                       endIndent: 16,
@@ -350,7 +346,7 @@ class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
                     ),
 
                     Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      padding: EdgeInsets.symmetric(horizontal: 16),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -358,7 +354,7 @@ class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               RichText(
-                                text: const TextSpan(
+                                text: TextSpan(
                                   text: "Deskripsi Produk ",
                                   style: TextStyle(
                                     color: AppColor.textPrimary,
@@ -389,7 +385,7 @@ class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
                             onChanged: (value) {
                               setState(() {});
                             },
-                            decoration: const InputDecoration(
+                            decoration: InputDecoration(
                               counterText: "",
                               hintText: "Masukkan Deskripsi Produk",
                               hintStyle: TextStyle(
@@ -409,7 +405,7 @@ class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
               ),
             ),
 
-            const SizedBox(height: 8),
+            SizedBox(height: 8),
 
             // ==================== KATEGORI ====================
             Container(
@@ -423,17 +419,14 @@ class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
                   children: [
                     ListTile(
                       dense: true,
-                      contentPadding: const EdgeInsets.only(
-                        left: 16,
-                        right: 12,
-                      ),
-                      leading: const Icon(
+                      contentPadding: EdgeInsets.only(left: 16, right: 12),
+                      leading: Icon(
                         Symbols.list,
                         color: AppColor.textPrimary,
                         size: 22,
                       ),
                       title: RichText(
-                        text: const TextSpan(
+                        text: TextSpan(
                           text: "Kategori ",
                           style: TextStyle(
                             color: AppColor.textPrimary,
@@ -453,13 +446,13 @@ class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
                           if (_selectedKategori != null)
                             Text(
                               _selectedKategori!,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 color: AppColor.textPrimary,
                                 fontSize: 14,
                               ),
                             ),
-                          const SizedBox(width: 4),
-                          const Icon(
+                          SizedBox(width: 4),
+                          Icon(
                             Symbols.chevron_right,
                             color: AppColor.textHint,
                             size: 20,
@@ -488,7 +481,7 @@ class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
                           context: context,
                           backgroundColor: Colors.white,
                           isScrollControlled: true,
-                          shape: const RoundedRectangleBorder(
+                          shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.vertical(
                               top: Radius.circular(16),
                             ),
@@ -499,10 +492,7 @@ class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
                                   Container(
-                                    margin: const EdgeInsets.only(
-                                      top: 12,
-                                      bottom: 8,
-                                    ),
+                                    margin: EdgeInsets.only(top: 12, bottom: 8),
                                     height: 4,
                                     width: 40,
                                     decoration: BoxDecoration(
@@ -510,7 +500,7 @@ class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
                                       borderRadius: BorderRadius.circular(4),
                                     ),
                                   ),
-                                  const Padding(
+                                  Padding(
                                     padding: EdgeInsets.symmetric(
                                       horizontal: 16,
                                       vertical: 8,
@@ -527,21 +517,17 @@ class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
                                       ),
                                     ),
                                   ),
-                                  const Divider(
-                                    height: 1,
-                                    color: AppColor.divider,
-                                  ),
+                                  Divider(height: 1, color: AppColor.divider),
                                   ListView.builder(
                                     shrinkWrap: true,
-                                    physics:
-                                        const NeverScrollableScrollPhysics(),
+                                    physics: NeverScrollableScrollPhysics(),
                                     itemCount: kategoriList.length,
                                     itemBuilder: (context, index) {
                                       final item = kategoriList[index];
                                       return ListTile(
                                         title: Text(item),
                                         trailing: _selectedKategori == item
-                                            ? const Icon(
+                                            ? Icon(
                                                 Symbols.check,
                                                 color: AppColor.primary,
                                               )
@@ -567,7 +553,7 @@ class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
               ),
             ),
 
-            const SizedBox(height: 8),
+            SizedBox(height: 8),
 
             Container(
               decoration: BoxDecoration(
@@ -581,17 +567,14 @@ class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
                     // ==================== HARGA / HARI ====================
                     ListTile(
                       dense: true,
-                      contentPadding: const EdgeInsets.only(
-                        left: 16,
-                        right: 12,
-                      ),
-                      leading: const Icon(
+                      contentPadding: EdgeInsets.only(left: 16, right: 12),
+                      leading: Icon(
                         Symbols.sell,
                         color: AppColor.textPrimary,
                         size: 22,
                       ),
                       title: RichText(
-                        text: const TextSpan(
+                        text: TextSpan(
                           text: "Harga / hari ",
                           style: TextStyle(
                             color: AppColor.textPrimary,
@@ -612,12 +595,12 @@ class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
                             _hargaPerHari != null && _hargaPerHari!.isNotEmpty
                                 ? "Rp ${formatRupiah(_hargaPerHari!)}"
                                 : "Atur",
-                            style: const TextStyle(
+                            style: TextStyle(
                               color: AppColor.textPrimary,
                               fontSize: 14,
                             ),
                           ),
-                          const Icon(
+                          Icon(
                             Symbols.chevron_right,
                             color: AppColor.textHint,
                             size: 20,
@@ -631,7 +614,7 @@ class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
                           context: context,
                           backgroundColor: Colors.white,
                           isScrollControlled: true,
-                          shape: const RoundedRectangleBorder(
+                          shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.vertical(
                               top: Radius.circular(16),
                             ),
@@ -653,7 +636,7 @@ class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
                                 children: [
                                   Center(
                                     child: Container(
-                                      margin: const EdgeInsets.only(bottom: 16),
+                                      margin: EdgeInsets.only(bottom: 16),
                                       height: 4,
                                       width: 40,
                                       decoration: BoxDecoration(
@@ -662,7 +645,7 @@ class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
                                       ),
                                     ),
                                   ),
-                                  const Text(
+                                  Text(
                                     "Atur Harga Sewa",
                                     style: TextStyle(
                                       fontSize: 16,
@@ -670,12 +653,12 @@ class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
                                       color: AppColor.textPrimary,
                                     ),
                                   ),
-                                  const SizedBox(height: 16),
+                                  SizedBox(height: 16),
                                   TextField(
                                     controller: _hargaController,
                                     keyboardType: TextInputType.number,
                                     autofocus: true,
-                                    style: const TextStyle(fontSize: 16),
+                                    style: TextStyle(fontSize: 16),
                                     onChanged: (value) {
                                       String formatted = formatRupiah(value);
 
@@ -688,31 +671,30 @@ class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
                                     },
                                     decoration: InputDecoration(
                                       prefixText: "Rp ",
-                                      prefixStyle: const TextStyle(
+                                      prefixStyle: TextStyle(
                                         color: AppColor.textPrimary,
                                         fontSize: 16,
                                       ),
                                       hintText: "0",
                                       border: OutlineInputBorder(
                                         borderRadius: BorderRadius.circular(8),
-                                        borderSide: const BorderSide(
+                                        borderSide: BorderSide(
                                           color: AppColor.border,
                                         ),
                                       ),
                                       focusedBorder: OutlineInputBorder(
                                         borderRadius: BorderRadius.circular(8),
-                                        borderSide: const BorderSide(
+                                        borderSide: BorderSide(
                                           color: AppColor.primary,
                                         ),
                                       ),
-                                      contentPadding:
-                                          const EdgeInsets.symmetric(
-                                            horizontal: 16,
-                                            vertical: 12,
-                                          ),
+                                      contentPadding: EdgeInsets.symmetric(
+                                        horizontal: 16,
+                                        vertical: 12,
+                                      ),
                                     ),
                                   ),
-                                  const SizedBox(height: 24),
+                                  SizedBox(height: 24),
 
                                   SizedBox(
                                     width: double.infinity,
@@ -720,7 +702,7 @@ class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
                                       style: ElevatedButton.styleFrom(
                                         backgroundColor: AppColor.primary,
                                         foregroundColor: Colors.white,
-                                        padding: const EdgeInsets.symmetric(
+                                        padding: EdgeInsets.symmetric(
                                           vertical: 14,
                                         ),
                                         shape: RoundedRectangleBorder(
@@ -739,7 +721,7 @@ class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
                                         });
                                         Navigator.pop(context);
                                       },
-                                      child: const Text(
+                                      child: Text(
                                         "Simpan",
                                         style: TextStyle(
                                           fontSize: 14,
@@ -748,7 +730,7 @@ class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
                                       ),
                                     ),
                                   ),
-                                  const SizedBox(height: 16),
+                                  SizedBox(height: 16),
                                 ],
                               ),
                             );
@@ -757,7 +739,7 @@ class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
                       },
                     ),
 
-                    const Divider(
+                    Divider(
                       height: 1,
                       indent: 16,
                       endIndent: 16,
@@ -767,17 +749,14 @@ class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
                     // ==================== STOK ====================
                     ListTile(
                       dense: true,
-                      contentPadding: const EdgeInsets.only(
-                        left: 16,
-                        right: 16,
-                      ),
-                      leading: const Icon(
+                      contentPadding: EdgeInsets.only(left: 16, right: 16),
+                      leading: Icon(
                         Symbols.layers,
                         color: AppColor.textPrimary,
                         size: 22,
                       ),
                       title: RichText(
-                        text: const TextSpan(
+                        text: TextSpan(
                           text: "Stok ",
                           style: TextStyle(
                             color: AppColor.textPrimary,
@@ -798,11 +777,11 @@ class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
                           controller: _stokController,
                           keyboardType: TextInputType.number,
                           textAlign: TextAlign.end,
-                          style: const TextStyle(
+                          style: TextStyle(
                             color: AppColor.textPrimary,
                             fontSize: 14,
                           ),
-                          decoration: const InputDecoration(
+                          decoration: InputDecoration(
                             isDense: true,
                             border: InputBorder.none,
                             contentPadding: EdgeInsets.zero,
@@ -811,7 +790,7 @@ class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
                       ),
                     ),
 
-                    const Divider(
+                    Divider(
                       height: 1,
                       indent: 16,
                       endIndent: 16,
@@ -821,17 +800,14 @@ class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
                     // ==================== MIN. JUMLAH BARANG ====================
                     ListTile(
                       dense: true,
-                      contentPadding: const EdgeInsets.only(
-                        left: 16,
-                        right: 16,
-                      ),
-                      leading: const Icon(
+                      contentPadding: EdgeInsets.only(left: 16, right: 16),
+                      leading: Icon(
                         Symbols.layers,
                         color: AppColor.textPrimary,
                         size: 22,
                       ),
                       title: RichText(
-                        text: const TextSpan(
+                        text: TextSpan(
                           text: "Min. Jumlah Peminjaman ",
                           style: TextStyle(
                             color: AppColor.textPrimary,
@@ -851,11 +827,11 @@ class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
                           controller: _jumlahPinjamController,
                           keyboardType: TextInputType.number,
                           textAlign: TextAlign.end,
-                          style: const TextStyle(
+                          style: TextStyle(
                             color: AppColor.textPrimary,
                             fontSize: 14,
                           ),
-                          decoration: const InputDecoration(
+                          decoration: InputDecoration(
                             isDense: true,
                             border: InputBorder.none,
                             contentPadding: EdgeInsets.zero,
@@ -864,7 +840,7 @@ class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
                       ),
                     ),
 
-                    const Divider(
+                    Divider(
                       height: 1,
                       indent: 16,
                       endIndent: 16,
@@ -874,17 +850,14 @@ class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
                     // ==================== MAKS. HARI PEMINJAMAN ====================
                     ListTile(
                       dense: true,
-                      contentPadding: const EdgeInsets.only(
-                        left: 16,
-                        right: 16,
-                      ),
-                      leading: const Icon(
+                      contentPadding: EdgeInsets.only(left: 16, right: 16),
+                      leading: Icon(
                         Symbols.layers,
                         color: AppColor.textPrimary,
                         size: 22,
                       ),
                       title: RichText(
-                        text: const TextSpan(
+                        text: TextSpan(
                           text: "Maks. Hari Peminjaman ",
                           style: TextStyle(
                             color: AppColor.textPrimary,
@@ -904,11 +877,11 @@ class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
                           controller: _hariPinjamController,
                           keyboardType: TextInputType.number,
                           textAlign: TextAlign.end,
-                          style: const TextStyle(
+                          style: TextStyle(
                             color: AppColor.textPrimary,
                             fontSize: 14,
                           ),
-                          decoration: const InputDecoration(
+                          decoration: InputDecoration(
                             isDense: true,
                             border: InputBorder.none,
                             contentPadding: EdgeInsets.zero,
@@ -924,34 +897,20 @@ class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
         ),
       ),
 
-      bottomNavigationBar: Container(
-        padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 10,
-              offset: const Offset(0, -4),
-            ),
-          ],
-        ),
-        child: SafeArea(
-          child: ElevatedButton(
-            onPressed: _simpanProduk,
-            style: ElevatedButton.styleFrom(
-              disabledBackgroundColor: AppColor.border,
-              disabledForegroundColor: AppColor.textHint,
-              padding: const EdgeInsets.symmetric(vertical: 12),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
+      bottomNavigationBar: SafeArea(
+        child: Container(
+          padding: EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.05),
+                blurRadius: 10,
+                offset: Offset(0, -4),
               ),
-            ),
-            child: const Text(
-              "Simpan",
-              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
-            ),
+            ],
           ),
+          child: CustomButton(text: "Simpan", onPressed: _simpanProduk),
         ),
       ),
     );

@@ -3,8 +3,9 @@ import 'package:rentora_app/core/constants/app_color.dart';
 import 'package:rentora_app/core/extensions/navigator_extension.dart';
 import 'package:rentora_app/models/user_model.dart';
 import 'package:rentora_app/services/database/db_helper.dart';
+import 'package:rentora_app/services/local_storage/preference_handler.dart';
 import 'package:rentora_app/views/auth/login_screen.dart';
-import 'package:rentora_app/views/home/home_screen.dart';
+import 'package:rentora_app/views/home/bottom_navbar.dart';
 import 'package:rentora_app/widgets/custom_button.dart';
 import 'package:rentora_app/widgets/custom_text_field.dart';
 
@@ -146,7 +147,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   text: "Daftar",
                   onPressed: () async {
                     if (_formKey.currentState!.validate()) {
-                      // Simpan user
                       await DBHelper.registerUser(
                         UserModel(
                           email: emailController.text,
@@ -155,13 +155,22 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         ),
                       );
 
-                      // Tampilkan snack bar sukses
+                      PreferenceHandler().storingIsLogin(true);
+                      PreferenceHandler().storingUserEmail(
+                        emailController.text,
+                      );
+
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(content: Text("Pendaftaran Berhasil")),
                       );
 
-                      // Langsung pindah ke HomeScreen
-                      context.pushReplacement(const HomeScreen());
+                      await Future.delayed(const Duration(seconds: 1));
+                      Navigator.of(context).pushAndRemoveUntil(
+                        MaterialPageRoute(
+                          builder: (context) => const BottomNavbar(),
+                        ),
+                        (route) => false,
+                      );
                     }
                   },
                 ),

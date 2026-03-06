@@ -1,24 +1,34 @@
 import 'package:shared_preferences/shared_preferences.dart';
 
 class PreferenceHandler {
-  //Inisialisasi Shared Preference
-  static final PreferenceHandler _instance = PreferenceHandler._internal();
-  late SharedPreferences _preferences;
   factory PreferenceHandler() => _instance;
+
   PreferenceHandler._internal();
+
+  // Inisialisasi Shared Preference
+  static final PreferenceHandler _instance = PreferenceHandler._internal();
+
+  // Key user
+  static const String _isLogin = 'isLogin';
+
+  static const String _userEmail = 'userEmail';
+
+  late SharedPreferences _preferences;
+
   Future<void> init() async {
     _preferences = await SharedPreferences.getInstance();
   }
 
-  //Key user
-  static const String _isLogin = 'isLogin';
-
-  //CREATE
+  // CREATE
   Future<void> storingIsLogin(bool isLogin) async {
     _preferences.setBool(_isLogin, isLogin);
   }
 
-  //GET
+  Future<void> storingUserEmail(String email) async {
+    _preferences.setString(_userEmail, email);
+  }
+
+  // GET
   static Future<bool?> getIsLogin() async {
     final prefs = await SharedPreferences.getInstance();
 
@@ -26,8 +36,17 @@ class PreferenceHandler {
     return data;
   }
 
-  //DELETE
+  static Future<String?> getUserEmail() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_userEmail);
+  }
+
+  // DELETE
   Future<void> deleteIsLogin() async {
     await _preferences.remove(_isLogin);
+  }
+
+  Future<void> deleteUserEmail() async {
+    await _preferences.remove(_userEmail);
   }
 }

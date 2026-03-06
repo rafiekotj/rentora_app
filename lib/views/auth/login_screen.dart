@@ -145,13 +145,19 @@ class _LoginScreenState extends State<LoginScreen> {
 
                       if (login != null) {
                         PreferenceHandler().storingIsLogin(true);
+                        PreferenceHandler().storingUserEmail(login.email);
 
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(content: Text("Login Berhasil")),
                         );
 
-                        await Future.delayed(const Duration(seconds: 2));
-                        context.push(const BottomNavbar());
+                        await Future.delayed(const Duration(seconds: 1));
+                        Navigator.of(context).pushAndRemoveUntil(
+                          MaterialPageRoute(
+                            builder: (context) => const BottomNavbar(),
+                          ),
+                          (route) => false,
+                        );
                       } else {
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
