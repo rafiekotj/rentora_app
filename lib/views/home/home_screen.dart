@@ -7,6 +7,7 @@ import 'package:rentora_app/core/constants/app_color.dart';
 import 'package:rentora_app/models/produk_model.dart';
 import 'package:rentora_app/services/database/db_helper.dart';
 import 'package:rentora_app/views/cart/cart_screen.dart';
+import 'package:rentora_app/views/detail/detail_product_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -133,7 +134,14 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               const SizedBox(width: 8),
               IconButton(
-                onPressed: () {},
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const DetailProductScreen(),
+                    ),
+                  );
+                },
                 icon: Icon(
                   Symbols.chat,
                   color: AppColor.textOnPrimary,
@@ -223,7 +231,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
             const SizedBox(height: 12),
 
-            // ===== Banner =====
+            // BANNER
             SizedBox(
               height: 140,
               width: double.infinity,
@@ -283,31 +291,19 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             const SizedBox(height: 12),
 
-            Builder(
-              builder: (context) {
-                if (isLoading) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-
-                if (produkList.isEmpty) {
-                  return const Center(child: Text("No products found."));
-                }
-
-                return GridView.builder(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemCount: produkList.length,
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    crossAxisSpacing: 12,
-                    mainAxisSpacing: 12,
-                    childAspectRatio: 0.7,
-                  ),
-                  itemBuilder: (context, index) {
-                    final produk = produkList[index];
-                    return ProductCard(produk: produk);
-                  },
-                );
+            GridView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: produkList.length,
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                crossAxisSpacing: 8,
+                mainAxisSpacing: 8,
+                childAspectRatio: 0.7,
+              ),
+              itemBuilder: (context, index) {
+                final produk = produkList[index];
+                return ProductCard(produk: produk);
               },
             ),
           ],
@@ -320,62 +316,93 @@ class _HomeScreenState extends State<HomeScreen> {
 class ProductCard extends StatelessWidget {
   final ProdukModel produk;
 
+  const ProductCard({super.key, required this.produk});
+
   String formatRupiah(int number) {
     final value = NumberFormat("#,###", "id_ID").format(number);
     return "Rp $value";
   }
 
-  const ProductCard({super.key, required this.produk});
-
   @override
   Widget build(BuildContext context) {
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(6),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          ClipRRect(
-            borderRadius: const BorderRadius.only(
-              topLeft: Radius.circular(12),
-              topRight: Radius.circular(12),
-            ),
-            child: AspectRatio(
-              aspectRatio: 1,
-              child: produk.images.isNotEmpty
-                  ? Image.file(
-                      File(produk.images.first),
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) =>
-                          const Icon(Icons.broken_image),
-                    )
-                  : Container(
-                      color: Colors.grey[200],
-                      child: const Icon(Icons.image, color: Colors.grey),
-                    ),
+          AspectRatio(
+            aspectRatio: 1,
+            child: Container(
+              decoration: BoxDecoration(
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(6),
+                  topRight: Radius.circular(6),
+                ),
+                image: produk.images.isNotEmpty
+                    ? DecorationImage(
+                        image: FileImage(File(produk.images.first)),
+                        fit: BoxFit.cover,
+                      )
+                    : null,
+                color: produk.images.isEmpty ? Colors.grey[200] : null,
+              ),
+              child: produk.images.isEmpty
+                  ? const Icon(Icons.image, color: Colors.grey)
+                  : null,
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.all(8.0),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   produk.namaProduk,
                   style: const TextStyle(
-                    fontWeight: FontWeight.bold,
+                    fontWeight: FontWeight.w600,
                     fontSize: 14,
                   ),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
+
                 const SizedBox(height: 4),
-                Text(
-                  formatRupiah(produk.hargaPerHari),
-                  style: TextStyle(
-                    color: AppColor.primary,
-                    fontWeight: FontWeight.w600,
-                  ),
+
+                Row(
+                  children: [
+                    Text(
+                      formatRupiah(produk.hargaPerHari),
+                      style: TextStyle(
+                        color: AppColor.primary,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 14,
+                      ),
+                    ),
+                    Text(
+                      " / hari",
+                      style: TextStyle(color: AppColor.textHint, fontSize: 12),
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 4),
+
+                Row(
+                  children: [
+                    Icon(
+                      Symbols.location_pin,
+                      color: AppColor.textHint,
+                      size: 12,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      "KOTA JAKARTA BARAT",
+                      style: TextStyle(color: AppColor.textHint, fontSize: 10),
+                    ),
+                  ],
                 ),
               ],
             ),
