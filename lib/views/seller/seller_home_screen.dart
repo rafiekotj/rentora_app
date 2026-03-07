@@ -198,7 +198,7 @@ class StatItem extends StatelessWidget {
           Text(
             label,
             textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 12, color: AppColor.textSecondary),
+            style: const TextStyle(fontSize: 10, color: AppColor.textSecondary),
           ),
         ],
       ),

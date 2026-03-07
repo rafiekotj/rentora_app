@@ -425,39 +425,44 @@ class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
                         color: AppColor.textPrimary,
                         size: 22,
                       ),
-                      title: RichText(
-                        text: TextSpan(
-                          text: "Kategori ",
-                          style: TextStyle(
-                            color: AppColor.textPrimary,
-                            fontSize: 14,
-                          ),
-                          children: [
-                            TextSpan(
-                              text: "*",
-                              style: TextStyle(color: AppColor.error),
-                            ),
-                          ],
-                        ),
-                      ),
-                      trailing: Row(
-                        mainAxisSize: MainAxisSize.min,
+                      title: Row(
                         children: [
-                          if (_selectedKategori != null)
-                            Text(
-                              _selectedKategori!,
+                          RichText(
+                            text: TextSpan(
+                              text: "Kategori ",
                               style: TextStyle(
                                 color: AppColor.textPrimary,
                                 fontSize: 14,
                               ),
+                              children: [
+                                TextSpan(
+                                  text: "*",
+                                  style: TextStyle(color: AppColor.error),
+                                ),
+                              ],
                             ),
-                          SizedBox(width: 4),
-                          Icon(
-                            Symbols.chevron_right,
-                            color: AppColor.textHint,
-                            size: 20,
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Text(
+                              _selectedKategori ?? '',
+                              textAlign: TextAlign.end,
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 1,
+                              style: TextStyle(
+                                color: _selectedKategori != null
+                                    ? AppColor.textPrimary
+                                    : AppColor.textHint,
+                                fontSize: 14,
+                              ),
+                            ),
                           ),
                         ],
+                      ),
+                      trailing: Icon(
+                        Symbols.chevron_right,
+                        color: AppColor.textHint,
+                        size: 20,
                       ),
                       onTap: () {
                         final List<String> kategoriList = [
@@ -518,28 +523,28 @@ class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
                                     ),
                                   ),
                                   Divider(height: 1, color: AppColor.divider),
-                                  ListView.builder(
-                                    shrinkWrap: true,
-                                    physics: NeverScrollableScrollPhysics(),
-                                    itemCount: kategoriList.length,
-                                    itemBuilder: (context, index) {
-                                      final item = kategoriList[index];
-                                      return ListTile(
-                                        title: Text(item),
-                                        trailing: _selectedKategori == item
-                                            ? Icon(
-                                                Symbols.check,
-                                                color: AppColor.primary,
-                                              )
-                                            : null,
-                                        onTap: () {
-                                          setState(() {
-                                            _selectedKategori = item;
-                                          });
-                                          Navigator.pop(context);
-                                        },
-                                      );
-                                    },
+                                  Flexible(
+                                    child: ListView.builder(
+                                      itemCount: kategoriList.length,
+                                      itemBuilder: (context, index) {
+                                        final item = kategoriList[index];
+                                        return ListTile(
+                                          title: Text(item),
+                                          trailing: _selectedKategori == item
+                                              ? Icon(
+                                                  Symbols.check,
+                                                  color: AppColor.primary,
+                                                )
+                                              : null,
+                                          onTap: () {
+                                            setState(() {
+                                              _selectedKategori = item;
+                                            });
+                                            Navigator.pop(context);
+                                          },
+                                        );
+                                      },
+                                    ),
                                   ),
                                 ],
                               ),

@@ -179,54 +179,65 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             const SizedBox(height: 12),
 
-            GridView.count(
-              crossAxisCount: 4,
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              padding: EdgeInsets.zero,
-              childAspectRatio: 0.9,
-              children: const [
-                CategoryItem(
-                  label: "Elektronik",
-                  icon: Symbols.speaker,
-                  color: Color(0xff98A1BC),
-                ),
-                CategoryItem(
-                  label: "Pakaian",
-                  icon: Symbols.apparel,
-                  color: Color(0xffFF9B51),
-                ),
-                CategoryItem(
-                  label: "Sepatu",
-                  icon: Symbols.shoe_cleats,
-                  color: Color(0xff578FCA),
-                ),
-                CategoryItem(
-                  label: "Tas",
-                  icon: Symbols.backpack,
-                  color: Color(0xffF16727),
-                ),
-                CategoryItem(
-                  label: "Furniture",
-                  icon: Symbols.chair,
-                  color: Color(0xffFACC15),
-                ),
-                CategoryItem(
-                  label: "Buku",
-                  icon: Symbols.book_2,
-                  color: Color(0xffE2B59A),
-                ),
-                CategoryItem(
-                  label: "Hobi",
-                  icon: Symbols.stadia_controller,
-                  color: Color(0xff758A93),
-                ),
-                CategoryItem(
-                  label: "Otomotif",
-                  icon: Symbols.search_hands_free,
-                  color: Color(0xffBBDCE5),
-                ),
-              ],
+            Builder(
+              builder: (context) {
+                const List<CategoryItem> categoryItems = [
+                  CategoryItem(
+                    label: "Elektronik",
+                    icon: Symbols.speaker,
+                    color: Color(0xff98A1BC),
+                  ),
+                  CategoryItem(
+                    label: "Pakaian",
+                    icon: Symbols.apparel,
+                    color: Color(0xffFF9B51),
+                  ),
+                  CategoryItem(
+                    label: "Sepatu",
+                    icon: Symbols.shoe_cleats,
+                    color: Color(0xff578FCA),
+                  ),
+                  CategoryItem(
+                    label: "Tas",
+                    icon: Symbols.backpack,
+                    color: Color(0xffF16727),
+                  ),
+                  CategoryItem(
+                    label: "Furniture",
+                    icon: Symbols.chair,
+                    color: Color(0xffFACC15),
+                  ),
+                  CategoryItem(
+                    label: "Buku",
+                    icon: Symbols.book_2,
+                    color: Color(0xffE2B59A),
+                  ),
+                  CategoryItem(
+                    label: "Hobi",
+                    icon: Symbols.stadia_controller,
+                    color: Color(0xff758A93),
+                  ),
+                  CategoryItem(
+                    label: "Otomotif",
+                    icon: Symbols.search_hands_free,
+                    color: Color(0xffBBDCE5),
+                  ),
+                ];
+
+                final screenWidth = MediaQuery.of(context).size.width;
+                const double sidePadding = 16.0;
+                const double spacing = 12.0;
+                final itemWidth =
+                    (screenWidth - (sidePadding * 2) - (spacing * 3)) / 4;
+
+                return Wrap(
+                  spacing: spacing,
+                  runSpacing: 12.0,
+                  children: categoryItems
+                      .map((item) => SizedBox(width: itemWidth, child: item))
+                      .toList(),
+                );
+              },
             ),
 
             const SizedBox(height: 12),
@@ -291,19 +302,26 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             const SizedBox(height: 12),
 
-            GridView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: produkList.length,
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                crossAxisSpacing: 8,
-                mainAxisSpacing: 8,
-                childAspectRatio: 0.7,
-              ),
-              itemBuilder: (context, index) {
-                final produk = produkList[index];
-                return ProductCard(produk: produk);
+            Builder(
+              builder: (context) {
+                final screenWidth = MediaQuery.of(context).size.width;
+                const double sidePadding = 16.0;
+                const double crossSpacing = 8.0;
+                final itemWidth =
+                    (screenWidth - (sidePadding * 2) - crossSpacing) / 2;
+
+                return Wrap(
+                  spacing: crossSpacing,
+                  runSpacing: 8.0,
+                  children: produkList
+                      .map(
+                        (produk) => SizedBox(
+                          width: itemWidth,
+                          child: ProductCard(produk: produk),
+                        ),
+                      )
+                      .toList(),
+                );
               },
             ),
           ],

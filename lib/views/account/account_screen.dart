@@ -237,7 +237,7 @@ class OrderStatusItem extends StatelessWidget {
           children: [
             Icon(icon, size: 28, weight: 600),
             SizedBox(height: 6),
-            Text(label, style: TextStyle(fontSize: 12)),
+            Text(label, style: TextStyle(fontSize: 10)),
           ],
         ),
       ),

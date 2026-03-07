@@ -287,30 +287,40 @@ class _DetailProductScreenState extends State<DetailProductScreen> {
                     SizedBox(height: 8),
 
                     Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Container(
-                          width: 120,
-                          height: 120,
-                          decoration: BoxDecoration(
-                            color: AppColor.textHint,
-                            borderRadius: BorderRadius.circular(8),
+                        Expanded(
+                          child: AspectRatio(
+                            aspectRatio: 1,
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: AppColor.textHint,
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                            ),
                           ),
                         ),
-                        Container(
-                          width: 120,
-                          height: 120,
-                          decoration: BoxDecoration(
-                            color: AppColor.textHint,
-                            borderRadius: BorderRadius.circular(8),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: AspectRatio(
+                            aspectRatio: 1,
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: AppColor.textHint,
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                            ),
                           ),
                         ),
-                        Container(
-                          width: 120,
-                          height: 120,
-                          decoration: BoxDecoration(
-                            color: AppColor.textHint,
-                            borderRadius: BorderRadius.circular(8),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: AspectRatio(
+                            aspectRatio: 1,
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: AppColor.textHint,
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                            ),
                           ),
                         ),
                       ],
@@ -368,6 +378,7 @@ class _DetailProductScreenState extends State<DetailProductScreen> {
                         OutlinedButton(
                           onPressed: () {},
                           style: OutlinedButton.styleFrom(
+                            minimumSize: Size(0, 28),
                             padding: EdgeInsets.symmetric(horizontal: 12),
                             side: BorderSide(color: AppColor.primary),
                             shape: RoundedRectangleBorder(
@@ -491,29 +502,33 @@ class _DetailProductScreenState extends State<DetailProductScreen> {
                       children: [
                         Icon(Symbols.location_pin, size: 18),
                         SizedBox(width: 8),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                Text(
-                                  "Rafie",
-                                  style: TextStyle(fontWeight: FontWeight.w700),
-                                ),
-                                SizedBox(width: 8),
-                                Text(
-                                  "(+62) 888-8888-8888",
-                                  style: TextStyle(
-                                    color: AppColor.textHint,
-                                    fontSize: 12,
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Text(
+                                    "Rafie",
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.w700,
+                                    ),
                                   ),
-                                ),
-                              ],
-                            ),
-                            Text(
-                              "Jl. Jalan Ks Tubun II C, RW 01, Slipi, Palmerah,\nWest Jakarta, Special Capital Region of Jakarta,\nJava, 10260, Indonesia",
-                            ),
-                          ],
+                                  SizedBox(width: 8),
+                                  Text(
+                                    "(+62) 888-8888-8888",
+                                    style: TextStyle(
+                                      color: AppColor.textHint,
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              Text(
+                                "Jl. Jalan Ks Tubun II C, RW 01, Slipi, Palmerah, West Jakarta, Special Capital Region of Jakarta, Java, 10260, Indonesia",
+                              ),
+                            ],
+                          ),
                         ),
                       ],
                     ),

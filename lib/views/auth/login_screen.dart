@@ -35,195 +35,217 @@ class _LoginScreenState extends State<LoginScreen> {
       resizeToAvoidBottomInset: true,
       backgroundColor: AppColor.backgroundLight,
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Spacer(),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            return SingleChildScrollView(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                child: IntrinsicHeight(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Form(
+                      key: _formKey,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Spacer(),
 
-                // ===== LOGO =====
-                Center(
-                  child: Image.asset(
-                    "assets/icons/rentora_logo.png",
-                    width: 200,
-                  ),
-                ),
-
-                const SizedBox(height: 64),
-
-                // ===== JUDUL =====
-                const Text(
-                  "Masuk ke Rentora",
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                ),
-
-                const SizedBox(height: 16),
-
-                // ===== EMAIL =====
-                CustomTextField(
-                  controller: emailController,
-                  hintText: "Email",
-                  prefixIcon: Icons.email_outlined,
-                  keyboardType: TextInputType.emailAddress,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return "Email tidak boleh kosong";
-                    } else if (!value.contains("@")) {
-                      return "Email tidak valid";
-                    }
-                    return null;
-                  },
-                ),
-
-                const SizedBox(height: 8),
-
-                // ===== PASSWORD =====
-                CustomTextField(
-                  controller: passwordController,
-                  hintText: "Kata Sandi",
-                  prefixIcon: Icons.lock_outline,
-                  isPassword: true,
-                  isVisibility: isVisibility,
-                  onVisibilityToggle: visibilityOnOff,
-                  validator: (value) {
-                    final password = value ?? "";
-                    if (password.isEmpty) {
-                      return "Password tidak boleh kosong";
-                    }
-                    if (password.length < 6) {
-                      return "Password minimal 6 karakter";
-                    }
-                    if (!RegExp(r'[A-Z]').hasMatch(password)) {
-                      return "Minimal 1 huruf besar";
-                    }
-                    if (!RegExp(r'[a-z]').hasMatch(password)) {
-                      return "Minimal 1 huruf kecil";
-                    }
-                    if (!RegExp(r'\d').hasMatch(password)) {
-                      return "Minimal 1 angka";
-                    }
-                    if (!RegExp(
-                      r'[!@#$%^&*(),.?":{}|<>_\-\\/\[\];\`~+=]',
-                    ).hasMatch(password)) {
-                      return "Minimal 1 karakter spesial";
-                    }
-                    return null;
-                  },
-                ),
-
-                // ===== LUPA PASSWORD =====
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  child: Align(
-                    alignment: Alignment.centerRight,
-                    child: GestureDetector(
-                      onTap: () {},
-                      child: const Text(
-                        "Lupa Kata Sandi?",
-                        style: TextStyle(
-                          color: AppColor.primary,
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-
-                // ===== BUTTON LOGIN =====
-                CustomButton(
-                  text: "Masuk",
-                  onPressed: () async {
-                    if (_formKey.currentState!.validate()) {
-                      final UserModel? login = await DBHelper.loginUser(
-                        email: emailController.text,
-                        password: passwordController.text,
-                      );
-
-                      if (login != null) {
-                        PreferenceHandler().storingIsLogin(true);
-                        PreferenceHandler().storingUserEmail(login.email);
-
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text("Login Berhasil")),
-                        );
-
-                        await Future.delayed(const Duration(seconds: 1));
-                        Navigator.of(context).pushAndRemoveUntil(
-                          MaterialPageRoute(
-                            builder: (context) => const BottomNavbar(),
-                          ),
-                          (route) => false,
-                        );
-                      } else {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text(
-                              "Login Gagal, email atau password salah",
+                          // ===== LOGO =====
+                          Center(
+                            child: Image.asset(
+                              "assets/icons/rentora_logo.png",
+                              width: 200,
                             ),
                           ),
-                        );
-                      }
-                    }
-                  },
-                ),
 
-                const SizedBox(height: 16),
+                          const SizedBox(height: 64),
 
-                // ===== ATAU TEXT =====
-                const SizedBox(
-                  width: double.infinity,
-                  child: Text(
-                    "atau masuk dengan",
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: AppColor.textHint,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
+                          // ===== JUDUL =====
+                          const Text(
+                            "Masuk ke Rentora",
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+
+                          const SizedBox(height: 16),
+
+                          // ===== EMAIL =====
+                          CustomTextField(
+                            controller: emailController,
+                            hintText: "Email",
+                            prefixIcon: Icons.email_outlined,
+                            keyboardType: TextInputType.emailAddress,
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return "Email tidak boleh kosong";
+                              } else if (!value.contains("@")) {
+                                return "Email tidak valid";
+                              }
+                              return null;
+                            },
+                          ),
+
+                          const SizedBox(height: 8),
+
+                          // ===== PASSWORD =====
+                          CustomTextField(
+                            controller: passwordController,
+                            hintText: "Kata Sandi",
+                            prefixIcon: Icons.lock_outline,
+                            isPassword: true,
+                            isVisibility: isVisibility,
+                            onVisibilityToggle: visibilityOnOff,
+                            validator: (value) {
+                              final password = value ?? "";
+                              if (password.isEmpty) {
+                                return "Password tidak boleh kosong";
+                              }
+                              if (password.length < 6) {
+                                return "Password minimal 6 karakter";
+                              }
+                              if (!RegExp(r'[A-Z]').hasMatch(password)) {
+                                return "Minimal 1 huruf besar";
+                              }
+                              if (!RegExp(r'[a-z]').hasMatch(password)) {
+                                return "Minimal 1 huruf kecil";
+                              }
+                              if (!RegExp(r'\d').hasMatch(password)) {
+                                return "Minimal 1 angka";
+                              }
+                              if (!RegExp(
+                                r'[!@#$%^&*(),.?":{}|<>_\-\\/\[\];\`~+=]',
+                              ).hasMatch(password)) {
+                                return "Minimal 1 karakter spesial";
+                              }
+                              return null;
+                            },
+                          ),
+
+                          // ===== LUPA PASSWORD =====
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            child: Align(
+                              alignment: Alignment.centerRight,
+                              child: GestureDetector(
+                                onTap: () {},
+                                child: const Text(
+                                  "Lupa Kata Sandi?",
+                                  style: TextStyle(
+                                    color: AppColor.primary,
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+
+                          // ===== BUTTON LOGIN =====
+                          CustomButton(
+                            text: "Masuk",
+                            onPressed: () async {
+                              if (_formKey.currentState!.validate()) {
+                                final UserModel? login =
+                                    await DBHelper.loginUser(
+                                      email: emailController.text,
+                                      password: passwordController.text,
+                                    );
+
+                                if (login != null) {
+                                  PreferenceHandler().storingIsLogin(true);
+                                  PreferenceHandler().storingUserEmail(
+                                    login.email,
+                                  );
+
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text("Login Berhasil"),
+                                    ),
+                                  );
+
+                                  await Future.delayed(
+                                    const Duration(seconds: 1),
+                                  );
+                                  Navigator.of(context).pushAndRemoveUntil(
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          const BottomNavbar(),
+                                    ),
+                                    (route) => false,
+                                  );
+                                } else {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text(
+                                        "Login Gagal, email atau password salah",
+                                      ),
+                                    ),
+                                  );
+                                }
+                              }
+                            },
+                          ),
+
+                          const SizedBox(height: 16),
+
+                          // ===== ATAU TEXT =====
+                          const SizedBox(
+                            width: double.infinity,
+                            child: Text(
+                              "atau masuk dengan",
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                color: AppColor.textHint,
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+
+                          const SizedBox(height: 16),
+
+                          // ===== GOOGLE =====
+                          CustomButton(
+                            text: "Google",
+                            isOutlined: true,
+                            iconAsset: "assets/icons/google.png",
+                            onPressed: () {},
+                          ),
+
+                          const Spacer(),
+
+                          // ===== DAFTAR =====
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Text(
+                                "Belum punya akun? ",
+                                style: TextStyle(color: AppColor.textHint),
+                              ),
+                              GestureDetector(
+                                onTap: () {
+                                  context.push(const RegisterScreen());
+                                },
+                                child: const Text(
+                                  "Daftar sekarang",
+                                  style: TextStyle(
+                                    color: AppColor.primary,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
-
-                const SizedBox(height: 16),
-
-                // ===== GOOGLE =====
-                CustomButton(
-                  text: "Google",
-                  isOutlined: true,
-                  iconAsset: "assets/icons/google.png",
-                  onPressed: () {},
-                ),
-
-                const Spacer(),
-
-                // ===== DAFTAR =====
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Text(
-                      "Belum punya akun? ",
-                      style: TextStyle(color: AppColor.textHint),
-                    ),
-                    GestureDetector(
-                      onTap: () {
-                        context.push(const RegisterScreen());
-                      },
-                      child: const Text(
-                        "Daftar sekarang",
-                        style: TextStyle(
-                          color: AppColor.primary,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
+              ),
+            );
+          },
         ),
       ),
     );
