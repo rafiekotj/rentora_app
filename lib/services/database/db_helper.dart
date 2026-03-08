@@ -1,5 +1,5 @@
 import 'dart:convert';
-import 'package:rentora_app/models/produk_model.dart';
+import 'package:rentora_app/models/product_model.dart';
 import 'package:rentora_app/models/user_model.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
@@ -23,28 +23,17 @@ class DBHelper {
           deskripsiProduk TEXT,
           kategori TEXT,
           hargaPerHari INTEGER,
+          dendaPerHari INTEGER,
           stok INTEGER,
           minJumlahPinjam INTEGER,
           maxHariPinjam INTEGER
         )
         ''');
       },
-      version: 2,
+      version: 3,
       onUpgrade: (db, oldVersion, newVersion) async {
-        if (oldVersion < 2) {
-          db.execute('''
-        CREATE TABLE produk (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          images TEXT,
-          namaProduk TEXT,
-          deskripsiProduk TEXT,
-          kategori TEXT,
-          hargaPerHari INTEGER,
-          stok INTEGER,
-          minJumlahPinjam INTEGER,
-          maxHariPinjam INTEGER
-        )
-        ''');
+        if (oldVersion < 3) {
+          db.execute('ALTER TABLE produk ADD COLUMN dendaPerHari INTEGER');
         }
       },
     );
@@ -74,7 +63,7 @@ class DBHelper {
 
   // ================= PRODUK =================
 
-  static Future<void> insertProduk(ProdukModel produk) async {
+  static Future<void> insertProduk(ProductModel produk) async {
     final dbs = await db();
 
     final data = produk.toMap();
@@ -90,7 +79,7 @@ class DBHelper {
     );
   }
 
-  static Future<List<ProdukModel>> getAllProduk() async {
+  static Future<List<ProductModel>> getAllProduk() async {
     final dbs = await db();
     final List<Map<String, dynamic>> maps = await dbs.query('produk');
 
@@ -102,7 +91,7 @@ class DBHelper {
           ? <String>[]
           : List<String>.from(jsonDecode(imagesString));
 
-      return ProdukModel.fromMap(mutableMap);
+      return ProductModel.fromMap(mutableMap);
     }).toList();
   }
 
@@ -111,7 +100,7 @@ class DBHelper {
     await dbs.delete('produk', where: 'id = ?', whereArgs: [id]);
   }
 
-  static Future<void> updateProduk(ProdukModel produk) async {
+  static Future<void> updateProduk(ProductModel produk) async {
     final dbs = await db();
 
     final data = produk.toMap();

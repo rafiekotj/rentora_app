@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:rentora_app/core/constants/app_color.dart';
-import 'package:rentora_app/models/produk_model.dart';
+import 'package:rentora_app/models/product_model.dart';
 import 'package:rentora_app/services/database/db_helper.dart';
 import 'package:rentora_app/views/seller/seller_cu_product_screen.dart';
 import 'package:rentora_app/widgets/custom_button.dart';
@@ -16,7 +16,7 @@ class SellerProductScreen extends StatefulWidget {
 }
 
 class _SellerProductScreenState extends State<SellerProductScreen> {
-  List<ProdukModel> produkList = [];
+  List<ProductModel> produkList = [];
 
   String formatRupiah(dynamic number) {
     if (number == null) return "";

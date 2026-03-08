@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:rentora_app/core/constants/app_color.dart';
-import 'package:rentora_app/models/produk_model.dart';
+import 'package:rentora_app/models/product_model.dart';
 import 'package:rentora_app/services/database/db_helper.dart';
 import 'package:rentora_app/views/cart/cart_screen.dart';
 import 'package:rentora_app/views/detail/detail_product_screen.dart';
@@ -21,7 +21,7 @@ class _HomeScreenState extends State<HomeScreen> {
   late PageController _pageController;
   Timer? _timer;
 
-  List<ProdukModel> produkList = [];
+  List<ProductModel> produkList = [];
   bool isLoading = true;
 
   final List<String> bannerImages = [
@@ -332,7 +332,7 @@ class _HomeScreenState extends State<HomeScreen> {
 }
 
 class ProductCard extends StatelessWidget {
-  final ProdukModel produk;
+  final ProductModel produk;
 
   const ProductCard({super.key, required this.produk});
 

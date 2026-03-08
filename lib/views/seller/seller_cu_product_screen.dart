@@ -4,13 +4,13 @@ import 'package:image_picker/image_picker.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:rentora_app/controllers/product_controller.dart';
 import 'package:rentora_app/core/constants/app_color.dart';
-import 'package:rentora_app/models/produk_model.dart';
-import 'package:rentora_app/services/database/db_helper.dart';
+import 'package:rentora_app/models/product_model.dart';
 import 'package:rentora_app/widgets/custom_button.dart';
 
 class SellerCuProductScreen extends StatefulWidget {
-  final ProdukModel? produk;
+  final ProductModel? produk;
 
   const SellerCuProductScreen({super.key, this.produk});
 
@@ -19,8 +19,10 @@ class SellerCuProductScreen extends StatefulWidget {
 }
 
 class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
+  final ProductController _productController = ProductController();
   String? _selectedKategori;
   String? _hargaPerHari;
+  String? _dendaPerHari;
 
   final List<File> _images = [];
   final ImagePicker _picker = ImagePicker();
@@ -28,6 +30,7 @@ class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
   final TextEditingController _deskripsiProdukController =
       TextEditingController();
   final TextEditingController _hargaController = TextEditingController();
+  final TextEditingController _dendaController = TextEditingController();
   final TextEditingController _stokController = TextEditingController(
     text: "0",
   );
@@ -74,20 +77,22 @@ class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
         _namaProdukController.text.isEmpty ||
         _deskripsiProdukController.text.isEmpty ||
         _selectedKategori == null ||
-        (_hargaPerHari == null || _hargaPerHari!.isEmpty)) {
+        (_hargaPerHari == null || _hargaPerHari!.isEmpty) ||
+        (_dendaPerHari == null || _dendaPerHari!.isEmpty)) {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text("Lengkapi semua data produk")));
       return;
     }
 
-    final produk = ProdukModel(
+    final produk = ProductModel(
       id: widget.produk?.id,
       images: _images.map((e) => e.path).toList(),
       namaProduk: _namaProdukController.text,
       deskripsiProduk: _deskripsiProdukController.text,
       kategori: _selectedKategori!,
       hargaPerHari: int.tryParse(_hargaPerHari!.replaceAll(".", "")) ?? 0,
+      dendaPerHari: int.tryParse(_dendaPerHari!.replaceAll(".", "")) ?? 0,
       stok: int.tryParse(_stokController.text) ?? 0,
       minJumlahPinjam: int.tryParse(_jumlahPinjamController.text) ?? 1,
       maxHariPinjam: int.tryParse(_hariPinjamController.text) ?? 7,
@@ -95,12 +100,12 @@ class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
 
     try {
       if (widget.produk != null) {
-        await DBHelper.updateProduk(produk);
+        await _productController.updateProduct(produk);
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text("Produk berhasil diupdate")));
       } else {
-        await DBHelper.insertProduk(produk);
+        await _productController.addProduct(produk);
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text("Produk berhasil disimpan")));
@@ -122,6 +127,7 @@ class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
       _deskripsiProdukController.text = widget.produk!.deskripsiProduk;
       _selectedKategori = widget.produk!.kategori;
       _hargaPerHari = widget.produk!.hargaPerHari.toString();
+      _dendaPerHari = widget.produk!.dendaPerHari.toString();
       _stokController.text = widget.produk!.stok.toString();
       _jumlahPinjamController.text = widget.produk!.minJumlahPinjam.toString();
       _hariPinjamController.text = widget.produk!.maxHariPinjam.toString();
@@ -723,6 +729,212 @@ class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
                                                 .text
                                                 .replaceAll(".", "");
                                           });
+                                        });
+                                        Navigator.pop(context);
+                                      },
+                                      child: Text(
+                                        "Simpan",
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  SizedBox(height: 16),
+                                ],
+                              ),
+                            );
+                          },
+                        );
+                      },
+                    ),
+
+                    Divider(
+                      height: 1,
+                      indent: 16,
+                      endIndent: 16,
+                      color: AppColor.divider,
+                    ),
+
+                    // ==================== DENDA KETERLAMBATAN / HARI ====================
+                    ListTile(
+                      dense: true,
+                      contentPadding: EdgeInsets.only(left: 16, right: 12),
+                      leading: Icon(
+                        Symbols.payments,
+                        color: AppColor.textPrimary,
+                        size: 22,
+                      ),
+                      title: RichText(
+                        text: TextSpan(
+                          text: "Denda Keterlambatan / hari ",
+                          style: TextStyle(
+                            color: AppColor.textPrimary,
+                            fontSize: 14,
+                          ),
+                          children: [
+                            TextSpan(
+                              text: "*",
+                              style: TextStyle(color: AppColor.error),
+                            ),
+                          ],
+                        ),
+                      ),
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            _dendaPerHari != null && _dendaPerHari!.isNotEmpty
+                                ? "Rp ${formatRupiah(_dendaPerHari!)}"
+                                : "Atur",
+                            style: TextStyle(
+                              color: AppColor.textPrimary,
+                              fontSize: 14,
+                            ),
+                          ),
+                          Icon(
+                            Symbols.chevron_right,
+                            color: AppColor.textHint,
+                            size: 20,
+                          ),
+                        ],
+                      ),
+                      onTap: () {
+                        _dendaController.text = _dendaPerHari ?? "";
+
+                        showModalBottomSheet(
+                          context: context,
+                          backgroundColor: Colors.white,
+                          isScrollControlled: true,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.vertical(
+                              top: Radius.circular(16),
+                            ),
+                          ),
+                          builder: (context) {
+                            return Padding(
+                              padding: EdgeInsets.only(
+                                bottom:
+                                    MediaQuery.of(context).viewInsets.bottom +
+                                    MediaQuery.of(context).padding.bottom +
+                                    2,
+                                left: 16,
+                                right: 16,
+                                top: 12,
+                              ),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Center(
+                                    child: Container(
+                                      margin: EdgeInsets.only(bottom: 16),
+                                      height: 4,
+                                      width: 40,
+                                      decoration: BoxDecoration(
+                                        color: Colors.grey.shade300,
+                                        borderRadius: BorderRadius.circular(4),
+                                      ),
+                                    ),
+                                  ),
+                                  Text(
+                                    "Atur Denda Keterlambatan",
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600,
+                                      color: AppColor.textPrimary,
+                                    ),
+                                  ),
+                                  SizedBox(height: 16),
+                                  TextField(
+                                    controller: _dendaController,
+                                    keyboardType: TextInputType.number,
+                                    autofocus: true,
+                                    style: TextStyle(fontSize: 16),
+                                    onChanged: (value) {
+                                      String formatted = formatRupiah(value);
+                                      _dendaController.value = TextEditingValue(
+                                        text: formatted,
+                                        selection: TextSelection.collapsed(
+                                          offset: formatted.length,
+                                        ),
+                                      );
+                                    },
+                                    decoration: InputDecoration(
+                                      prefixText: "Rp ",
+                                      prefixStyle: TextStyle(
+                                        color: AppColor.textPrimary,
+                                        fontSize: 16,
+                                      ),
+                                      hintText: "0",
+                                      border: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(8),
+                                        borderSide: BorderSide(
+                                          color: AppColor.border,
+                                        ),
+                                      ),
+                                      focusedBorder: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(8),
+                                        borderSide: BorderSide(
+                                          color: AppColor.primary,
+                                        ),
+                                      ),
+                                      contentPadding: EdgeInsets.symmetric(
+                                        horizontal: 16,
+                                        vertical: 12,
+                                      ),
+                                    ),
+                                  ),
+                                  SizedBox(height: 24),
+                                  SizedBox(
+                                    width: double.infinity,
+                                    child: ElevatedButton(
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: AppColor.primary,
+                                        foregroundColor: Colors.white,
+                                        padding: EdgeInsets.symmetric(
+                                          vertical: 14,
+                                        ),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            8,
+                                          ),
+                                        ),
+                                      ),
+                                      onPressed: () {
+                                        final harga =
+                                            int.tryParse(
+                                              _hargaPerHari?.replaceAll(
+                                                    ".",
+                                                    "",
+                                                  ) ??
+                                                  "0",
+                                            ) ??
+                                            0;
+                                        final denda =
+                                            int.tryParse(
+                                              _dendaController.text.replaceAll(
+                                                ".",
+                                                "",
+                                              ),
+                                            ) ??
+                                            0;
+                                        if (denda > harga * 0.5) {
+                                          ScaffoldMessenger.of(
+                                            context,
+                                          ).showSnackBar(
+                                            SnackBar(
+                                              content: Text(
+                                                "Denda tidak boleh melebihi 50% dari harga sewa.",
+                                              ),
+                                            ),
+                                          );
+                                          return;
+                                        }
+                                        setState(() {
+                                          _dendaPerHari = _dendaController.text
+                                              .replaceAll(".", "");
                                         });
                                         Navigator.pop(context);
                                       },
