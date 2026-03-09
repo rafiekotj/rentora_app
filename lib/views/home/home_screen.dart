@@ -166,7 +166,7 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ===== Kategori =====
+            // KATEGORI
             const Text(
               "Kategori",
               style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700),

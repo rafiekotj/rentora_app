@@ -4,7 +4,7 @@ import 'package:rentora_app/core/constants/app_color.dart';
 class CustomTextField extends StatelessWidget {
   final TextEditingController controller;
   final String hintText;
-  final IconData prefixIcon;
+  final IconData? prefixIcon;
   final bool isPassword;
   final bool isVisibility;
   final VoidCallback? onVisibilityToggle;
@@ -15,7 +15,7 @@ class CustomTextField extends StatelessWidget {
     super.key,
     required this.controller,
     required this.hintText,
-    required this.prefixIcon,
+    this.prefixIcon,
     this.isPassword = false,
     this.isVisibility = false,
     this.onVisibilityToggle,
@@ -39,7 +39,7 @@ class CustomTextField extends StatelessWidget {
           fontWeight: FontWeight.w500,
         ),
         contentPadding: const EdgeInsets.all(12),
-        prefixIcon: Icon(prefixIcon, size: 20),
+        prefixIcon: prefixIcon != null ? Icon(prefixIcon, size: 20) : null,
         prefixIconColor: WidgetStateColor.resolveWith((states) {
           if (states.contains(WidgetState.error)) return AppColor.error;
           if (states.contains(WidgetState.focused)) return AppColor.secondary;

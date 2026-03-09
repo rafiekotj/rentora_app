@@ -7,6 +7,8 @@ import 'package:path_provider/path_provider.dart';
 import 'package:rentora_app/controllers/product_controller.dart';
 import 'package:rentora_app/core/constants/app_color.dart';
 import 'package:rentora_app/models/product_model.dart';
+import 'package:rentora_app/services/database/db_helper.dart';
+import 'package:rentora_app/services/local_storage/preference_handler.dart';
 import 'package:rentora_app/widgets/custom_button.dart';
 
 class SellerCuProductScreen extends StatefulWidget {
@@ -41,6 +43,9 @@ class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
     text: "7",
   );
 
+  bool _isSaving = false;
+  int? _currentUserId;
+
   String formatRupiah(String number) {
     if (number.isEmpty) return "";
     final value = int.tryParse(number.replaceAll(".", "")) ?? 0;
@@ -72,6 +77,18 @@ class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
     return savedImage;
   }
 
+  Future<void> _loadCurrentUser() async {
+    final email = await PreferenceHandler.getUserEmail();
+    if (email != null) {
+      final user = await DBHelper.getUserByEmail(email);
+      if (user != null) {
+        setState(() {
+          _currentUserId = user.id;
+        });
+      }
+    }
+  }
+
   Future<void> _simpanProduk() async {
     if (_images.isEmpty ||
         _namaProdukController.text.isEmpty ||
@@ -85,20 +102,32 @@ class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
       return;
     }
 
-    final produk = ProductModel(
-      id: widget.produk?.id,
-      images: _images.map((e) => e.path).toList(),
-      namaProduk: _namaProdukController.text,
-      deskripsiProduk: _deskripsiProdukController.text,
-      kategori: _selectedKategori!,
-      hargaPerHari: int.tryParse(_hargaPerHari!.replaceAll(".", "")) ?? 0,
-      dendaPerHari: int.tryParse(_dendaPerHari!.replaceAll(".", "")) ?? 0,
-      stok: int.tryParse(_stokController.text) ?? 0,
-      minJumlahPinjam: int.tryParse(_jumlahPinjamController.text) ?? 1,
-      maxHariPinjam: int.tryParse(_hariPinjamController.text) ?? 7,
-    );
+    if (_currentUserId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("User tidak ditemukan. Silakan login ulang.")),
+      );
+      return;
+    }
+
+    setState(() => _isSaving = true);
 
     try {
+      final produk = ProductModel(
+        id: widget.produk?.id,
+        userId: _currentUserId!,
+        images: _images.map((e) => e.path).toList(),
+        namaProduk: _namaProdukController.text,
+        deskripsiProduk: _deskripsiProdukController.text,
+        kategori: _selectedKategori!,
+        hargaPerHari: int.tryParse(_hargaPerHari!.replaceAll(".", "")) ?? 0,
+        dendaPerHari: int.tryParse(_dendaPerHari!.replaceAll(".", "")) ?? 0,
+        stok: int.tryParse(_stokController.text) ?? 0,
+        minJumlahPinjam: int.tryParse(_jumlahPinjamController.text) ?? 1,
+        maxHariPinjam: int.tryParse(_hariPinjamController.text) ?? 7,
+      );
+
+      print('Data Produk yang akan disimpan: ${produk.toJson()}');
+
       if (widget.produk != null) {
         await _productController.updateProduct(produk);
         ScaffoldMessenger.of(
@@ -116,12 +145,17 @@ class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Terjadi kesalahan saat menyimpan produk")),
       );
+    } finally {
+      if (mounted) {
+        setState(() => _isSaving = false);
+      }
     }
   }
 
   @override
   void initState() {
     super.initState();
+    _loadCurrentUser();
     if (widget.produk != null) {
       _namaProdukController.text = widget.produk!.namaProduk;
       _deskripsiProdukController.text = widget.produk!.deskripsiProduk;
@@ -413,7 +447,7 @@ class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
 
             SizedBox(height: 8),
 
-            // ==================== KATEGORI ====================
+            // KATEGORI
             Container(
               decoration: BoxDecoration(
                 color: Colors.white,
@@ -575,7 +609,7 @@ class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
                 borderRadius: BorderRadius.circular(8),
                 child: Column(
                   children: [
-                    // ==================== HARGA / HARI ====================
+                    // HARGA / HARI
                     ListTile(
                       dense: true,
                       contentPadding: EdgeInsets.only(left: 16, right: 12),
@@ -757,7 +791,7 @@ class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
                       color: AppColor.divider,
                     ),
 
-                    // ==================== DENDA KETERLAMBATAN / HARI ====================
+                    // DENDA KETERLAMBATAN / HARI
                     ListTile(
                       dense: true,
                       contentPadding: EdgeInsets.only(left: 16, right: 12),
@@ -963,7 +997,7 @@ class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
                       color: AppColor.divider,
                     ),
 
-                    // ==================== STOK ====================
+                    // STOK
                     ListTile(
                       dense: true,
                       contentPadding: EdgeInsets.only(left: 16, right: 16),
@@ -1014,7 +1048,7 @@ class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
                       color: AppColor.divider,
                     ),
 
-                    // ==================== MIN. JUMLAH BARANG ====================
+                    // MIN. JUMLAH BARANG
                     ListTile(
                       dense: true,
                       contentPadding: EdgeInsets.only(left: 16, right: 16),
@@ -1064,7 +1098,7 @@ class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
                       color: AppColor.divider,
                     ),
 
-                    // ==================== MAKS. HARI PEMINJAMAN ====================
+                    // MAKS. HARI PEMINJAMAN
                     ListTile(
                       dense: true,
                       contentPadding: EdgeInsets.only(left: 16, right: 16),
@@ -1127,7 +1161,11 @@ class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
               ),
             ],
           ),
-          child: CustomButton(text: "Simpan", onPressed: _simpanProduk),
+          child: CustomButton(
+            text: "Simpan",
+            onPressed: _simpanProduk,
+            isLoading: _isSaving,
+          ),
         ),
       ),
     );

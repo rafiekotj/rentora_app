@@ -8,6 +8,7 @@ class CustomButton extends StatelessWidget {
   final String? iconAsset;
   final Color? backgroundColor;
   final Color? textColor;
+  final bool isLoading;
 
   const CustomButton({
     super.key,
@@ -17,6 +18,7 @@ class CustomButton extends StatelessWidget {
     this.iconAsset,
     this.backgroundColor,
     this.textColor,
+    this.isLoading = false,
   });
 
   @override
@@ -26,7 +28,7 @@ class CustomButton extends StatelessWidget {
       height: 48,
       child: isOutlined
           ? OutlinedButton(
-              onPressed: onPressed,
+              onPressed: isLoading ? null : onPressed,
               style: OutlinedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 side: BorderSide(color: backgroundColor ?? AppColor.textHint),
@@ -34,27 +36,37 @@ class CustomButton extends StatelessWidget {
                   borderRadius: BorderRadius.circular(8),
                 ),
               ),
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  if (iconAsset != null)
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: Image.asset(iconAsset!, width: 20, height: 20),
+              child: isLoading
+                  ? const SizedBox(
+                      width: 24,
+                      height: 24,
+                      child: CircularProgressIndicator(
+                        color: AppColor.textHint,
+                        strokeWidth: 2,
+                      ),
+                    )
+                  : Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        if (iconAsset != null)
+                          Align(
+                            alignment: Alignment.centerLeft,
+                            child:
+                                Image.asset(iconAsset!, width: 20, height: 20),
+                          ),
+                        Text(
+                          text,
+                          style: TextStyle(
+                            color: textColor ?? AppColor.textHint,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
                     ),
-                  Text(
-                    text,
-                    style: TextStyle(
-                      color: textColor ?? AppColor.textHint,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ],
-              ),
             )
           : ElevatedButton(
-              onPressed: onPressed,
+              onPressed: isLoading ? null : onPressed,
               style: ElevatedButton.styleFrom(
                 backgroundColor: backgroundColor ?? AppColor.secondary,
                 shape: RoundedRectangleBorder(
@@ -62,14 +74,23 @@ class CustomButton extends StatelessWidget {
                 ),
                 elevation: 0,
               ),
-              child: Text(
-                text,
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                  color: textColor ?? Colors.white,
-                ),
-              ),
+              child: isLoading
+                  ? const SizedBox(
+                      width: 24,
+                      height: 24,
+                      child: CircularProgressIndicator(
+                        color: Colors.white,
+                        strokeWidth: 2,
+                      ),
+                    )
+                  : Text(
+                      text,
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        color: textColor ?? Colors.white,
+                      ),
+                    ),
             ),
     );
   }

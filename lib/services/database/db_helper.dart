@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:rentora_app/models/product_model.dart';
+import 'package:rentora_app/models/store_model.dart';
 import 'package:rentora_app/models/user_model.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
@@ -18,6 +19,7 @@ class DBHelper {
         await db.execute('''
         CREATE TABLE produk (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
+          userId INTEGER,
           images TEXT,
           namaProduk TEXT,
           deskripsiProduk TEXT,
@@ -26,16 +28,22 @@ class DBHelper {
           dendaPerHari INTEGER,
           stok INTEGER,
           minJumlahPinjam INTEGER,
-          maxHariPinjam INTEGER
+          maxHariPinjam INTEGER,
+          FOREIGN KEY (userId) REFERENCES user(id)
+        )
+        ''');
+        await db.execute('''
+        CREATE TABLE stores (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          userId INTEGER NOT NULL,
+          name TEXT NOT NULL,
+          image TEXT,
+          location TEXT,
+          FOREIGN KEY (userId) REFERENCES user(id)
         )
         ''');
       },
-      version: 3,
-      onUpgrade: (db, oldVersion, newVersion) async {
-        if (oldVersion < 3) {
-          db.execute('ALTER TABLE produk ADD COLUMN dendaPerHari INTEGER');
-        }
-      },
+      version: 1,
     );
   }
 
@@ -57,6 +65,53 @@ class DBHelper {
     );
     if (results.isNotEmpty) {
       return UserModel.fromMap(results.first);
+    }
+    return null;
+  }
+
+  static Future<UserModel?> getUserByEmail(String email) async {
+    final dbs = await db();
+    final List<Map<String, dynamic>> results = await dbs.query(
+      "user",
+      where: 'email = ?',
+      whereArgs: [email],
+    );
+    if (results.isNotEmpty) {
+      return UserModel.fromMap(results.first);
+    }
+    return null;
+  }
+
+  // ================= STORE =================
+  static Future<void> saveStore(StoreModel store) async {
+    final dbs = await db();
+    await dbs.insert(
+      'stores',
+      store.toMap(),
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+  }
+
+  static Future<void> updateStore(StoreModel store) async {
+    final dbs = await db();
+    await dbs.update(
+      'stores',
+      store.toMap(),
+      where: 'id = ?',
+      whereArgs: [store.id],
+    );
+  }
+
+  static Future<StoreModel?> getStoreByUserId(int userId) async {
+    final dbs = await db();
+    final List<Map<String, dynamic>> results = await dbs.query(
+      'stores',
+      where: 'userId = ?',
+      whereArgs: [userId],
+      limit: 1,
+    );
+    if (results.isNotEmpty) {
+      return StoreModel.fromMap(results.first);
     }
     return null;
   }

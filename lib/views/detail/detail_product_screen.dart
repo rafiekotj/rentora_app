@@ -653,20 +653,22 @@ class _DetailProductScreenState extends State<DetailProductScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Expanded(
-                child: IconButton(
-                  onPressed: () {},
-                  icon: Icon(Symbols.chat, color: AppColor.primary),
+                child: GestureDetector(
+                  onTap: () {},
+                  child: Center(
+                    child: Icon(Symbols.chat, color: AppColor.primary),
+                  ),
                 ),
               ),
-
               Container(width: 1, height: 24, color: AppColor.divider),
-
               Expanded(
-                child: IconButton(
-                  onPressed: () {},
-                  icon: Icon(
-                    Symbols.add_shopping_cart,
-                    color: AppColor.primary,
+                child: GestureDetector(
+                  onTap: () {},
+                  child: Center(
+                    child: Icon(
+                      Symbols.add_shopping_cart,
+                      color: AppColor.primary,
+                    ),
                   ),
                 ),
               ),

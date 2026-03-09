@@ -13,7 +13,6 @@ class UserController {
     final user = await DBHelper.loginUser(email: email, password: password);
 
     if (user != null) {
-      // Jika login DB berhasil, simpan sesi
       await _preferenceHandler.storingIsLogin(true);
       await _preferenceHandler.storingUserEmail(user.email);
       return true;
@@ -22,7 +21,6 @@ class UserController {
   }
 
   Future<void> logout() async {
-    // Hapus sesi saat logout
     await _preferenceHandler.deleteIsLogin();
     await _preferenceHandler.deleteUserEmail();
   }

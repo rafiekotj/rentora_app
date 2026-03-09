@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/symbols.dart';
+import 'package:rentora_app/controllers/store_controller.dart';
 import 'package:rentora_app/core/constants/app_color.dart';
+import 'package:rentora_app/models/store_model.dart';
 import 'package:rentora_app/views/seller/seller_product_screen.dart';
+import 'package:rentora_app/views/seller/seller_settings_screen.dart';
 
 class SellerHomeScreen extends StatefulWidget {
   const SellerHomeScreen({super.key});
@@ -11,6 +14,63 @@ class SellerHomeScreen extends StatefulWidget {
 }
 
 class _SellerHomeScreenState extends State<SellerHomeScreen> {
+  final StoreController _storeController = StoreController();
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkStoreProfile();
+    });
+  }
+
+  Future<void> _checkStoreProfile() async {
+    final StoreModel? store = await _storeController.getStore();
+
+    if (store == null ||
+        store.name.isEmpty ||
+        store.location == null ||
+        store.location!.isEmpty ||
+        store.image == null ||
+        store.image!.isEmpty) {
+      _showProfileSetupAlert();
+    }
+  }
+
+  void _showProfileSetupAlert() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Lengkapi Profil Toko'),
+          content: const Text(
+            'Anda perlu melengkapi nama, lokasi, dan gambar profil toko Anda untuk dapat menambahkan produk.',
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Nanti'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            ElevatedButton(
+              child: const Text('Ke Pengaturan'),
+              onPressed: () {
+                Navigator.of(context).pop();
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => const SellerSettingsScreen(),
+                  ),
+                );
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
