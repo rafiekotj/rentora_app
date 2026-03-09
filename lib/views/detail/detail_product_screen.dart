@@ -1,10 +1,13 @@
 import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:rentora_app/core/constants/app_color.dart';
 import 'package:rentora_app/models/product_model.dart';
+import 'package:rentora_app/controllers/store_controller.dart';
+import 'package:rentora_app/models/store_model.dart';
+import 'package:rentora_app/views/cart/cart_screen.dart';
+import 'package:rentora_app/controllers/cart_controller.dart';
 
 class DetailProductScreen extends StatefulWidget {
   final ProductModel produk;
@@ -17,11 +20,15 @@ class DetailProductScreen extends StatefulWidget {
 class _DetailProductScreenState extends State<DetailProductScreen> {
   late PageController _pageController;
   int _currentImageIndex = 0;
+  final StoreController _storeController = StoreController();
+  late Future<StoreModel?> _storeFuture;
+  final CartController _cartController = CartController();
 
   @override
   void initState() {
     super.initState();
     _pageController = PageController();
+    _storeFuture = _storeController.getStoreByUserId(widget.produk.userId);
   }
 
   @override
@@ -96,7 +103,12 @@ class _DetailProductScreenState extends State<DetailProductScreen> {
                 ),
               ),
               IconButton(
-                onPressed: () {},
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const CartScreen()),
+                  );
+                },
                 icon: Icon(
                   Symbols.shopping_cart,
                   color: AppColor.textOnPrimary,
@@ -414,152 +426,178 @@ class _DetailProductScreenState extends State<DetailProductScreen> {
 
               SizedBox(height: 8),
 
-              Container(
-                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                decoration: BoxDecoration(color: Colors.white),
-                child: Column(
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Row(
-                          children: [
-                            CircleAvatar(
-                              radius: 28,
-                              backgroundColor: AppColor.primarySoft,
-                              child: Icon(
-                                Icons.person,
-                                size: 32,
-                                color: AppColor.primary,
+              FutureBuilder<StoreModel?>(
+                future: _storeFuture,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return Center(child: CircularProgressIndicator());
+                  } else if (snapshot.hasError) {
+                    return Center(child: Text("Error: ${snapshot.error}"));
+                  } else if (snapshot.hasData && snapshot.data != null) {
+                    final store = snapshot.data!;
+                    return Container(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
+                      decoration: BoxDecoration(color: Colors.white),
+                      child: Column(
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Row(
+                                children: [
+                                  store.image != null
+                                      ? ClipOval(
+                                          child: Image.file(
+                                            File(store.image!),
+                                            width: 56,
+                                            height: 56,
+                                            fit: BoxFit.cover,
+                                          ),
+                                        )
+                                      : CircleAvatar(
+                                          radius: 28,
+                                          backgroundColor: AppColor.primarySoft,
+                                          child: Icon(
+                                            Icons.person,
+                                            size: 32,
+                                            color: AppColor.primary,
+                                          ),
+                                        ),
+                                  SizedBox(width: 12),
+                                  Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        store.name,
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w700,
+                                        ),
+                                      ),
+                                      Text(
+                                        "Aktif 2 menit lalu",
+                                        style: TextStyle(fontSize: 14),
+                                      ),
+                                      Text(
+                                        store.location?.toUpperCase() ??
+                                            "Lokasi tidak ada",
+                                        style: TextStyle(fontSize: 14),
+                                      ),
+                                    ],
+                                  ),
+                                ],
                               ),
-                            ),
-
-                            SizedBox(width: 12),
-
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  "Pict Cam Store",
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w700,
+                              OutlinedButton(
+                                onPressed: () {},
+                                style: OutlinedButton.styleFrom(
+                                  minimumSize: Size(0, 28),
+                                  padding: EdgeInsets.symmetric(horizontal: 12),
+                                  side: BorderSide(color: AppColor.primary),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8),
                                   ),
                                 ),
-                                Text(
-                                  "Aktif 2 menit lalu",
-                                  style: TextStyle(fontSize: 14),
-                                ),
-                                Text(
-                                  "KOTA JAKARTA BARAT",
-                                  style: TextStyle(fontSize: 14),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                        OutlinedButton(
-                          onPressed: () {},
-                          style: OutlinedButton.styleFrom(
-                            minimumSize: Size(0, 28),
-                            padding: EdgeInsets.symmetric(horizontal: 12),
-                            side: BorderSide(color: AppColor.primary),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
-                          child: Text(
-                            "Kunjungi",
-                            style: TextStyle(
-                              color: AppColor.primary,
-                              fontSize: 12,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-
-                    SizedBox(height: 12),
-
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Expanded(
-                          child: Center(
-                            child: Column(
-                              children: [
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Text(
-                                      "4.8",
-                                      style: TextStyle(
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                    SizedBox(width: 4),
-                                    Icon(
-                                      Symbols.star,
-                                      fill: 1,
-                                      size: 16,
-                                      color: Colors.amber,
-                                    ),
-                                  ],
-                                ),
-                                Text(
-                                  "Penilaian",
+                                child: Text(
+                                  "Kunjungi",
                                   style: TextStyle(
+                                    color: AppColor.primary,
                                     fontSize: 12,
-                                    fontWeight: FontWeight.w500,
                                   ),
                                 ),
-                              ],
-                            ),
+                              ),
+                            ],
                           ),
-                        ),
-                        Container(
-                          width: 1,
-                          height: 24,
-                          color: AppColor.divider,
-                        ),
-                        Expanded(
-                          child: Center(
-                            child: Column(
-                              children: [
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Text(
-                                      "16",
-                                      style: TextStyle(
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w500,
+                          SizedBox(height: 12),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Expanded(
+                                child: Center(
+                                  child: Column(
+                                    children: [
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          Text(
+                                            "4.8",
+                                            style: TextStyle(
+                                              fontSize: 14,
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                          ),
+                                          SizedBox(width: 4),
+                                          Icon(
+                                            Symbols.star,
+                                            fill: 1,
+                                            size: 16,
+                                            color: Colors.amber,
+                                          ),
+                                        ],
                                       ),
-                                    ),
-                                    SizedBox(width: 4),
-                                    Icon(
-                                      Symbols.box,
-                                      size: 16,
-                                      color: Colors.brown,
-                                    ),
-                                  ],
-                                ),
-                                Text(
-                                  "Produk",
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w500,
+                                      Text(
+                                        "Penilaian",
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
-                              ],
-                            ),
+                              ),
+                              Container(
+                                width: 1,
+                                height: 24,
+                                color: AppColor.divider,
+                              ),
+                              Expanded(
+                                child: Center(
+                                  child: Column(
+                                    children: [
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          Text(
+                                            "16",
+                                            style: TextStyle(
+                                              fontSize: 14,
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                          ),
+                                          SizedBox(width: 4),
+                                          Icon(
+                                            Symbols.box,
+                                            size: 16,
+                                            color: Colors.brown,
+                                          ),
+                                        ],
+                                      ),
+                                      Text(
+                                        "Produk",
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
+                        ],
+                      ),
+                    );
+                  } else {
+                    return Center(child: Text("Toko tidak ditemukan"));
+                  }
+                },
               ),
 
               SizedBox(height: 8),
@@ -645,53 +683,60 @@ class _DetailProductScreenState extends State<DetailProductScreen> {
           ),
         ),
       ),
-      bottomNavigationBar: SafeArea(
-        child: Container(
-          height: 56,
-          color: AppColor.textOnPrimary,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Expanded(
-                child: GestureDetector(
-                  onTap: () {},
-                  child: Center(
-                    child: Icon(Symbols.chat, color: AppColor.primary),
-                  ),
-                ),
-              ),
-              Container(width: 1, height: 24, color: AppColor.divider),
-              Expanded(
-                child: GestureDetector(
-                  onTap: () {},
-                  child: Center(
-                    child: Icon(
-                      Symbols.add_shopping_cart,
-                      color: AppColor.primary,
-                    ),
-                  ),
-                ),
-              ),
-
-              GestureDetector(
+      bottomNavigationBar: Container(
+        height: 56,
+        color: AppColor.textOnPrimary,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Expanded(
+              child: GestureDetector(
                 onTap: () {},
-                child: Container(
-                  width: 200,
-                  height: double.infinity,
-                  alignment: Alignment.center,
-                  color: AppColor.primary,
-                  child: Text(
-                    "Sewa",
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
+                child: Center(
+                  child: Icon(Symbols.chat, color: AppColor.primary),
+                ),
+              ),
+            ),
+            Container(width: 1, height: 24, color: AppColor.divider),
+
+            // Icon tambah ke keranjang
+            Expanded(
+              child: GestureDetector(
+                onTap: () {
+                  _cartController.addToCart(widget.produk);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Produk ditambahkan ke keranjang'),
+                      duration: Duration(seconds: 1),
                     ),
+                  );
+                },
+                child: Center(
+                  child: Icon(
+                    Symbols.add_shopping_cart,
+                    color: AppColor.primary,
                   ),
                 ),
               ),
-            ],
-          ),
+            ),
+            GestureDetector(
+              onTap: () {},
+              child: Container(
+                width: 200,
+                height: double.infinity,
+                alignment: Alignment.center,
+                color: AppColor.primary,
+                child: Text(
+                  "Sewa",
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );

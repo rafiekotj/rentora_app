@@ -5,6 +5,9 @@ import 'package:rentora_app/core/constants/app_color.dart';
 import 'package:rentora_app/models/store_model.dart';
 import 'package:rentora_app/views/seller/seller_product_screen.dart';
 import 'package:rentora_app/views/seller/seller_settings_screen.dart';
+import 'package:rentora_app/controllers/user_controller.dart';
+import 'package:rentora_app/models/user_model.dart';
+import 'dart:io';
 
 class SellerHomeScreen extends StatefulWidget {
   const SellerHomeScreen({super.key});
@@ -15,13 +18,30 @@ class SellerHomeScreen extends StatefulWidget {
 
 class _SellerHomeScreenState extends State<SellerHomeScreen> {
   final StoreController _storeController = StoreController();
+  final UserController _userController = UserController();
+  StoreModel? _store;
+  UserModel? _user;
 
   @override
   void initState() {
     super.initState();
+    _loadData();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _checkStoreProfile();
     });
+  }
+
+  Future<void> _loadData() async {
+    final user = await _userController.getCurrentUser();
+    if (user != null) {
+      final store = await _storeController.getStoreByUserId(user.id!);
+      if (mounted) {
+        setState(() {
+          _user = user;
+          _store = store;
+        });
+      }
+    }
   }
 
   Future<void> _checkStoreProfile() async {
@@ -90,7 +110,7 @@ class _SellerHomeScreenState extends State<SellerHomeScreen> {
             icon: const Icon(Symbols.notifications, weight: 600),
           ),
 
-          const SizedBox(width: 8),
+          SizedBox(width: 8),
         ],
       ),
       body: SafeArea(
@@ -98,29 +118,34 @@ class _SellerHomeScreenState extends State<SellerHomeScreen> {
           child: Column(
             children: [
               Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 20,
-                ),
+                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 20),
                 decoration: BoxDecoration(color: AppColor.primary),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
                       children: [
-                        CircleAvatar(
-                          radius: 28,
-                          backgroundColor: Colors.white,
-                          child: Icon(Icons.person, size: 30),
-                        ),
-
-                        const SizedBox(width: 16),
-
+                        if (_store?.image != null)
+                          ClipOval(
+                            child: Image.file(
+                              File(_store!.image!),
+                              width: 56,
+                              height: 56,
+                              fit: BoxFit.cover,
+                            ),
+                          )
+                        else
+                          CircleAvatar(
+                            radius: 28,
+                            backgroundColor: Colors.white,
+                            child: Icon(Icons.person, size: 30),
+                          ),
+                        SizedBox(width: 16),
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
-                          children: const [
+                          children: [
                             Text(
-                              "rafie@gmail.com",
+                              _store?.name ?? _user?.email ?? "",
                               style: TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.w600,
@@ -142,7 +167,7 @@ class _SellerHomeScreenState extends State<SellerHomeScreen> {
                     // STATISTIK PENJUAL SECTION
                     Container(
                       width: double.infinity,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      padding: EdgeInsets.symmetric(vertical: 16),
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(8),
@@ -173,8 +198,7 @@ class _SellerHomeScreenState extends State<SellerHomeScreen> {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (context) =>
-                                      const SellerProductScreen(),
+                                  builder: (context) => SellerProductScreen(),
                                 ),
                               );
                             },
@@ -252,13 +276,13 @@ class StatItem extends StatelessWidget {
         children: [
           Text(
             count.toString(),
-            style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w500),
+            style: TextStyle(fontSize: 22, fontWeight: FontWeight.w500),
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: 8),
           Text(
             label,
             textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 10, color: AppColor.textSecondary),
+            style: TextStyle(fontSize: 10, color: AppColor.textSecondary),
           ),
         ],
       ),

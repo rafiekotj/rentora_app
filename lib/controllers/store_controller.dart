@@ -20,6 +20,10 @@ class StoreController {
     return await DBHelper.getStoreByUserId(user.id!);
   }
 
+  Future<StoreModel?> getStoreByUserId(int userId) async {
+    return await DBHelper.getStoreByUserId(userId);
+  }
+
   Future<void> saveStore({
     required String name,
     String? location,

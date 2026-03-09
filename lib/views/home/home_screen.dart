@@ -9,6 +9,8 @@ import 'package:rentora_app/services/database/db_helper.dart';
 import 'package:rentora_app/views/cart/cart_screen.dart';
 import 'package:rentora_app/views/detail/detail_product_screen.dart';
 import 'package:rentora_app/views/home/category_screen.dart';
+import 'package:rentora_app/models/store_model.dart';
+import 'package:rentora_app/controllers/store_controller.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -24,6 +26,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   List<ProductModel> produkList = [];
   bool isLoading = true;
+  // final StoreController _storeController = StoreController();
 
   final List<String> bannerImages = [
     "assets/images/banner1.jpg",
@@ -359,10 +362,35 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
-class ProductCard extends StatelessWidget {
+class ProductCard extends StatefulWidget {
   final ProductModel produk;
 
   const ProductCard({super.key, required this.produk});
+
+  @override
+  State<ProductCard> createState() => _ProductCardState();
+}
+
+class _ProductCardState extends State<ProductCard> {
+  final StoreController _storeController = StoreController();
+  StoreModel? store;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadStore();
+  }
+
+  Future<void> _loadStore() async {
+    final storeData = await _storeController.getStoreByUserId(
+      widget.produk.userId,
+    );
+    if (mounted) {
+      setState(() {
+        store = storeData;
+      });
+    }
+  }
 
   String formatRupiah(int number) {
     final value = NumberFormat("#,###", "id_ID").format(number);
@@ -387,15 +415,15 @@ class ProductCard extends StatelessWidget {
                   topLeft: Radius.circular(6),
                   topRight: Radius.circular(6),
                 ),
-                image: produk.images.isNotEmpty
+                image: widget.produk.images.isNotEmpty
                     ? DecorationImage(
-                        image: FileImage(File(produk.images.first)),
+                        image: FileImage(File(widget.produk.images.first)),
                         fit: BoxFit.cover,
                       )
                     : null,
-                color: produk.images.isEmpty ? Colors.grey[200] : null,
+                color: widget.produk.images.isEmpty ? Colors.grey[200] : null,
               ),
-              child: produk.images.isEmpty
+              child: widget.produk.images.isEmpty
                   ? const Icon(Icons.image, color: Colors.grey)
                   : null,
             ),
@@ -406,7 +434,7 @@ class ProductCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  produk.namaProduk,
+                  widget.produk.namaProduk,
                   style: const TextStyle(
                     fontWeight: FontWeight.w600,
                     fontSize: 14,
@@ -414,13 +442,11 @@ class ProductCard extends StatelessWidget {
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
-
                 const SizedBox(height: 4),
-
                 Row(
                   children: [
                     Text(
-                      formatRupiah(produk.hargaPerHari),
+                      formatRupiah(widget.produk.hargaPerHari),
                       style: TextStyle(
                         color: AppColor.primary,
                         fontWeight: FontWeight.w700,
@@ -433,9 +459,7 @@ class ProductCard extends StatelessWidget {
                     ),
                   ],
                 ),
-
                 const SizedBox(height: 4),
-
                 Row(
                   children: [
                     Icon(
@@ -444,10 +468,23 @@ class ProductCard extends StatelessWidget {
                       size: 12,
                     ),
                     const SizedBox(width: 4),
-                    Text(
-                      "KOTA JAKARTA BARAT",
-                      style: TextStyle(color: AppColor.textHint, fontSize: 10),
-                    ),
+                    if (store != null)
+                      Text(
+                        store!.location?.toUpperCase() ??
+                            "LOKASI TIDAK TERSEDIA",
+                        style: TextStyle(
+                          color: AppColor.textHint,
+                          fontSize: 10,
+                        ),
+                      )
+                    else
+                      Text(
+                        "",
+                        style: TextStyle(
+                          color: AppColor.textHint,
+                          fontSize: 10,
+                        ),
+                      ),
                   ],
                 ),
               ],

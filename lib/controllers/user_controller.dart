@@ -25,6 +25,14 @@ class UserController {
     await _preferenceHandler.deleteUserEmail();
   }
 
+  Future<UserModel?> getCurrentUser() async {
+    final email = await PreferenceHandler.getUserEmail();
+    if (email != null) {
+      return await DBHelper.getUserByEmail(email);
+    }
+    return null;
+  }
+
   Future<bool> isUserLoggedIn() async {
     return await PreferenceHandler.getIsLogin() ?? false;
   }
