@@ -19,11 +19,15 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         fontFamily: 'Inter',
-        textSelectionTheme: TextSelectionThemeData(
+        textTheme: const TextTheme(
+          bodyLarge: TextStyle(color: AppColor.textPrimary),
+          bodyMedium: TextStyle(color: AppColor.textPrimary),
+        ),
+        textSelectionTheme: const TextSelectionThemeData(
           selectionHandleColor: AppColor.secondary,
         ),
       ),
-      home: SplashScreen(),
+      home: const SplashScreen(),
     );
   }
 }

@@ -8,6 +8,7 @@ import 'package:rentora_app/models/product_model.dart';
 import 'package:rentora_app/services/database/db_helper.dart';
 import 'package:rentora_app/views/cart/cart_screen.dart';
 import 'package:rentora_app/views/detail/detail_product_screen.dart';
+import 'package:rentora_app/views/home/category_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -134,14 +135,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               const SizedBox(width: 8),
               IconButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const DetailProductScreen(),
-                    ),
-                  );
-                },
+                onPressed: () {},
                 icon: Icon(
                   Symbols.chat,
                   color: AppColor.textOnPrimary,
@@ -184,41 +178,49 @@ class _HomeScreenState extends State<HomeScreen> {
                 const List<CategoryItem> categoryItems = [
                   CategoryItem(
                     label: "Elektronik",
+                    value: "Elektronik & Gadget",
                     icon: Symbols.speaker,
                     color: Color(0xff98A1BC),
                   ),
                   CategoryItem(
                     label: "Pakaian",
+                    value: "Pakaian & Kostum",
                     icon: Symbols.apparel,
                     color: Color(0xffFF9B51),
                   ),
                   CategoryItem(
                     label: "Sepatu",
+                    value: "Sepatu & Alas Kaki",
                     icon: Symbols.shoe_cleats,
                     color: Color(0xff578FCA),
                   ),
                   CategoryItem(
                     label: "Tas",
+                    value: "Tas & Koper",
                     icon: Symbols.backpack,
                     color: Color(0xffF16727),
                   ),
                   CategoryItem(
                     label: "Furniture",
+                    value: "Furniture & Rumah Tangga",
                     icon: Symbols.chair,
                     color: Color(0xffFACC15),
                   ),
                   CategoryItem(
                     label: "Buku",
+                    value: "Buku & Mainan",
                     icon: Symbols.book_2,
                     color: Color(0xffE2B59A),
                   ),
                   CategoryItem(
                     label: "Hobi",
+                    value: "Hobi & Alat Musik",
                     icon: Symbols.stadia_controller,
                     color: Color(0xff758A93),
                   ),
                   CategoryItem(
                     label: "Otomotif",
+                    value: "Otomotif & Transportasi",
                     icon: Symbols.search_hands_free,
                     color: Color(0xffBBDCE5),
                   ),
@@ -234,7 +236,22 @@ class _HomeScreenState extends State<HomeScreen> {
                   spacing: spacing,
                   runSpacing: 12.0,
                   children: categoryItems
-                      .map((item) => SizedBox(width: itemWidth, child: item))
+                      .map(
+                        (item) => GestureDetector(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => CategoryScreen(
+                                  title: item.label,
+                                  categoryValue: item.value,
+                                ),
+                              ),
+                            );
+                          },
+                          child: SizedBox(width: itemWidth, child: item),
+                        ),
+                      )
                       .toList(),
                 );
               },
@@ -293,7 +310,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
 
-            const SizedBox(height: 24),
+            const SizedBox(height: 12),
 
             // LIST PRODUK
             const Text(
@@ -317,7 +334,18 @@ class _HomeScreenState extends State<HomeScreen> {
                       .map(
                         (produk) => SizedBox(
                           width: itemWidth,
-                          child: ProductCard(produk: produk),
+                          child: GestureDetector(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      DetailProductScreen(produk: produk),
+                                ),
+                              );
+                            },
+                            child: ProductCard(produk: produk),
+                          ),
                         ),
                       )
                       .toList(),
@@ -433,12 +461,14 @@ class ProductCard extends StatelessWidget {
 
 class CategoryItem extends StatelessWidget {
   final String label;
+  final String value;
   final IconData icon;
   final Color color;
 
   const CategoryItem({
     super.key,
     required this.label,
+    required this.value,
     required this.icon,
     required this.color,
   });

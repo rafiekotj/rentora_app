@@ -1,15 +1,40 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:rentora_app/core/constants/app_color.dart';
+import 'package:rentora_app/models/product_model.dart';
 
 class DetailProductScreen extends StatefulWidget {
-  const DetailProductScreen({super.key});
+  final ProductModel produk;
+  const DetailProductScreen({super.key, required this.produk});
 
   @override
   State<DetailProductScreen> createState() => _DetailProductScreenState();
 }
 
 class _DetailProductScreenState extends State<DetailProductScreen> {
+  late PageController _pageController;
+  int _currentImageIndex = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _pageController = PageController();
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  String formatRupiah(int number) {
+    final value = NumberFormat("#,###", "id_ID").format(number);
+    return "Rp $value";
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -88,10 +113,65 @@ class _DetailProductScreenState extends State<DetailProductScreen> {
           child: Column(
             children: [
               // IMAGE SECTION
-              Container(
-                width: MediaQuery.of(context).size.width,
-                height: MediaQuery.of(context).size.width,
-                color: AppColor.border,
+              AspectRatio(
+                aspectRatio: 1,
+                child: Stack(
+                  children: [
+                    PageView.builder(
+                      controller: _pageController,
+                      itemCount: widget.produk.images.length,
+                      onPageChanged: (index) {
+                        setState(() {
+                          _currentImageIndex = index;
+                        });
+                      },
+                      itemBuilder: (context, index) {
+                        return Container(
+                          decoration: BoxDecoration(
+                            image: widget.produk.images.isNotEmpty
+                                ? DecorationImage(
+                                    image: FileImage(
+                                      File(widget.produk.images[index]),
+                                    ),
+                                    fit: BoxFit.cover,
+                                  )
+                                : null,
+                            color: widget.produk.images.isEmpty
+                                ? Colors.grey[200]
+                                : null,
+                          ),
+                          child: widget.produk.images.isEmpty
+                              ? const Icon(Icons.image, color: Colors.grey)
+                              : null,
+                        );
+                      },
+                    ),
+                    if (widget.produk.images.length > 1)
+                      Positioned(
+                        bottom: 8,
+                        left: 0,
+                        right: 0,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: List.generate(
+                            widget.produk.images.length,
+                            (index) => AnimatedContainer(
+                              duration: const Duration(milliseconds: 300),
+                              margin: const EdgeInsets.symmetric(horizontal: 4),
+                              width: _currentImageIndex == index ? 24 : 8,
+                              height: 8,
+                              decoration: BoxDecoration(
+                                color: _currentImageIndex == index
+                                    ? AppColor.divider
+                                    : Colors.white.withAlpha(150),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
               ),
 
               Container(
@@ -116,7 +196,10 @@ class _DetailProductScreenState extends State<DetailProductScreen> {
                               ),
                             ),
                             Text(
-                              "60.000",
+                              NumberFormat(
+                                "#,###",
+                                "id_ID",
+                              ).format(widget.produk.hargaPerHari),
                               style: TextStyle(
                                 color: AppColor.secondary,
                                 fontSize: 24,
@@ -133,12 +216,12 @@ class _DetailProductScreenState extends State<DetailProductScreen> {
                           ],
                         ),
 
-                        Text("72x Disewa"),
+                        Text("2x Disewa"),
                       ],
                     ),
                     SizedBox(height: 8),
                     Text(
-                      "Kamera Digital",
+                      widget.produk.namaProduk,
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w500,
@@ -552,13 +635,7 @@ class _DetailProductScreenState extends State<DetailProductScreen> {
                       ),
                     ),
                     SizedBox(height: 8),
-                    Wrap(
-                      children: [
-                        Text(
-                          "Kamera Digital Merk Canon EOS 700.\n\nLorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
-                        ),
-                      ],
-                    ),
+                    Wrap(children: [Text(widget.produk.deskripsiProduk)]),
                   ],
                 ),
               ),
