@@ -1,5 +1,4 @@
 import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:material_symbols_icons/symbols.dart';
@@ -17,11 +16,14 @@ class SellerSettingsScreen extends StatefulWidget {
 
 class _SellerSettingsScreenState extends State<SellerSettingsScreen> {
   final _storeController = StoreController();
+
   final _nameController = TextEditingController();
   final _locationController = TextEditingController();
+
   final _imagePicker = ImagePicker();
 
   String? _imagePath;
+
   bool _isLoading = false;
 
   @override
@@ -37,6 +39,7 @@ class _SellerSettingsScreenState extends State<SellerSettingsScreen> {
     super.dispose();
   }
 
+  // Memuat data toko
   Future<void> _loadStoreData() async {
     setState(() => _isLoading = true);
     try {
@@ -55,6 +58,7 @@ class _SellerSettingsScreenState extends State<SellerSettingsScreen> {
     }
   }
 
+  // Membuka galeri untuk memilih gambar profil toko
   Future<void> _pickImage() async {
     final pickedFile = await _imagePicker.pickImage(
       source: ImageSource.gallery,
@@ -66,6 +70,7 @@ class _SellerSettingsScreenState extends State<SellerSettingsScreen> {
     }
   }
 
+  // Menyimpan data toko yang telah diubah
   Future<void> _saveStore() async {
     if (_nameController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -106,7 +111,7 @@ class _SellerSettingsScreenState extends State<SellerSettingsScreen> {
         toolbarHeight: 58,
         backgroundColor: AppColor.primary,
         foregroundColor: AppColor.textOnPrimary,
-        title: Text(
+        title: const Text(
           "Pengaturan Toko",
           style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
         ),

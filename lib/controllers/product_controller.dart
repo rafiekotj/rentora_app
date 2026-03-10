@@ -1,7 +1,10 @@
+import 'package:rentora_app/controllers/store_controller.dart';
 import 'package:rentora_app/models/product_model.dart';
 import 'package:rentora_app/services/database/sqflite.dart';
 
 class ProductController {
+  final _storeController = StoreController();
+
   // Menambahkan produk baru ke database.
   Future<int> addProduct(ProductModel product) async {
     final db = await DBHelper.database();
@@ -19,6 +22,22 @@ class ProductController {
       where: 'id = ?',
       whereArgs: [product.id],
     );
+  }
+
+  // Menghapus produk dari database berdasarkan ID.
+  Future<void> deleteProduct(int productId) async {
+    await DBHelper.deleteProduk(productId);
+  }
+
+  // Mengambil produk untuk penjual (toko) saat ini.
+  Future<List<ProductModel>> getMyProducts() async {
+    final store = await _storeController.getStore();
+    if (store == null) {
+      // Mengembalikan list kosong jika toko tidak ditemukan.
+      return [];
+    }
+    // Controller memanggil DBHelper, bukan View.
+    return await DBHelper.getProdukByStore(store.id!);
   }
 
   // Mengambil daftar produk dari database berdasarkan kategori tertentu.

@@ -1,12 +1,10 @@
 import 'dart:io';
-
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:material_symbols_icons/symbols.dart';
-import 'package:rentora_app/controllers/store_controller.dart';
+import 'package:rentora_app/controllers/product_controller.dart';
 import 'package:rentora_app/core/constants/app_color.dart';
+import 'package:rentora_app/core/utils/app_formatters.dart';
 import 'package:rentora_app/models/product_model.dart';
-import 'package:rentora_app/services/database/sqflite.dart';
 import 'package:rentora_app/views/seller/seller_cu_product_screen.dart';
 import 'package:rentora_app/widgets/custom_button.dart';
 
@@ -19,21 +17,12 @@ class SellerProductScreen extends StatefulWidget {
 
 class _SellerProductScreenState extends State<SellerProductScreen> {
   List<ProductModel> produkList = [];
-  final StoreController _storeController = StoreController();
-  int? storeId;
 
-  String formatRupiah(dynamic number) {
-    if (number == null) return "";
-    final value = int.tryParse(number.toString().replaceAll(".", "")) ?? 0;
-    return NumberFormat("#,###", "id_ID").format(value).replaceAll(",", ".");
-  }
+  final ProductController _productController = ProductController();
 
+  /// Memuat daftar produk
   Future<void> loadProduk() async {
-    final store = await _storeController.getStore();
-
-    if (store == null) return;
-
-    final data = await DBHelper.getProdukByStore(store.id!);
+    final data = await _productController.getMyProducts();
 
     if (!mounted) return;
 
@@ -56,23 +45,25 @@ class _SellerProductScreenState extends State<SellerProductScreen> {
         toolbarHeight: 58,
         backgroundColor: AppColor.primary,
         foregroundColor: AppColor.textOnPrimary,
-        title: Text(
+        title: const Text(
           "Produk Saya",
           style: TextStyle(fontWeight: FontWeight.w600),
         ),
         actions: [
-          IconButton(onPressed: () {}, icon: Icon(Symbols.search, weight: 600)),
-          SizedBox(width: 8),
+          IconButton(
+            onPressed: () {},
+            icon: const Icon(Symbols.search, weight: 600),
+          ),
+          const SizedBox(width: 8),
         ],
       ),
       body: Padding(
-        padding: EdgeInsets.all(8),
+        padding: const EdgeInsets.all(8),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            //  SORT & FILTER
             Padding(
-              padding: EdgeInsets.symmetric(horizontal: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 4),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
@@ -80,16 +71,19 @@ class _SellerProductScreenState extends State<SellerProductScreen> {
                     onTap: () {},
                     borderRadius: BorderRadius.circular(6),
                     child: Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 6,
+                      ),
                       child: Row(
                         children: [
-                          Icon(
+                          const Icon(
                             Symbols.sort,
                             size: 18,
                             color: AppColor.textPrimary,
                           ),
-                          SizedBox(width: 4),
-                          Text(
+                          const SizedBox(width: 4),
+                          const Text(
                             "Urutkan",
                             style: TextStyle(
                               fontSize: 13,
@@ -101,23 +95,24 @@ class _SellerProductScreenState extends State<SellerProductScreen> {
                       ),
                     ),
                   ),
-
-                  SizedBox(width: 12),
-
+                  const SizedBox(width: 12),
                   InkWell(
                     onTap: () {},
                     borderRadius: BorderRadius.circular(6),
                     child: Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 6,
+                      ),
                       child: Row(
                         children: [
-                          Icon(
+                          const Icon(
                             Symbols.filter_list,
                             size: 18,
                             color: AppColor.textPrimary,
                           ),
-                          SizedBox(width: 4),
-                          Text(
+                          const SizedBox(width: 4),
+                          const Text(
                             "Filter",
                             style: TextStyle(
                               fontSize: 13,
@@ -132,215 +127,74 @@ class _SellerProductScreenState extends State<SellerProductScreen> {
                 ],
               ),
             ),
+            const SizedBox(height: 8),
 
-            SizedBox(height: 8),
-
+            // Daftar produk
             Expanded(
               child: produkList.isEmpty
-                  ? Center(
+                  ? const Center(
                       child: Text(
                         "Belum ada produk",
                         style: TextStyle(color: AppColor.textSecondary),
                       ),
                     )
                   : ListView.builder(
-                      physics: BouncingScrollPhysics(),
+                      physics: const BouncingScrollPhysics(),
                       itemCount: produkList.length,
                       itemBuilder: (context, index) {
                         final produk = produkList[index];
-
-                        return Container(
-                          padding: EdgeInsets.all(12),
-                          margin: EdgeInsets.only(bottom: 8),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              // IMAGE
-                              Container(
-                                width: 80,
-                                height: 80,
-                                decoration: BoxDecoration(
-                                  color: Colors.grey.shade200,
-                                  borderRadius: BorderRadius.circular(6),
-                                ),
-                                child: produk.images.isNotEmpty
-                                    ? ClipRRect(
-                                        borderRadius: BorderRadius.circular(6),
-                                        child: Image.file(
-                                          File(produk.images.first),
-                                          fit: BoxFit.cover,
-                                          errorBuilder:
-                                              (context, error, stackTrace) {
-                                                return Icon(
-                                                  Symbols.image,
-                                                  color: Colors.grey,
-                                                );
-                                              },
-                                        ),
-                                      )
-                                    : Icon(Symbols.image, color: Colors.grey),
+                        return _ProductCard(
+                          product: produk,
+                          onEdit: () async {
+                            await Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    SellerCuProductScreen(produk: produk),
                               ),
-
-                              SizedBox(width: 12),
-
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    // NAMA PRODUK
-                                    Text(
-                                      produk.namaProduk,
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                      maxLines: 2,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-
-                                    SizedBox(height: 4),
-
-                                    // KATEGORI
-                                    Text(
-                                      produk.kategori,
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        color: AppColor.textHint,
-                                      ),
-                                    ),
-
-                                    SizedBox(height: 6),
-
-                                    Row(
-                                      children: [
-                                        Text(
-                                          "Rp ${formatRupiah(produk.hargaPerHari)}",
-                                          style: TextStyle(
-                                            fontSize: 14,
-                                            fontWeight: FontWeight.w600,
-                                            color: AppColor.secondary,
-                                          ),
-                                        ),
-                                        Text(
-                                          " / hari",
-                                          style: TextStyle(
-                                            fontSize: 12,
-                                            color: AppColor.textHint,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-
-                                    Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        // STOK
-                                        Text(
-                                          "Stok: ${produk.stok}",
-                                          style: TextStyle(
-                                            fontSize: 12,
-                                            color: AppColor.textSecondary,
-                                          ),
-                                        ),
-
-                                        Row(
-                                          children: [
-                                            // EDIT
-                                            IconButton(
-                                              onPressed: () async {
-                                                await Navigator.push(
-                                                  context,
-                                                  MaterialPageRoute(
-                                                    builder: (context) =>
-                                                        SellerCuProductScreen(
-                                                          produk: produk,
-                                                        ),
-                                                  ),
-                                                );
-
-                                                loadProduk();
-                                              },
-                                              icon: Icon(
-                                                Icons.edit_outlined,
-                                                size: 20,
-                                                color: Colors.orange,
-                                              ),
-                                            ),
-
-                                            // DELETE
-                                            IconButton(
-                                              onPressed: () async {
-                                                final confirm = await showDialog<bool>(
-                                                  context: context,
-                                                  builder: (context) => AlertDialog(
-                                                    title: Text(
-                                                      "Konfirmasi Hapus",
-                                                    ),
-                                                    content: Text(
-                                                      "Apakah kamu yakin ingin menghapus produk ini?",
-                                                    ),
-                                                    actions: [
-                                                      TextButton(
-                                                        onPressed: () =>
-                                                            Navigator.pop(
-                                                              context,
-                                                              false,
-                                                            ),
-                                                        child: Text("Batal"),
-                                                      ),
-                                                      TextButton(
-                                                        onPressed: () =>
-                                                            Navigator.pop(
-                                                              context,
-                                                              true,
-                                                            ),
-                                                        child: Text(
-                                                          "Hapus",
-                                                          style: TextStyle(
-                                                            color: Colors.red,
-                                                          ),
-                                                        ),
-                                                      ),
-                                                    ],
-                                                  ),
-                                                );
-
-                                                if (confirm == true) {
-                                                  await DBHelper.deleteProduk(
-                                                    produk.id!,
-                                                  );
-                                                  loadProduk();
-                                                  ScaffoldMessenger.of(
-                                                    context,
-                                                  ).showSnackBar(
-                                                    SnackBar(
-                                                      content: Text(
-                                                        "Produk berhasil dihapus",
-                                                      ),
-                                                    ),
-                                                  );
-                                                }
-                                              },
-                                              icon: Icon(
-                                                Icons.delete_outline,
-                                                size: 20,
-                                                color: Colors.red,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ],
-                                    ),
-                                  ],
+                            );
+                            loadProduk();
+                          },
+                          onDelete: () async {
+                            final confirm = await showDialog<bool>(
+                              context: context,
+                              builder: (context) => AlertDialog(
+                                title: const Text("Konfirmasi Hapus"),
+                                content: const Text(
+                                  "Apakah kamu yakin ingin menghapus produk ini?",
                                 ),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () =>
+                                        Navigator.pop(context, false),
+                                    child: const Text("Batal"),
+                                  ),
+                                  TextButton(
+                                    onPressed: () =>
+                                        Navigator.pop(context, true),
+                                    child: const Text(
+                                      "Hapus",
+                                      style: TextStyle(color: Colors.red),
+                                    ),
+                                  ),
+                                ],
                               ),
-                            ],
-                          ),
+                            );
+
+                            if (confirm == true) {
+                              await _productController.deleteProduct(
+                                produk.id!,
+                              );
+                              loadProduk();
+                              if (mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text("Produk berhasil dihapus"),
+                                  ),
+                                );
+                              }
+                            }
+                          },
                         );
                       },
                     ),
@@ -351,14 +205,14 @@ class _SellerProductScreenState extends State<SellerProductScreen> {
 
       bottomNavigationBar: SafeArea(
         child: Container(
-          padding: EdgeInsets.all(8),
+          padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
             color: Colors.white,
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withOpacity(0.05),
                 blurRadius: 10,
-                offset: Offset(0, -4),
+                offset: const Offset(0, -4),
               ),
             ],
           ),
@@ -371,11 +225,139 @@ class _SellerProductScreenState extends State<SellerProductScreen> {
                   builder: (context) => const SellerCuProductScreen(),
                 ),
               );
-
               loadProduk();
             },
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _ProductCard extends StatelessWidget {
+  final ProductModel product;
+  final VoidCallback onEdit;
+  final VoidCallback onDelete;
+
+  const _ProductCard({
+    required this.product,
+    required this.onEdit,
+    required this.onDelete,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      margin: const EdgeInsets.only(bottom: 8),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Gambar Produk
+          SizedBox(
+            width: 80,
+            height: 80,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(6),
+              child: product.images.isNotEmpty
+                  ? Image.file(
+                      File(product.images.first),
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        return const Icon(Symbols.image, color: Colors.grey);
+                      },
+                    )
+                  : const Icon(Symbols.image, color: Colors.grey),
+            ),
+          ),
+          const SizedBox(width: 12),
+          // Detail Produk
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  product.namaProduk,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  product.kategori,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: AppColor.textHint,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                // Harga Produk
+                Row(
+                  children: [
+                    Text(
+                      "Rp ${AppFormatters.formatRupiah(product.hargaPerHari)}",
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: AppColor.secondary,
+                      ),
+                    ),
+                    const Text(
+                      " / hari",
+                      style: TextStyle(fontSize: 12, color: AppColor.textHint),
+                    ),
+                  ],
+                ),
+                // Stok
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      "Stok: ${product.stok}",
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: AppColor.textSecondary,
+                      ),
+                    ),
+                    Row(
+                      children: [
+                        // Tombol Edit
+                        IconButton(
+                          onPressed: onEdit,
+                          icon: const Icon(
+                            Icons.edit_outlined,
+                            size: 20,
+                            color: Colors.orange,
+                          ),
+                          constraints: const BoxConstraints(),
+                          padding: const EdgeInsets.symmetric(horizontal: 8),
+                        ),
+                        // Tombol Hapus
+                        IconButton(
+                          onPressed: onDelete,
+                          icon: const Icon(
+                            Icons.delete_outline,
+                            size: 20,
+                            color: Colors.red,
+                          ),
+                          constraints: const BoxConstraints(),
+                          padding: const EdgeInsets.symmetric(horizontal: 8),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

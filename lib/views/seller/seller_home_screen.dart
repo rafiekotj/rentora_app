@@ -1,5 +1,4 @@
 import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:rentora_app/controllers/store_controller.dart';
@@ -20,6 +19,7 @@ class SellerHomeScreen extends StatefulWidget {
 class _SellerHomeScreenState extends State<SellerHomeScreen> {
   final StoreController _storeController = StoreController();
   final UserController _userController = UserController();
+
   StoreModel? _store;
   UserModel? _user;
 
@@ -29,6 +29,7 @@ class _SellerHomeScreenState extends State<SellerHomeScreen> {
     _loadData();
   }
 
+  // Memuat data pengguna dan toko
   Future<void> _loadData() async {
     final user = await _userController.getCurrentUser();
 
@@ -46,6 +47,7 @@ class _SellerHomeScreenState extends State<SellerHomeScreen> {
     }
   }
 
+  // Memeriksa apakah profil toko sudah lengkap
   Future<void> _checkStoreProfile() async {
     final store = _store;
 
@@ -59,12 +61,14 @@ class _SellerHomeScreenState extends State<SellerHomeScreen> {
     }
   }
 
+  // Menampilkan dialog untuk mengingatkan penjual melengkapi profil tokonya.
   void _showProfileSetupAlert() {
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (BuildContext context) {
         return AlertDialog(
+          backgroundColor: AppColor.backgroundLight,
           title: const Text('Lengkapi Profil Toko'),
           content: const Text(
             'Anda perlu melengkapi nama, lokasi, dan gambar profil toko Anda untuk dapat menambahkan produk.',
@@ -103,7 +107,10 @@ class _SellerHomeScreenState extends State<SellerHomeScreen> {
         toolbarHeight: 58,
         backgroundColor: AppColor.primary,
         foregroundColor: AppColor.textOnPrimary,
-        title: Text("Toko Saya", style: TextStyle(fontWeight: FontWeight.w600)),
+        title: const Text(
+          "Toko Saya",
+          style: TextStyle(fontWeight: FontWeight.w600),
+        ),
         actions: [
           IconButton(
             onPressed: () {},
@@ -113,17 +120,20 @@ class _SellerHomeScreenState extends State<SellerHomeScreen> {
             onPressed: () {},
             icon: const Icon(Symbols.notifications, weight: 600),
           ),
-
-          SizedBox(width: 8),
+          const SizedBox(width: 8),
         ],
       ),
       body: SafeArea(
         child: SingleChildScrollView(
           child: Column(
             children: [
+              // --- HEADER PROFIL TOKO ---
               Container(
-                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-                decoration: BoxDecoration(color: AppColor.primary),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 20,
+                ),
+                decoration: const BoxDecoration(color: AppColor.primary),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -139,18 +149,18 @@ class _SellerHomeScreenState extends State<SellerHomeScreen> {
                             ),
                           )
                         else
-                          CircleAvatar(
+                          const CircleAvatar(
                             radius: 28,
                             backgroundColor: Colors.white,
                             child: Icon(Icons.person, size: 30),
                           ),
-                        SizedBox(width: 16),
+                        const SizedBox(width: 16),
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
                               _store?.name ?? _user?.email ?? "",
-                              style: TextStyle(
+                              style: const TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.w600,
                                 color: AppColor.textOnPrimary,
@@ -165,18 +175,18 @@ class _SellerHomeScreenState extends State<SellerHomeScreen> {
               ),
 
               Padding(
-                padding: EdgeInsets.all(8),
+                padding: const EdgeInsets.all(8),
                 child: Column(
                   children: [
-                    // STATISTIK PENJUAL SECTION
+                    // --- SECTION STATISTIK TOKO ---
                     Container(
                       width: double.infinity,
-                      padding: EdgeInsets.symmetric(vertical: 16),
+                      padding: const EdgeInsets.symmetric(vertical: 16),
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      child: Row(
+                      child: const Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           StatItem(count: 0, label: "Perlu Dikirim"),
@@ -187,9 +197,9 @@ class _SellerHomeScreenState extends State<SellerHomeScreen> {
                       ),
                     ),
 
-                    SizedBox(height: 8),
+                    const SizedBox(height: 8),
 
-                    // MENU SELLER SECTION
+                    // --- SECTION MENU TOKO ---
                     SectionCard(
                       title: "Menu Seller",
                       child: Column(
@@ -202,50 +212,41 @@ class _SellerHomeScreenState extends State<SellerHomeScreen> {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (context) => SellerProductScreen(),
+                                  builder: (context) =>
+                                      const SellerProductScreen(),
                                 ),
                               );
                             },
                           ),
-
-                          SizedBox(height: 8),
-
+                          const SizedBox(height: 8),
                           MenuItemCard(
                             icon: Symbols.receipt_long,
                             text: "Pesanan",
                             iconColor: Colors.orangeAccent,
                             onTap: () {},
                           ),
-
-                          SizedBox(height: 8),
-
+                          const SizedBox(height: 8),
                           MenuItemCard(
                             icon: Symbols.account_balance_wallet,
                             text: "Keuangan",
                             iconColor: Colors.green,
                             onTap: () {},
                           ),
-
-                          SizedBox(height: 8),
-
+                          const SizedBox(height: 8),
                           MenuItemCard(
                             icon: Symbols.insights,
                             text: "Performa",
                             iconColor: Colors.indigo,
                             onTap: () {},
                           ),
-
-                          SizedBox(height: 8),
-
+                          const SizedBox(height: 8),
                           MenuItemCard(
                             icon: Symbols.percent_discount,
                             text: "Promosi Toko",
                             iconColor: Colors.redAccent,
                             onTap: () {},
                           ),
-
-                          SizedBox(height: 8),
-
+                          const SizedBox(height: 8),
                           MenuItemCard(
                             icon: Symbols.settings,
                             text: "Pengaturan Toko",
@@ -254,14 +255,13 @@ class _SellerHomeScreenState extends State<SellerHomeScreen> {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (context) => SellerSettingsScreen(),
+                                  builder: (context) =>
+                                      const SellerSettingsScreen(),
                                 ),
                               );
                             },
                           ),
-
-                          SizedBox(height: 8),
-
+                          const SizedBox(height: 8),
                           MenuItemCard(
                             icon: Symbols.help,
                             text: "Pusat Bantuan",
@@ -296,13 +296,13 @@ class StatItem extends StatelessWidget {
         children: [
           Text(
             count.toString(),
-            style: TextStyle(fontSize: 22, fontWeight: FontWeight.w500),
+            style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w500),
           ),
-          SizedBox(height: 8),
+          const SizedBox(height: 8),
           Text(
             label,
             textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 10, color: AppColor.textSecondary),
+            style: const TextStyle(fontSize: 10, color: AppColor.textSecondary),
           ),
         ],
       ),
@@ -319,8 +319,8 @@ class SectionCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.all(16),
-      margin: EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.all(16),
+      margin: const EdgeInsets.only(bottom: 8),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(8),
@@ -330,9 +330,9 @@ class SectionCard extends StatelessWidget {
         children: [
           Text(
             title,
-            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
           ),
-          SizedBox(height: 16),
+          const SizedBox(height: 16),
           child,
         ],
       ),
@@ -359,7 +359,7 @@ class MenuItemCard extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: EdgeInsets.all(14),
+        padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
           border: Border.all(color: AppColor.border),
           borderRadius: BorderRadius.circular(8),
@@ -368,11 +368,18 @@ class MenuItemCard extends StatelessWidget {
         child: Row(
           children: [
             Icon(icon, size: 24, color: iconColor),
-            SizedBox(width: 12),
+            const SizedBox(width: 12),
             Expanded(
-              child: Text(text, style: TextStyle(fontWeight: FontWeight.w500)),
+              child: Text(
+                text,
+                style: const TextStyle(fontWeight: FontWeight.w500),
+              ),
             ),
-            Icon(Symbols.chevron_right, size: 20, color: AppColor.textHint),
+            const Icon(
+              Symbols.chevron_right,
+              size: 20,
+              color: AppColor.textHint,
+            ),
           ],
         ),
       ),
