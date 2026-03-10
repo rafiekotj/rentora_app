@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:rentora_app/core/constants/app_color.dart';
-import 'package:rentora_app/core/extensions/navigator_extension.dart';
+import 'package:rentora_app/core/extensions/navigator.dart';
 import 'package:rentora_app/views/auth/login_screen.dart';
 import 'package:rentora_app/views/home/bottom_navbar.dart';
 import 'package:rentora_app/services/local_storage/preference_handler.dart';

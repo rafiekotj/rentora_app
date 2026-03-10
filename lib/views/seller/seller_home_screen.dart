@@ -1,13 +1,14 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:rentora_app/controllers/store_controller.dart';
+import 'package:rentora_app/controllers/user_controller.dart';
 import 'package:rentora_app/core/constants/app_color.dart';
 import 'package:rentora_app/models/store_model.dart';
+import 'package:rentora_app/models/user_model.dart';
 import 'package:rentora_app/views/seller/seller_product_screen.dart';
 import 'package:rentora_app/views/seller/seller_settings_screen.dart';
-import 'package:rentora_app/controllers/user_controller.dart';
-import 'package:rentora_app/models/user_model.dart';
-import 'dart:io';
 
 class SellerHomeScreen extends StatefulWidget {
   const SellerHomeScreen({super.key});
@@ -26,26 +27,27 @@ class _SellerHomeScreenState extends State<SellerHomeScreen> {
   void initState() {
     super.initState();
     _loadData();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _checkStoreProfile();
-    });
   }
 
   Future<void> _loadData() async {
     final user = await _userController.getCurrentUser();
+
     if (user != null) {
       final store = await _storeController.getStoreByUserId(user.id!);
-      if (mounted) {
-        setState(() {
-          _user = user;
-          _store = store;
-        });
-      }
+
+      if (!mounted) return;
+
+      setState(() {
+        _user = user;
+        _store = store;
+      });
+
+      _checkStoreProfile();
     }
   }
 
   Future<void> _checkStoreProfile() async {
-    final StoreModel? store = await _storeController.getStore();
+    final store = _store;
 
     if (store == null ||
         store.name.isEmpty ||
@@ -76,13 +78,15 @@ class _SellerHomeScreenState extends State<SellerHomeScreen> {
             ),
             ElevatedButton(
               child: const Text('Ke Pengaturan'),
-              onPressed: () {
+              onPressed: () async {
                 Navigator.of(context).pop();
-                Navigator.of(context).push(
+                await Navigator.of(context).push(
                   MaterialPageRoute(
                     builder: (context) => const SellerSettingsScreen(),
                   ),
                 );
+
+                _loadData();
               },
             ),
           ],
@@ -125,7 +129,7 @@ class _SellerHomeScreenState extends State<SellerHomeScreen> {
                   children: [
                     Row(
                       children: [
-                        if (_store?.image != null)
+                        if ((_store?.image ?? '').isNotEmpty)
                           ClipOval(
                             child: Image.file(
                               File(_store!.image!),

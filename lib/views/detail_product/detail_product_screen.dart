@@ -1,17 +1,25 @@
 import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:material_symbols_icons/symbols.dart';
-import 'package:rentora_app/core/constants/app_color.dart';
-import 'package:rentora_app/models/product_model.dart';
+import 'package:rentora_app/controllers/cart_controller.dart';
 import 'package:rentora_app/controllers/store_controller.dart';
+import 'package:rentora_app/core/constants/app_color.dart';
+import 'package:rentora_app/models/cart_model.dart';
+import 'package:rentora_app/models/product_model.dart';
 import 'package:rentora_app/models/store_model.dart';
 import 'package:rentora_app/views/cart/cart_screen.dart';
-import 'package:rentora_app/controllers/cart_controller.dart';
 
 class DetailProductScreen extends StatefulWidget {
   final ProductModel produk;
-  const DetailProductScreen({super.key, required this.produk});
+  final int storeId;
+
+  const DetailProductScreen({
+    super.key,
+    required this.produk,
+    required this.storeId,
+  });
 
   @override
   State<DetailProductScreen> createState() => _DetailProductScreenState();
@@ -28,7 +36,8 @@ class _DetailProductScreenState extends State<DetailProductScreen> {
   void initState() {
     super.initState();
     _pageController = PageController();
-    _storeFuture = _storeController.getStoreByUserId(widget.produk.userId);
+
+    _storeFuture = _storeController.getStoreById(widget.produk.storeId);
   }
 
   @override
@@ -703,7 +712,7 @@ class _DetailProductScreenState extends State<DetailProductScreen> {
             Expanded(
               child: GestureDetector(
                 onTap: () {
-                  _cartController.addToCart(widget.produk);
+                  _cartController.addToCart(CartModel(product: widget.produk));
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
                       content: Text('Produk ditambahkan ke keranjang'),

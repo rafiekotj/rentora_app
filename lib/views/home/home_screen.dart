@@ -3,14 +3,14 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:material_symbols_icons/symbols.dart';
+import 'package:rentora_app/controllers/product_controller.dart';
+import 'package:rentora_app/controllers/store_controller.dart';
 import 'package:rentora_app/core/constants/app_color.dart';
 import 'package:rentora_app/models/product_model.dart';
-import 'package:rentora_app/services/database/db_helper.dart';
-import 'package:rentora_app/views/cart/cart_screen.dart';
-import 'package:rentora_app/views/detail/detail_product_screen.dart';
-import 'package:rentora_app/views/home/category_screen.dart';
 import 'package:rentora_app/models/store_model.dart';
-import 'package:rentora_app/controllers/store_controller.dart';
+import 'package:rentora_app/views/cart/cart_screen.dart';
+import 'package:rentora_app/views/detail_product/detail_product_screen.dart';
+import 'package:rentora_app/views/home/category_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -24,9 +24,10 @@ class _HomeScreenState extends State<HomeScreen> {
   late PageController _pageController;
   Timer? _timer;
 
+  final ProductController _produkController = ProductController();
+
   List<ProductModel> produkList = [];
   bool isLoading = true;
-  // final StoreController _storeController = StoreController();
 
   final List<String> bannerImages = [
     "assets/images/banner1.jpg",
@@ -35,7 +36,7 @@ class _HomeScreenState extends State<HomeScreen> {
   ];
 
   Future<void> _loadProduk() async {
-    final data = await DBHelper.getAllProduk();
+    final data = await _produkController.getAllProduct();
 
     if (!mounted) return;
 
@@ -342,8 +343,10 @@ class _HomeScreenState extends State<HomeScreen> {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (context) =>
-                                      DetailProductScreen(produk: produk),
+                                  builder: (context) => DetailProductScreen(
+                                    produk: produk,
+                                    storeId: produk.storeId,
+                                  ),
                                 ),
                               );
                             },
@@ -382,12 +385,13 @@ class _ProductCardState extends State<ProductCard> {
   }
 
   Future<void> _loadStore() async {
-    final storeData = await _storeController.getStoreByUserId(
-      widget.produk.userId,
+    final stores = await _storeController.getStoresByUser(
+      widget.produk.storeId,
     );
-    if (mounted) {
+
+    if (mounted && stores.isNotEmpty) {
       setState(() {
-        store = storeData;
+        store = stores.first;
       });
     }
   }

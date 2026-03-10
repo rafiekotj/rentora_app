@@ -1,6 +1,6 @@
-import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:rentora_app/models/cart_model.dart';
-import 'package:rentora_app/models/product_model.dart';
+import 'package:rentora_app/services/database/sqflite.dart';
 
 class CartController {
   static final CartController _instance = CartController._internal();
@@ -9,114 +9,63 @@ class CartController {
     return _instance;
   }
 
-  CartController._internal();
-
-  final ValueNotifier<List<CartModel>> cartItemsNotifier =
-      ValueNotifier<List<CartModel>>([]);
-  final ValueNotifier<Map<int, int>> daysPerStoreNotifier =
-      ValueNotifier<Map<int, int>>({});
-
-  int? getMaxDaysForStore(int storeId) {
-    final itemsForStore = cartItemsNotifier.value
-        .where((item) => item.product.userId == storeId)
-        .toList();
-
-    if (itemsForStore.isNotEmpty) {
-      return itemsForStore
-          .map((item) => item.product.maxHariPinjam)
-          .reduce((min, current) => current < min ? current : min);
-    }
-    return null;
+  CartController._internal() {
+    loadCartFromDB();
   }
 
-  void updateDaysForStore(int storeId, int days) {
-    final maxDays = getMaxDaysForStore(storeId);
-    int cappedDays = days;
+  final ValueNotifier<List<CartModel>> cartItemsNotifier = ValueNotifier([]);
 
-    if (maxDays != null && days > maxDays) {
-      cappedDays = maxDays;
-    }
-
-    // Ensure days don't go below 1
-    if (cappedDays < 1) {
-      cappedDays = 1;
-    }
-
-    final currentDaysMap = Map<int, int>.from(daysPerStoreNotifier.value);
-
-    // Only update if the value is different to avoid unnecessary rebuilds
-    if (currentDaysMap[storeId] != cappedDays) {
-      currentDaysMap[storeId] = cappedDays;
-      daysPerStoreNotifier.value = currentDaysMap;
-    }
+  Future<void> loadCartFromDB() async {
+    final cartList = await DBHelper.getAllCart();
+    cartItemsNotifier.value = cartList;
   }
 
-  void addToCart(ProductModel product) {
-    final List<CartModel> currentItems =
-        List<CartModel>.from(cartItemsNotifier.value);
-    bool isNewItem = true;
-    for (var item in currentItems) {
-      if (item.product.id == product.id) {
-        item.quantity++;
-        cartItemsNotifier.value = currentItems;
-        isNewItem = false;
-        break;
-      }
-    }
+  Future<void> addToCart(CartModel cartItem) async {
+    final index = cartItemsNotifier.value.indexWhere(
+      (element) => element.product.id == cartItem.product.id,
+    );
 
-    if (isNewItem) {
-      currentItems.add(CartModel(product: product));
-      cartItemsNotifier.value = currentItems;
-    }
-
-    final currentDaysMap = Map<int, int>.from(daysPerStoreNotifier.value);
-    if (!currentDaysMap.containsKey(product.userId)) {
-      currentDaysMap[product.userId] = 7; // Default 7 days
-      daysPerStoreNotifier.value = currentDaysMap;
-    }
-
-    // After adding a new item, the max days might have changed, so we need to re-validate.
-    final maxDays = getMaxDaysForStore(product.userId);
-    if (maxDays != null && currentDaysMap[product.userId]! > maxDays) {
-      updateDaysForStore(product.userId, maxDays);
-    }
-  }
-
-  void removeFromCart(CartModel cartItem) {
-    final List<CartModel> currentItems =
-        List<CartModel>.from(cartItemsNotifier.value);
-    currentItems.remove(cartItem);
-    cartItemsNotifier.value = currentItems;
-
-    final storeId = cartItem.product.userId;
-    bool isStoreEmpty =
-        !currentItems.any((item) => item.product.userId == storeId);
-    if (isStoreEmpty) {
-      final currentDaysMap = Map<int, int>.from(daysPerStoreNotifier.value);
-      currentDaysMap.remove(storeId);
-      daysPerStoreNotifier.value = currentDaysMap;
+    if (index >= 0) {
+      cartItemsNotifier.value[index].quantity += cartItem.quantity;
+      await DBHelper.updateCart(cartItemsNotifier.value[index]);
     } else {
-      // If the removed item was the one setting the lowest max-day limit, we need to re-validate.
-      final maxDays = getMaxDaysForStore(storeId);
-      final currentDays = daysPerStoreNotifier.value[storeId];
-      if (maxDays != null && currentDays != null && currentDays > maxDays) {
-        updateDaysForStore(storeId, maxDays);
-      }
+      final id = await DBHelper.insertCart(cartItem);
+      cartItem = CartModel(
+        id: id,
+        product: cartItem.product,
+        quantity: cartItem.quantity,
+        rentalDays: cartItem.rentalDays,
+      );
+      cartItemsNotifier.value = [...cartItemsNotifier.value, cartItem];
     }
+    cartItemsNotifier.notifyListeners();
   }
 
-  void clearCart() {
+  Future<void> removeFromCart(CartModel cartItem) async {
+    if (cartItem.id != null) {
+      await DBHelper.deleteCart(cartItem.id!);
+    }
+    cartItemsNotifier.value = cartItemsNotifier.value
+        .where((e) => e.id != cartItem.id)
+        .toList();
+    cartItemsNotifier.notifyListeners();
+  }
+
+  Future<void> updateCartQuantity(CartModel cartItem, int quantity) async {
+    cartItem.quantity = quantity;
+    if (cartItem.id != null) await DBHelper.updateCart(cartItem);
+    cartItemsNotifier.notifyListeners();
+  }
+
+  Future<void> updateRentalDays(CartModel cartItem, int days) async {
+    cartItem.rentalDays = days;
+    if (cartItem.id != null) await DBHelper.updateCart(cartItem);
+    cartItemsNotifier.notifyListeners();
+  }
+
+  Future<void> clearCart() async {
+    await DBHelper.clearCart();
     cartItemsNotifier.value = [];
-    daysPerStoreNotifier.value = {};
-  }
-
-  int get cartItemCount {
-    return cartItemsNotifier.value.length;
-  }
-
-  void dispose() {
-    cartItemsNotifier.dispose();
-    daysPerStoreNotifier.dispose();
+    cartItemsNotifier.notifyListeners();
   }
 }
-

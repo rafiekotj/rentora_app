@@ -1,27 +1,63 @@
+import 'package:rentora_app/controllers/user_controller.dart';
 import 'package:rentora_app/models/store_model.dart';
-import 'package:rentora_app/models/user_model.dart';
-import 'package:rentora_app/services/database/db_helper.dart';
-import 'package:rentora_app/services/local_storage/preference_handler.dart';
+import 'package:rentora_app/services/database/sqflite.dart';
 
 class StoreController {
-  Future<UserModel?> _getCurrentUser() async {
-    final email = await PreferenceHandler.getUserEmail();
-    if (email == null) {
-      return null;
-    }
-    return await DBHelper.getUserByEmail(email);
+  Future<int> createStore(StoreModel store) async {
+    final db = await DBHelper.database();
+
+    return await db.insert('stores', store.toMap());
   }
 
-  Future<StoreModel?> getStore() async {
-    final user = await _getCurrentUser();
-    if (user == null || user.id == null) {
-      return null;
+  Future<List<StoreModel>> getStoresByUser(int userId) async {
+    final db = await DBHelper.database();
+
+    final result = await db.query(
+      'stores',
+      where: 'userId = ?',
+      whereArgs: [userId],
+    );
+
+    return result.map((e) => StoreModel.fromMap(e)).toList();
+  }
+
+  Future<StoreModel?> getStoreById(int storeId) async {
+    final db = await DBHelper.database();
+
+    final result = await db.query(
+      'stores',
+      where: 'id = ?',
+      whereArgs: [storeId],
+    );
+    if (result.isNotEmpty) {
+      return StoreModel.fromMap(result.first);
     }
-    return await DBHelper.getStoreByUserId(user.id!);
+    return null;
   }
 
   Future<StoreModel?> getStoreByUserId(int userId) async {
-    return await DBHelper.getStoreByUserId(userId);
+    final db = await DBHelper.database();
+
+    final result = await db.query(
+      'stores',
+      where: 'userId = ?',
+      whereArgs: [userId],
+    );
+
+    if (result.isNotEmpty) {
+      return StoreModel.fromMap(result.first);
+    }
+
+    return null;
+  }
+
+  Future<StoreModel?> getStore() async {
+    final userController = UserController();
+    final user = await userController.getCurrentUser();
+
+    if (user == null) return null;
+
+    return await getStoreByUserId(user.id!);
   }
 
   Future<void> saveStore({
@@ -29,30 +65,34 @@ class StoreController {
     String? location,
     String? image,
   }) async {
-    final user = await _getCurrentUser();
-    if (user == null || user.id == null) {
-      throw Exception("User not found, cannot save store.");
+    final db = await DBHelper.database();
+
+    final userController = UserController();
+    final user = await userController.getCurrentUser();
+
+    if (user == null) {
+      throw Exception('User belum login');
     }
 
-    final existingStore = await getStore();
+    // cek apakah store sudah ada
+    final existingStore = await getStoreByUserId(user.id!);
 
     if (existingStore != null) {
-      final updatedStore = StoreModel(
-        id: existingStore.id,
-        userId: user.id!,
-        name: name,
-        location: location ?? existingStore.location,
-        image: image ?? existingStore.image,
+      // update store
+      await db.update(
+        'stores',
+        {'name': name, 'location': location, 'image': image},
+        where: 'userId = ?',
+        whereArgs: [user.id],
       );
-      await DBHelper.updateStore(updatedStore);
     } else {
-      final newStore = StoreModel(
-        userId: user.id!,
-        name: name,
-        location: location,
-        image: image,
-      );
-      await DBHelper.saveStore(newStore);
+      // insert store baru
+      await db.insert('stores', {
+        'userId': user.id,
+        'name': name,
+        'location': location,
+        'image': image,
+      });
     }
   }
 }

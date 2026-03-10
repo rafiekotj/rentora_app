@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'package:rentora_app/core/constants/app_color.dart';
-import 'package:rentora_app/views/account/account_screen.dart';
 import 'package:rentora_app/views/home/home_screen.dart';
 import 'package:rentora_app/views/notification/notification_screen.dart';
-import 'package:rentora_app/views/transaction/transaction_screen.dart';
+import 'package:rentora_app/views/transaction_history/transaction_history_screen.dart';
+import 'package:rentora_app/views/user_account/user_account_screen.dart';
 
 class BottomNavbar extends StatefulWidget {
   const BottomNavbar({super.key});
@@ -19,8 +19,8 @@ class _BottomNavbarState extends State<BottomNavbar> {
   static const List<Widget> _widgetOptions = <Widget>[
     HomeScreen(),
     NotificationScreen(),
-    TransactionScreen(),
-    AccountScreen(),
+    TransactionHistoryScreen(),
+    UserAccountScreen(),
   ];
 
   void _onItemTapped(int index) {

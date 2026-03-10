@@ -45,9 +45,7 @@ class _SellerSettingsScreenState extends State<SellerSettingsScreen> {
         _nameController.text = store.name;
         _locationController.text = store.location ?? '';
         if (store.image != null && store.image!.isNotEmpty) {
-          setState(() {
-            _imagePath = store.image;
-          });
+          _imagePath = store.image;
         }
       }
     } finally {
@@ -113,73 +111,63 @@ class _SellerSettingsScreenState extends State<SellerSettingsScreen> {
           style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
         ),
       ),
-      body: _isLoading && _nameController.text.isEmpty
-          ? const Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
-              padding: const EdgeInsets.all(16.0),
-              child: Center(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Center(
-                      child: Stack(
-                        children: [
-                          CircleAvatar(
-                            radius: 60,
-                            backgroundColor: AppColor.border,
-                            backgroundImage: _imagePath != null
-                                ? FileImage(File(_imagePath!))
-                                : null,
-                            child: _imagePath == null
-                                ? const Icon(
-                                    Symbols.store,
-                                    size: 60,
-                                    color: Colors.white,
-                                  )
-                                : null,
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Center(
+              child: Stack(
+                children: [
+                  CircleAvatar(
+                    radius: 60,
+                    backgroundColor: AppColor.border,
+                    backgroundImage: (_imagePath ?? '').isNotEmpty
+                        ? FileImage(File(_imagePath!))
+                        : null,
+                    child: _imagePath == null
+                        ? const Icon(
+                            Symbols.store,
+                            size: 60,
+                            color: Colors.white,
+                          )
+                        : null,
+                  ),
+                  Positioned(
+                    bottom: 0,
+                    right: 0,
+                    child: InkWell(
+                      onTap: _pickImage,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: AppColor.primary,
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.white, width: 2),
+                        ),
+                        child: const Padding(
+                          padding: EdgeInsets.all(8.0),
+                          child: Icon(
+                            Icons.camera_alt,
+                            color: Colors.white,
+                            size: 20,
                           ),
-                          Positioned(
-                            bottom: 0,
-                            right: 0,
-                            child: InkWell(
-                              onTap: _pickImage,
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  color: AppColor.primary,
-                                  shape: BoxShape.circle,
-                                  border: Border.all(
-                                    color: Colors.white,
-                                    width: 2,
-                                  ),
-                                ),
-                                child: const Padding(
-                                  padding: EdgeInsets.all(8.0),
-                                  child: Icon(
-                                    Icons.camera_alt,
-                                    color: Colors.white,
-                                    size: 20,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
+                        ),
                       ),
                     ),
-                    const SizedBox(height: 24),
-                    CustomTextField(
-                      controller: _nameController,
-                      hintText: 'Nama Toko',
-                    ),
-                    const SizedBox(height: 16),
-                    CustomTextField(
-                      controller: _locationController,
-                      hintText: 'Lokasi',
-                    ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
+            const SizedBox(height: 24),
+            CustomTextField(controller: _nameController, hintText: 'Nama Toko'),
+            const SizedBox(height: 16),
+            CustomTextField(
+              controller: _locationController,
+              hintText: 'Lokasi',
+            ),
+          ],
+        ),
+      ),
       bottomNavigationBar: Padding(
         padding: const EdgeInsets.all(8.0),
         child: CustomButton(

@@ -1,10 +1,12 @@
 import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:material_symbols_icons/symbols.dart';
+import 'package:rentora_app/controllers/store_controller.dart';
 import 'package:rentora_app/core/constants/app_color.dart';
 import 'package:rentora_app/models/product_model.dart';
-import 'package:rentora_app/services/database/db_helper.dart';
+import 'package:rentora_app/services/database/sqflite.dart';
 import 'package:rentora_app/views/seller/seller_cu_product_screen.dart';
 import 'package:rentora_app/widgets/custom_button.dart';
 
@@ -17,17 +19,23 @@ class SellerProductScreen extends StatefulWidget {
 
 class _SellerProductScreenState extends State<SellerProductScreen> {
   List<ProductModel> produkList = [];
+  final StoreController _storeController = StoreController();
+  int? storeId;
 
   String formatRupiah(dynamic number) {
     if (number == null) return "";
-
     final value = int.tryParse(number.toString().replaceAll(".", "")) ?? 0;
-
     return NumberFormat("#,###", "id_ID").format(value).replaceAll(",", ".");
   }
 
   Future<void> loadProduk() async {
-    final data = await DBHelper.getAllProduk();
+    final store = await _storeController.getStore();
+
+    if (store == null) return;
+
+    final data = await DBHelper.getProdukByStore(store.id!);
+
+    if (!mounted) return;
 
     setState(() {
       produkList = data;
@@ -128,197 +136,214 @@ class _SellerProductScreenState extends State<SellerProductScreen> {
             SizedBox(height: 8),
 
             Expanded(
-              child: ListView.builder(
-                itemCount: produkList.length,
-                itemBuilder: (context, index) {
-                  final produk = produkList[index];
+              child: produkList.isEmpty
+                  ? Center(
+                      child: Text(
+                        "Belum ada produk",
+                        style: TextStyle(color: AppColor.textSecondary),
+                      ),
+                    )
+                  : ListView.builder(
+                      physics: BouncingScrollPhysics(),
+                      itemCount: produkList.length,
+                      itemBuilder: (context, index) {
+                        final produk = produkList[index];
 
-                  return Container(
-                    padding: EdgeInsets.all(12),
-                    margin: EdgeInsets.only(bottom: 8),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // IMAGE
-                        Container(
-                          width: 80,
-                          height: 80,
+                        return Container(
+                          padding: EdgeInsets.all(12),
+                          margin: EdgeInsets.only(bottom: 8),
                           decoration: BoxDecoration(
-                            color: Colors.grey.shade200,
-                            borderRadius: BorderRadius.circular(6),
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(8),
                           ),
-                          child: produk.images.isNotEmpty
-                              ? ClipRRect(
-                                  borderRadius: BorderRadius.circular(6),
-                                  child: Image.file(
-                                    File(produk.images.first),
-                                    fit: BoxFit.cover,
-                                  ),
-                                )
-                              : Icon(Symbols.image, color: Colors.grey),
-                        ),
-
-                        SizedBox(width: 12),
-
-                        Expanded(
-                          child: Column(
+                          child: Row(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              // NAMA PRODUK
-                              Text(
-                                produk.namaProduk,
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
+                              // IMAGE
+                              Container(
+                                width: 80,
+                                height: 80,
+                                decoration: BoxDecoration(
+                                  color: Colors.grey.shade200,
+                                  borderRadius: BorderRadius.circular(6),
                                 ),
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-
-                              SizedBox(height: 4),
-
-                              // KATEGORI
-                              Text(
-                                produk.kategori,
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: AppColor.textHint,
-                                ),
-                              ),
-
-                              SizedBox(height: 6),
-
-                              Row(
-                                children: [
-                                  Text(
-                                    "Rp ${formatRupiah(produk.hargaPerHari)}",
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w600,
-                                      color: AppColor.secondary,
-                                    ),
-                                  ),
-                                  Text(
-                                    " / hari",
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      color: AppColor.textHint,
-                                    ),
-                                  ),
-                                ],
-                              ),
-
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  // STOK
-                                  Text(
-                                    "Stok: ${produk.stok}",
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      color: AppColor.textSecondary,
-                                    ),
-                                  ),
-
-                                  Row(
-                                    children: [
-                                      // EDIT
-                                      IconButton(
-                                        onPressed: () async {
-                                          await Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                              builder: (context) =>
-                                                  SellerCuProductScreen(
-                                                    produk: produk,
-                                                  ),
-                                            ),
-                                          );
-
-                                          loadProduk();
-                                        },
-                                        icon: Icon(
-                                          Icons.edit_outlined,
-                                          size: 20,
-                                          color: Colors.orange,
+                                child: produk.images.isNotEmpty
+                                    ? ClipRRect(
+                                        borderRadius: BorderRadius.circular(6),
+                                        child: Image.file(
+                                          File(produk.images.first),
+                                          fit: BoxFit.cover,
+                                          errorBuilder:
+                                              (context, error, stackTrace) {
+                                                return Icon(
+                                                  Symbols.image,
+                                                  color: Colors.grey,
+                                                );
+                                              },
                                         ),
-                                      ),
+                                      )
+                                    : Icon(Symbols.image, color: Colors.grey),
+                              ),
 
-                                      // DELETE
-                                      IconButton(
-                                        onPressed: () async {
-                                          final confirm = await showDialog<bool>(
-                                            context: context,
-                                            builder: (context) => AlertDialog(
-                                              title: Text("Konfirmasi Hapus"),
-                                              content: Text(
-                                                "Apakah kamu yakin ingin menghapus produk ini?",
+                              SizedBox(width: 12),
+
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    // NAMA PRODUK
+                                    Text(
+                                      produk.namaProduk,
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+
+                                    SizedBox(height: 4),
+
+                                    // KATEGORI
+                                    Text(
+                                      produk.kategori,
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: AppColor.textHint,
+                                      ),
+                                    ),
+
+                                    SizedBox(height: 6),
+
+                                    Row(
+                                      children: [
+                                        Text(
+                                          "Rp ${formatRupiah(produk.hargaPerHari)}",
+                                          style: TextStyle(
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w600,
+                                            color: AppColor.secondary,
+                                          ),
+                                        ),
+                                        Text(
+                                          " / hari",
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            color: AppColor.textHint,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        // STOK
+                                        Text(
+                                          "Stok: ${produk.stok}",
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            color: AppColor.textSecondary,
+                                          ),
+                                        ),
+
+                                        Row(
+                                          children: [
+                                            // EDIT
+                                            IconButton(
+                                              onPressed: () async {
+                                                await Navigator.push(
+                                                  context,
+                                                  MaterialPageRoute(
+                                                    builder: (context) =>
+                                                        SellerCuProductScreen(
+                                                          produk: produk,
+                                                        ),
+                                                  ),
+                                                );
+
+                                                loadProduk();
+                                              },
+                                              icon: Icon(
+                                                Icons.edit_outlined,
+                                                size: 20,
+                                                color: Colors.orange,
                                               ),
-                                              actions: [
-                                                TextButton(
-                                                  onPressed: () =>
-                                                      Navigator.pop(
-                                                        context,
-                                                        false,
-                                                      ),
-                                                  child: Text("Batal"),
-                                                ),
-                                                TextButton(
-                                                  onPressed: () =>
-                                                      Navigator.pop(
-                                                        context,
-                                                        true,
-                                                      ),
-                                                  child: Text(
-                                                    "Hapus",
-                                                    style: TextStyle(
-                                                      color: Colors.red,
+                                            ),
+
+                                            // DELETE
+                                            IconButton(
+                                              onPressed: () async {
+                                                final confirm = await showDialog<bool>(
+                                                  context: context,
+                                                  builder: (context) => AlertDialog(
+                                                    title: Text(
+                                                      "Konfirmasi Hapus",
                                                     ),
+                                                    content: Text(
+                                                      "Apakah kamu yakin ingin menghapus produk ini?",
+                                                    ),
+                                                    actions: [
+                                                      TextButton(
+                                                        onPressed: () =>
+                                                            Navigator.pop(
+                                                              context,
+                                                              false,
+                                                            ),
+                                                        child: Text("Batal"),
+                                                      ),
+                                                      TextButton(
+                                                        onPressed: () =>
+                                                            Navigator.pop(
+                                                              context,
+                                                              true,
+                                                            ),
+                                                        child: Text(
+                                                          "Hapus",
+                                                          style: TextStyle(
+                                                            color: Colors.red,
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ],
                                                   ),
-                                                ),
-                                              ],
-                                            ),
-                                          );
+                                                );
 
-                                          if (confirm == true) {
-                                            await DBHelper.deleteProduk(
-                                              produk.id!,
-                                            );
-                                            loadProduk();
-                                            ScaffoldMessenger.of(
-                                              context,
-                                            ).showSnackBar(
-                                              SnackBar(
-                                                content: Text(
-                                                  "Produk berhasil dihapus",
-                                                ),
+                                                if (confirm == true) {
+                                                  await DBHelper.deleteProduk(
+                                                    produk.id!,
+                                                  );
+                                                  loadProduk();
+                                                  ScaffoldMessenger.of(
+                                                    context,
+                                                  ).showSnackBar(
+                                                    SnackBar(
+                                                      content: Text(
+                                                        "Produk berhasil dihapus",
+                                                      ),
+                                                    ),
+                                                  );
+                                                }
+                                              },
+                                              icon: Icon(
+                                                Icons.delete_outline,
+                                                size: 20,
+                                                color: Colors.red,
                                               ),
-                                            );
-                                          }
-                                        },
-                                        icon: Icon(
-                                          Icons.delete_outline,
-                                          size: 20,
-                                          color: Colors.red,
+                                            ),
+                                          ],
                                         ),
-                                      ),
-                                    ],
-                                  ),
-                                ],
+                                      ],
+                                    ),
+                                  ],
+                                ),
                               ),
                             ],
                           ),
-                        ),
-                      ],
+                        );
+                      },
                     ),
-                  );
-                },
-              ),
             ),
           ],
         ),

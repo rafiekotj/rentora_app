@@ -51,8 +51,11 @@ class CustomButton extends StatelessWidget {
                         if (iconAsset != null)
                           Align(
                             alignment: Alignment.centerLeft,
-                            child:
-                                Image.asset(iconAsset!, width: 20, height: 20),
+                            child: Image.asset(
+                              iconAsset!,
+                              width: 20,
+                              height: 20,
+                            ),
                           ),
                         Text(
                           text,

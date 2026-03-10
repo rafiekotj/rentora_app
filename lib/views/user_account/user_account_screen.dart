@@ -1,18 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/symbols.dart';
+import 'package:rentora_app/controllers/user_controller.dart';
 import 'package:rentora_app/core/constants/app_color.dart';
-import 'package:rentora_app/services/local_storage/preference_handler.dart';
 import 'package:rentora_app/views/seller/seller_home_screen.dart';
-import 'package:rentora_app/views/settings/settings_screen.dart';
 
-class AccountScreen extends StatefulWidget {
-  const AccountScreen({super.key});
+class UserAccountScreen extends StatefulWidget {
+  const UserAccountScreen({super.key});
 
   @override
-  State<AccountScreen> createState() => _AccountScreenState();
+  State<UserAccountScreen> createState() => _UserAccountScreenState();
 }
 
-class _AccountScreenState extends State<AccountScreen> {
+class _UserAccountScreenState extends State<UserAccountScreen> {
   String _email = '';
 
   @override
@@ -22,7 +21,10 @@ class _AccountScreenState extends State<AccountScreen> {
   }
 
   Future<void> _loadUserData() async {
-    final email = await PreferenceHandler.getUserEmail();
+    final email = await UserController.getUserEmail();
+
+    if (!mounted) return;
+
     setState(() {
       _email = email ?? 'user@example.com';
     });
@@ -40,10 +42,10 @@ class _AccountScreenState extends State<AccountScreen> {
         actions: [
           IconButton(
             onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => SettingsScreen()),
-              );
+              // Navigator.push(
+              //   context,
+              //   MaterialPageRoute(builder: (context) => SettingsScreen()),
+              // );
             },
             icon: Icon(Symbols.settings, weight: 600),
           ),

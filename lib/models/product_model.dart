@@ -3,7 +3,7 @@ import 'dart:convert';
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 class ProductModel {
   final int? id;
-  final int userId;
+  final int storeId;
   final List<String> images;
   final String namaProduk;
   final String deskripsiProduk;
@@ -16,7 +16,7 @@ class ProductModel {
 
   ProductModel({
     this.id,
-    required this.userId,
+    required this.storeId,
     required this.images,
     required this.namaProduk,
     required this.deskripsiProduk,
@@ -31,8 +31,8 @@ class ProductModel {
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
       'id': id,
-      'userId': userId,
-      'images': images,
+      'storeId': storeId,
+      'images': jsonEncode(images),
       'namaProduk': namaProduk,
       'deskripsiProduk': deskripsiProduk,
       'kategori': kategori,
@@ -46,17 +46,17 @@ class ProductModel {
 
   factory ProductModel.fromMap(Map<String, dynamic> map) {
     return ProductModel(
-      id: map['id'] as int?,
-      userId: map['userId'] as int? ?? 0,
-      images: List<String>.from((map['images'] ?? [])),
-      namaProduk: map['namaProduk'] as String? ?? '',
-      deskripsiProduk: map['deskripsiProduk'] as String? ?? '',
-      kategori: map['kategori'] as String? ?? '',
-      hargaPerHari: map['hargaPerHari'] as int? ?? 0,
-      dendaPerHari: map['dendaPerHari'] as int? ?? 0,
-      stok: map['stok'] as int? ?? 0,
-      minJumlahPinjam: map['minJumlahPinjam'] as int? ?? 1,
-      maxHariPinjam: map['maxHariPinjam'] as int? ?? 7,
+      id: map['id'] != null ? map['id'] as int : null,
+      storeId: map['storeId'] as int,
+      images: List<String>.from(jsonDecode(map['images'])),
+      namaProduk: map['namaProduk'] as String,
+      deskripsiProduk: map['deskripsiProduk'] as String,
+      kategori: map['kategori'] as String,
+      hargaPerHari: map['hargaPerHari'] as int,
+      dendaPerHari: map['dendaPerHari'] as int,
+      stok: map['stok'] as int,
+      minJumlahPinjam: map['minJumlahPinjam'] as int,
+      maxHariPinjam: map['maxHariPinjam'] as int,
     );
   }
 

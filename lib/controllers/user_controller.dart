@@ -1,39 +1,62 @@
 import 'package:rentora_app/models/user_model.dart';
-import 'package:rentora_app/services/database/db_helper.dart';
+import 'package:rentora_app/services/database/sqflite.dart';
 import 'package:rentora_app/services/local_storage/preference_handler.dart';
 
 class UserController {
-  final PreferenceHandler _preferenceHandler = PreferenceHandler();
+  // =========================
+  // REGISTER
+  // =========================
+  static Future<bool> register({
+    required String email,
+    required String password,
+    required String phone,
+  }) async {
+    try {
+      UserModel user = UserModel(
+        email: email,
+        password: password,
+        phone: phone,
+      );
 
-  Future<void> register(UserModel user) async {
-    await DBHelper.registerUser(user);
-  }
+      await DBHelper.registerUser(user);
 
-  Future<bool> login({required String email, required String password}) async {
-    final user = await DBHelper.loginUser(email: email, password: password);
-
-    if (user != null) {
-      await _preferenceHandler.storingIsLogin(true);
-      await _preferenceHandler.storingUserEmail(user.email);
       return true;
+    } catch (e) {
+      return false;
     }
-    return false;
   }
 
-  Future<void> logout() async {
-    await _preferenceHandler.deleteIsLogin();
-    await _preferenceHandler.deleteUserEmail();
+  // =========================
+  // LOGIN
+  // =========================
+  static Future<UserModel?> login({
+    required String email,
+    required String password,
+  }) async {
+    return await DBHelper.loginUser(email: email, password: password);
+  }
+
+  static Future<String?> getUserEmail() async {
+    return await PreferenceHandler.getUserEmail();
   }
 
   Future<UserModel?> getCurrentUser() async {
     final email = await PreferenceHandler.getUserEmail();
-    if (email != null) {
-      return await DBHelper.getUserByEmail(email);
-    }
-    return null;
-  }
 
-  Future<bool> isUserLoggedIn() async {
-    return await PreferenceHandler.getIsLogin() ?? false;
+    if (email == null) return null;
+
+    final db = await DBHelper.database();
+
+    final result = await db.query(
+      'user',
+      where: 'email = ?',
+      whereArgs: [email],
+    );
+
+    if (result.isNotEmpty) {
+      return UserModel.fromMap(result.first);
+    }
+
+    return null;
   }
 }

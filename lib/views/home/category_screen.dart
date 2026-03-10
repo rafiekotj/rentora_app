@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/symbols.dart';
-import 'package:rentora_app/models/product_model.dart';
-import 'package:rentora_app/services/database/db_helper.dart';
-import 'package:rentora_app/views/home/home_screen.dart';
+import 'package:rentora_app/controllers/product_controller.dart';
 import 'package:rentora_app/core/constants/app_color.dart';
-import 'package:rentora_app/views/detail/detail_product_screen.dart';
+import 'package:rentora_app/models/product_model.dart';
+import 'package:rentora_app/views/detail_product/detail_product_screen.dart';
+import 'package:rentora_app/views/home/home_screen.dart';
 
 class CategoryScreen extends StatefulWidget {
   final String title;
@@ -24,14 +24,17 @@ class _CategoryScreenState extends State<CategoryScreen> {
   List<ProductModel> productList = [];
   bool isLoading = true;
 
+  final ProductController _produkController = ProductController();
+
   Future<void> _loadProducts() async {
-    final allProducts = await DBHelper.getAllProduk();
+    final data = await _produkController.getProductByKategori(
+      widget.categoryValue,
+    );
+
     if (!mounted) return;
 
     setState(() {
-      productList = allProducts
-          .where((product) => product.kategori == widget.categoryValue)
-          .toList();
+      productList = data;
       isLoading = false;
     });
   }
@@ -181,6 +184,8 @@ class _CategoryScreenState extends State<CategoryScreen> {
                                                       builder: (context) =>
                                                           DetailProductScreen(
                                                             produk: produk,
+                                                            storeId:
+                                                                produk.storeId,
                                                           ),
                                                     ),
                                                   );

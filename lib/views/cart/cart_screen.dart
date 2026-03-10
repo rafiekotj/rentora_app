@@ -18,78 +18,73 @@ class _CartScreenState extends State<CartScreen> {
   final CartController _cartController = CartController();
 
   @override
+  void initState() {
+    super.initState();
+    _cartController.loadCartFromDB();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return ValueListenableBuilder<List<CartModel>>(
       valueListenable: _cartController.cartItemsNotifier,
       builder: (context, cartItems, child) {
-        return ValueListenableBuilder<Map<int, int>>(
-          valueListenable: _cartController.daysPerStoreNotifier,
-          builder: (context, daysPerStore, child) {
-            final groupedByStore = _groupCartItemsByStore(cartItems);
+        final groupedByStore = _groupCartItemsByStore(cartItems);
 
-            return Scaffold(
-              backgroundColor: AppColor.backgroundLight,
-              appBar: AppBar(
-                toolbarHeight: 58,
-                backgroundColor: AppColor.primary,
-                foregroundColor: AppColor.textOnPrimary,
-                title: const Text(
-                  "Keranjang",
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
-                ),
-                actions: [
-                  IconButton(
-                    onPressed: () {},
-                    icon: const Icon(Symbols.chat, weight: 600),
-                  ),
-                  const SizedBox(width: 8),
-                ],
+        return Scaffold(
+          backgroundColor: AppColor.backgroundLight,
+          appBar: AppBar(
+            toolbarHeight: 58,
+            backgroundColor: AppColor.primary,
+            foregroundColor: AppColor.textOnPrimary,
+            title: const Text(
+              "Keranjang",
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
+            ),
+            actions: [
+              IconButton(
+                onPressed: () {},
+                icon: const Icon(Symbols.chat, weight: 600),
               ),
-              body: cartItems.isEmpty
-                  ? const Center(child: Text('Keranjang Anda kosong'))
-                  : SingleChildScrollView(
-                      padding: const EdgeInsets.all(8),
-                      child: Column(
-                        children: groupedByStore.entries.map((entry) {
-                          return StoreCartCard(
-                            userId: entry.key,
-                            cartItems: entry.value,
-                            initialDays: daysPerStore[entry.key] ?? 7,
-                            onDaysChanged: (newDays) {
-                              _cartController.updateDaysForStore(
-                                entry.key,
-                                newDays,
-                              );
-                            },
-                          );
-                        }).toList(),
-                      ),
-                    ),
-              bottomNavigationBar: cartItems.isEmpty
-                  ? null
-                  : BottomAppBar(
-                      child: Container(
-                        padding: const EdgeInsets.all(16),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              'Total: Rp ${_calculateTotal(groupedByStore, daysPerStore)}',
-                              style: const TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            ElevatedButton(
-                              onPressed: () {},
-                              child: const Text('Checkout'),
-                            ),
-                          ],
+              const SizedBox(width: 8),
+            ],
+          ),
+          body: cartItems.isEmpty
+              ? const Center(child: Text('Keranjang Anda kosong'))
+              : SingleChildScrollView(
+                  padding: const EdgeInsets.all(8),
+                  child: Column(
+                    children: groupedByStore.entries.map((entry) {
+                      return StoreCartCard(
+                        userId: entry.key,
+                        cartItems: entry.value,
+                        cartController: _cartController,
+                      );
+                    }).toList(),
+                  ),
+                ),
+          bottomNavigationBar: cartItems.isEmpty
+              ? null
+              : BottomAppBar(
+                  child: Container(
+                    padding: const EdgeInsets.all(16),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Total: Rp ${_calculateTotal(groupedByStore)}',
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
-                      ),
+                        ElevatedButton(
+                          onPressed: () {},
+                          child: const Text('Checkout'),
+                        ),
+                      ],
                     ),
-            );
-          },
+                  ),
+                ),
         );
       },
     );
@@ -98,24 +93,20 @@ class _CartScreenState extends State<CartScreen> {
   Map<int, List<CartModel>> _groupCartItemsByStore(List<CartModel> cartItems) {
     final Map<int, List<CartModel>> groupedItems = {};
     for (var item in cartItems) {
-      if (groupedItems.containsKey(item.product.userId)) {
-        groupedItems[item.product.userId]!.add(item);
+      if (groupedItems.containsKey(item.product.storeId)) {
+        groupedItems[item.product.storeId]!.add(item);
       } else {
-        groupedItems[item.product.userId] = [item];
+        groupedItems[item.product.storeId] = [item];
       }
     }
     return groupedItems;
   }
 
-  int _calculateTotal(
-    Map<int, List<CartModel>> groupedItems,
-    Map<int, int> daysPerStore,
-  ) {
+  int _calculateTotal(Map<int, List<CartModel>> groupedItems) {
     int total = 0;
     groupedItems.forEach((userId, items) {
-      final days = daysPerStore[userId] ?? 1;
       for (var item in items) {
-        total += item.product.hargaPerHari * item.quantity * days;
+        total += item.product.hargaPerHari * item.quantity * item.rentalDays;
       }
     });
     return total;
@@ -125,15 +116,13 @@ class _CartScreenState extends State<CartScreen> {
 class StoreCartCard extends StatefulWidget {
   final int userId;
   final List<CartModel> cartItems;
-  final int initialDays;
-  final ValueChanged<int> onDaysChanged;
+  final CartController cartController;
 
   const StoreCartCard({
     super.key,
     required this.userId,
     required this.cartItems,
-    required this.initialDays,
-    required this.onDaysChanged,
+    required this.cartController,
   });
 
   @override
@@ -143,41 +132,14 @@ class StoreCartCard extends StatefulWidget {
 class _StoreCartCardState extends State<StoreCartCard> {
   final StoreController _storeController = StoreController();
   StoreModel? _store;
-  int _numberOfDays = 7;
-  late int _maxAllowedDays;
+  int _rentalDays = 1;
 
   @override
   void initState() {
     super.initState();
     _loadStore();
-    _numberOfDays = widget.initialDays;
-
     if (widget.cartItems.isNotEmpty) {
-      _maxAllowedDays = widget.cartItems
-          .map((item) => item.product.maxHariPinjam)
-          .reduce((min, current) => current < min ? current : min);
-    } else {
-      _maxAllowedDays = 7; // Default fallback
-    }
-
-    if (_numberOfDays > _maxAllowedDays) {
-      _numberOfDays = _maxAllowedDays;
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        widget.onDaysChanged(_numberOfDays);
-      });
-    }
-  }
-
-  @override
-  void didUpdateWidget(covariant StoreCartCard oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (widget.initialDays != oldWidget.initialDays) {
-      setState(() {
-        _numberOfDays = widget.initialDays;
-        if (_numberOfDays > _maxAllowedDays) {
-          _numberOfDays = _maxAllowedDays;
-        }
-      });
+      _rentalDays = widget.cartItems.first.rentalDays;
     }
   }
 
@@ -191,22 +153,39 @@ class _StoreCartCardState extends State<StoreCartCard> {
   }
 
   void _incrementDays() {
-    if (_numberOfDays < _maxAllowedDays) {
-      final newDays = _numberOfDays + 1;
+    if (widget.cartItems.isEmpty) return;
+
+    final maxDays = widget.cartItems
+        .map((item) => item.product.maxHariPinjam)
+        .reduce((a, b) => a < b ? a : b);
+
+    if (_rentalDays < maxDays) {
       setState(() {
-        _numberOfDays = newDays;
+        _rentalDays++;
       });
-      widget.onDaysChanged(newDays);
+      for (var item in widget.cartItems) {
+        widget.cartController.updateRentalDays(item, _rentalDays);
+      }
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Maksimal sewa untuk salah satu barang adalah $maxDays hari',
+          ),
+          duration: const Duration(seconds: 2),
+        ),
+      );
     }
   }
 
   void _decrementDays() {
-    if (_numberOfDays > 1) {
-      final newDays = _numberOfDays - 1;
+    if (_rentalDays > 1) {
       setState(() {
-        _numberOfDays = newDays;
+        _rentalDays--;
       });
-      widget.onDaysChanged(newDays);
+      for (var item in widget.cartItems) {
+        widget.cartController.updateRentalDays(item, _rentalDays);
+      }
     }
   }
 
@@ -222,6 +201,7 @@ class _StoreCartCardState extends State<StoreCartCard> {
       child: Column(
         children: [
           Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Checkbox(
                 value: true,
@@ -244,45 +224,21 @@ class _StoreCartCardState extends State<StoreCartCard> {
                 ),
                 child: Row(
                   children: [
-                    Container(
-                      width: 32,
-                      height: 32,
-                      decoration: const BoxDecoration(
-                        color: AppColor.border,
-                        borderRadius: BorderRadius.only(
-                          topLeft: Radius.circular(4),
-                          bottomLeft: Radius.circular(4),
-                        ),
-                      ),
-                      child: IconButton(
-                        padding: EdgeInsets.zero,
-                        iconSize: 16,
-                        onPressed: _decrementDays,
-                        icon: const Icon(Icons.remove),
-                      ),
+                    IconButton(
+                      padding: EdgeInsets.zero,
+                      iconSize: 16,
+                      onPressed: _decrementDays,
+                      icon: const Icon(Icons.remove),
                     ),
-                    const SizedBox(width: 4),
                     Text(
-                      "$_numberOfDays hari",
+                      "$_rentalDays hari",
                       style: const TextStyle(fontSize: 12),
                     ),
-                    const SizedBox(width: 4),
-                    Container(
-                      width: 32,
-                      height: 32,
-                      decoration: const BoxDecoration(
-                        color: AppColor.border,
-                        borderRadius: BorderRadius.only(
-                          topRight: Radius.circular(4),
-                          bottomRight: Radius.circular(4),
-                        ),
-                      ),
-                      child: IconButton(
-                        padding: EdgeInsets.zero,
-                        iconSize: 16,
-                        onPressed: _incrementDays,
-                        icon: const Icon(Icons.add),
-                      ),
+                    IconButton(
+                      padding: EdgeInsets.zero,
+                      iconSize: 16,
+                      onPressed: _incrementDays,
+                      icon: const Icon(Icons.add),
                     ),
                   ],
                 ),
@@ -291,7 +247,10 @@ class _StoreCartCardState extends State<StoreCartCard> {
           ),
           const SizedBox(height: 12),
           ...widget.cartItems.map((cartItem) {
-            return CartItemCard(cartItem: cartItem);
+            return CartItemCard(
+              cartItem: cartItem,
+              cartController: widget.cartController, // pakai instance yg sama
+            );
           }),
         ],
       ),
@@ -301,32 +260,37 @@ class _StoreCartCardState extends State<StoreCartCard> {
 
 class CartItemCard extends StatefulWidget {
   final CartModel cartItem;
+  final CartController cartController;
 
-  const CartItemCard({super.key, required this.cartItem});
+  const CartItemCard({
+    super.key,
+    required this.cartItem,
+    required this.cartController,
+  });
 
   @override
   State<CartItemCard> createState() => _CartItemCardState();
 }
 
 class _CartItemCardState extends State<CartItemCard> {
-  final CartController _cartController = CartController();
-
   void _incrementQuantity() {
     if (widget.cartItem.quantity < widget.cartItem.product.stok &&
         widget.cartItem.quantity < 4) {
-      setState(() {
-        widget.cartItem.quantity++;
-      });
-      _cartController.cartItemsNotifier.notifyListeners();
+      widget.cartItem.quantity++;
+      widget.cartController.updateCartQuantity(
+        widget.cartItem,
+        widget.cartItem.quantity,
+      );
     }
   }
 
   void _decrementQuantity() {
     if (widget.cartItem.quantity > 1) {
-      setState(() {
-        widget.cartItem.quantity--;
-      });
-      _cartController.cartItemsNotifier.notifyListeners();
+      widget.cartItem.quantity--;
+      widget.cartController.updateCartQuantity(
+        widget.cartItem,
+        widget.cartItem.quantity,
+      );
     }
   }
 
@@ -380,7 +344,7 @@ class _CartItemCardState extends State<CartItemCard> {
                     color: AppColor.textHint,
                   ),
                 ),
-                const SizedBox(height: 6),
+                const SizedBox(height: 8),
                 Container(
                   height: 28,
                   decoration: BoxDecoration(
@@ -390,45 +354,24 @@ class _CartItemCardState extends State<CartItemCard> {
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Container(
-                        width: 32,
-                        height: 32,
-                        decoration: const BoxDecoration(
-                          color: AppColor.border,
-                          borderRadius: BorderRadius.only(
-                            topLeft: Radius.circular(4),
-                            bottomLeft: Radius.circular(4),
-                          ),
-                        ),
-                        child: IconButton(
-                          padding: EdgeInsets.zero,
-                          iconSize: 16,
-                          onPressed: _decrementQuantity,
-                          icon: const Icon(Icons.remove),
+                      IconButton(
+                        padding: EdgeInsets.zero,
+                        iconSize: 16,
+                        onPressed: _decrementQuantity,
+                        icon: const Icon(Icons.remove),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                        child: Text(
+                          "${widget.cartItem.quantity}",
+                          style: const TextStyle(fontSize: 12),
                         ),
                       ),
-                      const SizedBox(width: 4),
-                      Text(
-                        widget.cartItem.quantity.toString(),
-                        style: const TextStyle(fontSize: 12),
-                      ),
-                      const SizedBox(width: 4),
-                      Container(
-                        width: 32,
-                        height: 32,
-                        decoration: const BoxDecoration(
-                          color: AppColor.border,
-                          borderRadius: BorderRadius.only(
-                            topRight: Radius.circular(4),
-                            bottomRight: Radius.circular(4),
-                          ),
-                        ),
-                        child: IconButton(
-                          padding: EdgeInsets.zero,
-                          iconSize: 16,
-                          onPressed: _incrementQuantity,
-                          icon: const Icon(Icons.add),
-                        ),
+                      IconButton(
+                        padding: EdgeInsets.zero,
+                        iconSize: 16,
+                        onPressed: _incrementQuantity,
+                        icon: const Icon(Icons.add),
                       ),
                     ],
                   ),
@@ -438,7 +381,7 @@ class _CartItemCardState extends State<CartItemCard> {
           ),
           IconButton(
             onPressed: () {
-              _cartController.removeFromCart(widget.cartItem);
+              widget.cartController.removeFromCart(widget.cartItem);
             },
             icon: const Icon(Icons.delete_outline, color: Colors.red),
           ),

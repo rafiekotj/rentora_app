@@ -1,13 +1,14 @@
 import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:material_symbols_icons/symbols.dart';
 import 'package:intl/intl.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:rentora_app/controllers/product_controller.dart';
+import 'package:rentora_app/controllers/user_controller.dart';
 import 'package:rentora_app/core/constants/app_color.dart';
 import 'package:rentora_app/models/product_model.dart';
-import 'package:rentora_app/services/database/db_helper.dart';
 import 'package:rentora_app/services/local_storage/preference_handler.dart';
 import 'package:rentora_app/widgets/custom_button.dart';
 
@@ -21,7 +22,9 @@ class SellerCuProductScreen extends StatefulWidget {
 }
 
 class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
+  final UserController _userController = UserController();
   final ProductController _productController = ProductController();
+
   String? _selectedKategori;
   String? _hargaPerHari;
   String? _dendaPerHari;
@@ -44,7 +47,7 @@ class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
   );
 
   bool _isSaving = false;
-  int? _currentUserId;
+  int? _currentStoreId;
 
   String formatRupiah(String number) {
     if (number.isEmpty) return "";
@@ -80,12 +83,10 @@ class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
   Future<void> _loadCurrentUser() async {
     final email = await PreferenceHandler.getUserEmail();
     if (email != null) {
-      final user = await DBHelper.getUserByEmail(email);
-      if (user != null) {
-        setState(() {
-          _currentUserId = user.id;
-        });
-      }
+      final user = await _userController.getCurrentUser();
+      setState(() {
+        _currentStoreId = user?.id;
+      });
     }
   }
 
@@ -102,7 +103,7 @@ class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
       return;
     }
 
-    if (_currentUserId == null) {
+    if (_currentStoreId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("User tidak ditemukan. Silakan login ulang.")),
       );
@@ -114,7 +115,7 @@ class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
     try {
       final produk = ProductModel(
         id: widget.produk?.id,
-        userId: _currentUserId!,
+        storeId: _currentStoreId!,
         images: _images.map((e) => e.path).toList(),
         namaProduk: _namaProdukController.text,
         deskripsiProduk: _deskripsiProdukController.text,
