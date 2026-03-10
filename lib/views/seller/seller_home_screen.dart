@@ -247,6 +247,22 @@ class _SellerHomeScreenState extends State<SellerHomeScreen> {
                           SizedBox(height: 8),
 
                           MenuItemCard(
+                            icon: Symbols.settings,
+                            text: "Pengaturan Toko",
+                            iconColor: Colors.blueGrey,
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => SellerSettingsScreen(),
+                                ),
+                              );
+                            },
+                          ),
+
+                          SizedBox(height: 8),
+
+                          MenuItemCard(
                             icon: Symbols.help,
                             text: "Pusat Bantuan",
                             iconColor: Colors.teal,

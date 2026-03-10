@@ -14,10 +14,42 @@ class CartController {
   }
 
   final ValueNotifier<List<CartModel>> cartItemsNotifier = ValueNotifier([]);
+  final ValueNotifier<int?> selectedStoreId = ValueNotifier(null);
+  final ValueNotifier<List<int>> selectedProductIds = ValueNotifier([]);
 
   Future<void> loadCartFromDB() async {
     final cartList = await DBHelper.getAllCart();
     cartItemsNotifier.value = cartList;
+  }
+
+  void selectStore(int storeId) {
+    if (selectedStoreId.value == storeId) {
+      selectedStoreId.value = null;
+      selectedProductIds.value = [];
+    } else {
+      selectedStoreId.value = storeId;
+      final storeProductIds = cartItemsNotifier.value
+          .where((item) => item.product.storeId == storeId)
+          .map((item) => item.product.id)
+          .whereType<int>()
+          .toList();
+      selectedProductIds.value = storeProductIds;
+    }
+  }
+
+  void selectProduct(int productId) {
+    final newSelectedProductIds = List<int>.from(selectedProductIds.value);
+    if (newSelectedProductIds.contains(productId)) {
+      newSelectedProductIds.remove(productId);
+    } else {
+      newSelectedProductIds.add(productId);
+    }
+    selectedProductIds.value = newSelectedProductIds;
+  }
+
+  void clearSelection() {
+    selectedStoreId.value = null;
+    selectedProductIds.value = [];
   }
 
   Future<void> addToCart(CartModel cartItem) async {
@@ -38,7 +70,6 @@ class CartController {
       );
       cartItemsNotifier.value = [...cartItemsNotifier.value, cartItem];
     }
-    cartItemsNotifier.notifyListeners();
   }
 
   Future<void> removeFromCart(CartModel cartItem) async {
@@ -48,24 +79,22 @@ class CartController {
     cartItemsNotifier.value = cartItemsNotifier.value
         .where((e) => e.id != cartItem.id)
         .toList();
-    cartItemsNotifier.notifyListeners();
   }
 
   Future<void> updateCartQuantity(CartModel cartItem, int quantity) async {
     cartItem.quantity = quantity;
     if (cartItem.id != null) await DBHelper.updateCart(cartItem);
-    cartItemsNotifier.notifyListeners();
+    cartItemsNotifier.value = List.from(cartItemsNotifier.value);
   }
 
   Future<void> updateRentalDays(CartModel cartItem, int days) async {
     cartItem.rentalDays = days;
     if (cartItem.id != null) await DBHelper.updateCart(cartItem);
-    cartItemsNotifier.notifyListeners();
+    cartItemsNotifier.value = List.from(cartItemsNotifier.value);
   }
 
   Future<void> clearCart() async {
     await DBHelper.clearCart();
     cartItemsNotifier.value = [];
-    cartItemsNotifier.notifyListeners();
   }
 }

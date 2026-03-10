@@ -6,6 +6,13 @@ import 'package:rentora_app/controllers/store_controller.dart';
 import 'package:rentora_app/core/constants/app_color.dart';
 import 'package:rentora_app/models/cart_model.dart';
 import 'package:rentora_app/models/store_model.dart';
+import 'package:intl/intl.dart';
+
+String formatRupiah(String number) {
+  if (number.isEmpty) return "";
+  final value = int.tryParse(number.replaceAll(".", "")) ?? 0;
+  return NumberFormat("#,###", "id_ID").format(value).replaceAll(",", ".");
+}
 
 class CartScreen extends StatefulWidget {
   const CartScreen({super.key});
@@ -62,29 +69,53 @@ class _CartScreenState extends State<CartScreen> {
                     }).toList(),
                   ),
                 ),
-          bottomNavigationBar: cartItems.isEmpty
-              ? null
-              : BottomAppBar(
-                  child: Container(
-                    padding: const EdgeInsets.all(16),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          'Total: Rp ${_calculateTotal(groupedByStore)}',
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
+          bottomNavigationBar: ValueListenableBuilder(
+            valueListenable: _cartController.selectedProductIds,
+            builder: (context, selectedProductIds, child) {
+              return Container(
+                height: 56,
+                decoration: BoxDecoration(color: Colors.white),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    Text(
+                      "Rp ${formatRupiah(_calculateTotal(groupedByStore, selectedProductIds).toString())}",
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: AppColor.secondary,
+                      ),
+                    ),
+                    SizedBox(width: 12),
+                    GestureDetector(
+                      onTap: () {},
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: AppColor.primary,
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        width: 120,
+                        height: double.infinity,
+                        alignment: Alignment.center,
+                        child: Text(
+                          "Checkout",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
                           ),
                         ),
-                        ElevatedButton(
-                          onPressed: () {},
-                          child: const Text('Checkout'),
-                        ),
-                      ],
+                      ),
                     ),
-                  ),
+                  ],
                 ),
+              );
+            },
+          ),
         );
       },
     );
@@ -102,11 +133,16 @@ class _CartScreenState extends State<CartScreen> {
     return groupedItems;
   }
 
-  int _calculateTotal(Map<int, List<CartModel>> groupedItems) {
+  int _calculateTotal(
+    Map<int, List<CartModel>> groupedItems,
+    List<int> selectedProductIds,
+  ) {
     int total = 0;
     groupedItems.forEach((userId, items) {
       for (var item in items) {
-        total += item.product.hargaPerHari * item.quantity * item.rentalDays;
+        if (selectedProductIds.contains(item.product.id)) {
+          total += item.product.hargaPerHari * item.quantity * item.rentalDays;
+        }
       }
     });
     return total;
@@ -198,61 +234,80 @@ class _StoreCartCardState extends State<StoreCartCard> {
         color: Colors.white,
         borderRadius: BorderRadius.circular(8),
       ),
-      child: Column(
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
+      child: ValueListenableBuilder<int?>(
+        valueListenable: widget.cartController.selectedStoreId,
+        builder: (context, selectedStoreId, _) {
+          final bool isSelected = selectedStoreId == widget.userId;
+          return Column(
             children: [
-              Checkbox(
-                value: true,
-                activeColor: AppColor.primary,
-                onChanged: (value) {},
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Checkbox(
+                    value: isSelected,
+                    activeColor: AppColor.primary,
+                    onChanged: (value) {
+                      widget.cartController.selectStore(widget.userId);
+                    },
+                  ),
+                  Text(
+                    _store?.name ?? 'Memuat nama toko...',
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  const Spacer(),
+                  Container(
+                    height: 28,
+                    decoration: BoxDecoration(
+                      border: Border.all(color: AppColor.border),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Row(
+                      children: [
+                        IconButton(
+                          padding: EdgeInsets.zero,
+                          iconSize: 16,
+                          onPressed: _decrementDays,
+                          icon: const Icon(Icons.remove),
+                        ),
+                        Text(
+                          "$_rentalDays hari",
+                          style: const TextStyle(fontSize: 12),
+                        ),
+                        IconButton(
+                          padding: EdgeInsets.zero,
+                          iconSize: 16,
+                          onPressed: _incrementDays,
+                          icon: const Icon(Icons.add),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
-              Text(
-                _store?.name ?? 'Memuat nama toko...',
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              const Spacer(),
-              Container(
-                height: 28,
-                decoration: BoxDecoration(
-                  border: Border.all(color: AppColor.border),
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: Row(
-                  children: [
-                    IconButton(
-                      padding: EdgeInsets.zero,
-                      iconSize: 16,
-                      onPressed: _decrementDays,
-                      icon: const Icon(Icons.remove),
-                    ),
-                    Text(
-                      "$_rentalDays hari",
-                      style: const TextStyle(fontSize: 12),
-                    ),
-                    IconButton(
-                      padding: EdgeInsets.zero,
-                      iconSize: 16,
-                      onPressed: _incrementDays,
-                      icon: const Icon(Icons.add),
-                    ),
-                  ],
-                ),
+              const SizedBox(height: 12),
+              ValueListenableBuilder<List<int>>(
+                valueListenable: widget.cartController.selectedProductIds,
+                builder: (context, selectedProductIds, _) {
+                  return Column(
+                    children: widget.cartItems.map((cartItem) {
+                      return CartItemCard(
+                        cartItem: cartItem,
+                        cartController: widget.cartController,
+                        isEnabled: isSelected,
+                        isSelected: selectedProductIds.contains(
+                          cartItem.product.id,
+                        ),
+                      );
+                    }).toList(),
+                  );
+                },
               ),
             ],
-          ),
-          const SizedBox(height: 12),
-          ...widget.cartItems.map((cartItem) {
-            return CartItemCard(
-              cartItem: cartItem,
-              cartController: widget.cartController, // pakai instance yg sama
-            );
-          }),
-        ],
+          );
+        },
       ),
     );
   }
@@ -261,11 +316,15 @@ class _StoreCartCardState extends State<StoreCartCard> {
 class CartItemCard extends StatefulWidget {
   final CartModel cartItem;
   final CartController cartController;
+  final bool isEnabled;
+  final bool isSelected;
 
   const CartItemCard({
     super.key,
     required this.cartItem,
     required this.cartController,
+    required this.isEnabled,
+    required this.isSelected,
   });
 
   @override
@@ -274,8 +333,7 @@ class CartItemCard extends StatefulWidget {
 
 class _CartItemCardState extends State<CartItemCard> {
   void _incrementQuantity() {
-    if (widget.cartItem.quantity < widget.cartItem.product.stok &&
-        widget.cartItem.quantity < 4) {
+    if (widget.cartItem.quantity < widget.cartItem.product.stok) {
       widget.cartItem.quantity++;
       widget.cartController.updateCartQuantity(
         widget.cartItem,
@@ -302,9 +360,17 @@ class _CartItemCardState extends State<CartItemCard> {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Checkbox(
-            value: true,
+            value: widget.isSelected,
             activeColor: AppColor.primary,
-            onChanged: (value) {},
+            onChanged: widget.isEnabled
+                ? (value) {
+                    if (widget.cartItem.product.id != null) {
+                      widget.cartController.selectProduct(
+                        widget.cartItem.product.id!,
+                      );
+                    }
+                  }
+                : null,
           ),
           Container(
             width: 80,
@@ -337,12 +403,24 @@ class _CartItemCardState extends State<CartItemCard> {
                   ),
                 ),
                 const SizedBox(height: 6),
-                Text(
-                  "Rp${widget.cartItem.product.hargaPerHari}/hari",
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: AppColor.textHint,
-                  ),
+                Row(
+                  children: [
+                    Text(
+                      "Rp${formatRupiah(widget.cartItem.product.hargaPerHari.toString())}",
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        color: AppColor.secondary,
+                      ),
+                    ),
+                    Text(
+                      "/hari",
+                      style: const TextStyle(
+                        fontSize: 10,
+                        color: AppColor.textHint,
+                      ),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 8),
                 Container(
@@ -361,9 +439,9 @@ class _CartItemCardState extends State<CartItemCard> {
                         icon: const Icon(Icons.remove),
                       ),
                       Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                        padding: const EdgeInsets.symmetric(horizontal: 2),
                         child: Text(
-                          "${widget.cartItem.quantity}",
+                          "${widget.cartItem.quantity} buah",
                           style: const TextStyle(fontSize: 12),
                         ),
                       ),
@@ -381,7 +459,35 @@ class _CartItemCardState extends State<CartItemCard> {
           ),
           IconButton(
             onPressed: () {
-              widget.cartController.removeFromCart(widget.cartItem);
+              showDialog(
+                context: context,
+                builder: (BuildContext context) {
+                  return AlertDialog(
+                    title: const Text("Hapus Barang"),
+                    content: const Text(
+                      "Apakah Anda yakin ingin menghapus barang ini dari keranjang?",
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                        },
+                        child: const Text("Batal"),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          widget.cartController.removeFromCart(widget.cartItem);
+                          Navigator.of(context).pop();
+                        },
+                        child: const Text(
+                          "Hapus",
+                          style: TextStyle(color: Colors.red),
+                        ),
+                      ),
+                    ],
+                  );
+                },
+              );
             },
             icon: const Icon(Icons.delete_outline, color: Colors.red),
           ),

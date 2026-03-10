@@ -3,6 +3,7 @@ import 'package:material_symbols_icons/symbols.dart';
 import 'package:rentora_app/controllers/user_controller.dart';
 import 'package:rentora_app/core/constants/app_color.dart';
 import 'package:rentora_app/views/seller/seller_home_screen.dart';
+import 'package:rentora_app/views/settings/setting_screen.dart';
 
 class UserAccountScreen extends StatefulWidget {
   const UserAccountScreen({super.key});
@@ -42,10 +43,10 @@ class _UserAccountScreenState extends State<UserAccountScreen> {
         actions: [
           IconButton(
             onPressed: () {
-              // Navigator.push(
-              //   context,
-              //   MaterialPageRoute(builder: (context) => SettingsScreen()),
-              // );
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => SettingsScreen()),
+              );
             },
             icon: Icon(Symbols.settings, weight: 600),
           ),
