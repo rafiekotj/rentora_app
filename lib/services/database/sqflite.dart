@@ -5,7 +5,7 @@ import 'package:path/path.dart';
 import 'package:rentora_app/models/user_model.dart';
 
 class DBHelper {
-  // membuka database
+  // Membuka atau membuat database
   static Future<Database> database() async {
     final dbPath = await getDatabasesPath();
 
@@ -13,7 +13,7 @@ class DBHelper {
       join(dbPath, 'rentora.db'),
       version: 1,
 
-      // dijalankan saat database pertama kali dibuat
+      // Dijalankan saat database pertama kali dibuat
       onCreate: (db, version) async {
         // ==========================
         // TABLE USER
@@ -81,17 +81,17 @@ class DBHelper {
   }
 
   // ===============================
-  // REGISTER USER
+  // FUNGSI UNTUK USER
   // ===============================
+
+  // Menyimpan user baru ke database saat registrasi
   static Future<int> registerUser(UserModel user) async {
     final db = await database();
 
     return await db.insert('user', user.toMap());
   }
 
-  // ===============================
-  // LOGIN USER
-  // ===============================
+  // Memverifikasi user dari database saat login
   static Future<UserModel?> loginUser({
     required String email,
     required String password,
@@ -111,6 +111,11 @@ class DBHelper {
     return null;
   }
 
+  // ===============================
+  // FUNGSI UNTUK PRODUK
+  // ===============================
+
+  // Mengambil semua produk berdasarkan ID toko
   static Future<List<ProductModel>> getProdukByStore(int storeId) async {
     final db = await database();
 
@@ -123,6 +128,7 @@ class DBHelper {
     return result.map((e) => ProductModel.fromMap(e)).toList();
   }
 
+  // Menghapus produk dari database berdasarkan ID
   static Future<void> deleteProduk(int id) async {
     final db = await database();
 
@@ -130,8 +136,10 @@ class DBHelper {
   }
 
   // ==========================
-  // CART FUNCTIONS
+  // FUNGSI UNTUK KERANJANG (CART)
   // ==========================
+
+  // Menambahkan item baru ke keranjang
   static Future<int> insertCart(CartModel cart) async {
     final db = await database();
     return await db.insert(
@@ -141,6 +149,7 @@ class DBHelper {
     );
   }
 
+  // Memperbarui item yang ada di keranjang
   static Future<int> updateCart(CartModel cart) async {
     final db = await database();
     return await db.update(
@@ -151,16 +160,19 @@ class DBHelper {
     );
   }
 
+  // Menghapus satu item dari keranjang berdasarkan ID
   static Future<int> deleteCart(int id) async {
     final db = await database();
     return await db.delete('cart', where: 'id = ?', whereArgs: [id]);
   }
 
+  // Menghapus semua item dari keranjang
   static Future<int> clearCart() async {
     final db = await database();
     return await db.delete('cart');
   }
 
+  // Mengambil semua item yang ada di keranjang
   static Future<List<CartModel>> getAllCart() async {
     final db = await database();
     final maps = await db.query('cart');

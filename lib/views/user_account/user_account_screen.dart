@@ -13,6 +13,7 @@ class UserAccountScreen extends StatefulWidget {
 }
 
 class _UserAccountScreenState extends State<UserAccountScreen> {
+  final UserController _userController = UserController();
   String _email = '';
 
   @override
@@ -21,8 +22,9 @@ class _UserAccountScreenState extends State<UserAccountScreen> {
     _loadUserData();
   }
 
+  // Mengambil data email user
   Future<void> _loadUserData() async {
-    final email = await UserController.getUserEmail();
+    final email = await _userController.getUserEmail();
 
     if (!mounted) return;
 
@@ -56,7 +58,7 @@ class _UserAccountScreenState extends State<UserAccountScreen> {
       body: SingleChildScrollView(
         child: Column(
           children: [
-            // PROFIL AKUN
+            // --- HEADER PROFIL AKUN ---
             Container(
               padding: EdgeInsets.symmetric(horizontal: 16, vertical: 20),
               decoration: BoxDecoration(color: AppColor.primary),
@@ -67,9 +69,7 @@ class _UserAccountScreenState extends State<UserAccountScreen> {
                     backgroundColor: Colors.white,
                     child: Icon(Icons.person, size: 30),
                   ),
-
                   SizedBox(width: 16),
-
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -81,9 +81,7 @@ class _UserAccountScreenState extends State<UserAccountScreen> {
                           color: AppColor.textOnPrimary,
                         ),
                       ),
-
                       SizedBox(height: 8),
-
                       Text(
                         "12 Pengikut • 72 Mengikuti",
                         style: TextStyle(
@@ -97,47 +95,40 @@ class _UserAccountScreenState extends State<UserAccountScreen> {
               ),
             ),
 
-            // PEMINJAMAN SAYA SECTION
             Padding(
               padding: EdgeInsets.all(8),
               child: Column(
                 children: [
+                  // --- SECTION PEMINJAMAN SAYA ---
                   SectionCard(
                     title: "Peminjaman Saya",
-                    child: Column(
+                    child: Row(
                       children: [
-                        Row(
-                          children: [
-                            OrderStatusItem(
-                              icon: Symbols.receipt_long,
-                              label: "Belum Bayar",
-                              onTap: () {},
-                            ),
-
-                            OrderStatusItem(
-                              icon: Symbols.inventory_2,
-                              label: "Diambil",
-                              onTap: () {},
-                            ),
-
-                            OrderStatusItem(
-                              icon: Symbols.assignment_return,
-                              label: "Pengembalian",
-                              onTap: () {},
-                            ),
-
-                            OrderStatusItem(
-                              icon: Symbols.star,
-                              label: "Ulasan",
-                              onTap: () {},
-                            ),
-                          ],
+                        OrderStatusItem(
+                          icon: Symbols.receipt_long,
+                          label: "Belum Bayar",
+                          onTap: () {},
+                        ),
+                        OrderStatusItem(
+                          icon: Symbols.inventory_2,
+                          label: "Diambil",
+                          onTap: () {},
+                        ),
+                        OrderStatusItem(
+                          icon: Symbols.assignment_return,
+                          label: "Pengembalian",
+                          onTap: () {},
+                        ),
+                        OrderStatusItem(
+                          icon: Symbols.star,
+                          label: "Ulasan",
+                          onTap: () {},
                         ),
                       ],
                     ),
                   ),
 
-                  // AKTIVITAS SECTION
+                  // --- SECTION AKTIVITAS ---
                   SectionCard(
                     title: "Aktivitas",
                     child: Column(
@@ -148,36 +139,28 @@ class _UserAccountScreenState extends State<UserAccountScreen> {
                           iconColor: Colors.blue,
                           onTap: () {},
                         ),
-
                         SizedBox(height: 8),
-
                         MenuItemCard(
                           icon: Symbols.favorite,
                           text: "Favorit Saya",
                           iconColor: Colors.red,
                           onTap: () {},
                         ),
-
                         SizedBox(height: 8),
-
                         MenuItemCard(
                           icon: Symbols.history,
                           text: "Terakhir Dilihat",
                           iconColor: Colors.orange,
                           onTap: () {},
                         ),
-
                         SizedBox(height: 8),
-
                         MenuItemCard(
                           icon: Symbols.shopping_bag,
                           text: "Beli Lagi",
                           iconColor: Colors.teal,
                           onTap: () {},
                         ),
-
                         SizedBox(height: 8),
-
                         MenuItemCard(
                           icon: Symbols.workspace_premium,
                           text: "Member Rentora",
@@ -188,7 +171,7 @@ class _UserAccountScreenState extends State<UserAccountScreen> {
                     ),
                   ),
 
-                  // SELLER SECTION
+                  // --- SECTION SELLER ---
                   SectionCard(
                     title: "Seller",
                     child: Column(

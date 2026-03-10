@@ -13,15 +13,21 @@ class CartController {
     loadCartFromDB();
   }
 
+  // Notifier untuk daftar item di keranjang
   final ValueNotifier<List<CartModel>> cartItemsNotifier = ValueNotifier([]);
+  // Notifier untuk ID toko yang sedang dipilih
   final ValueNotifier<int?> selectedStoreId = ValueNotifier(null);
+  // Notifier untuk daftar ID produk yang sedang dipilih
   final ValueNotifier<List<int>> selectedProductIds = ValueNotifier([]);
 
+  // Memuat data keranjang dari database lokal (SQLite) saat controller diinisialisasi
   Future<void> loadCartFromDB() async {
     final cartList = await DBHelper.getAllCart();
     cartItemsNotifier.value = cartList;
   }
 
+  // Memilih semua item dari toko tertentu di keranjang.
+  // Jika toko yang sama dipilih lagi, maka batalkan pilihan.
   void selectStore(int storeId) {
     if (selectedStoreId.value == storeId) {
       selectedStoreId.value = null;
@@ -37,6 +43,7 @@ class CartController {
     }
   }
 
+  // Memilih atau membatalkan pilihan satu item produk di keranjang.
   void selectProduct(int productId) {
     final newSelectedProductIds = List<int>.from(selectedProductIds.value);
     if (newSelectedProductIds.contains(productId)) {
@@ -47,11 +54,8 @@ class CartController {
     selectedProductIds.value = newSelectedProductIds;
   }
 
-  void clearSelection() {
-    selectedStoreId.value = null;
-    selectedProductIds.value = [];
-  }
-
+  // Menambahkan produk ke keranjang.
+  // Jika produk sudah ada, maka hanya jumlahnya yang akan ditambahkan.
   Future<void> addToCart(CartModel cartItem) async {
     final index = cartItemsNotifier.value.indexWhere(
       (element) => element.product.id == cartItem.product.id,
@@ -72,6 +76,7 @@ class CartController {
     }
   }
 
+  // Menghapus satu item dari keranjang.
   Future<void> removeFromCart(CartModel cartItem) async {
     if (cartItem.id != null) {
       await DBHelper.deleteCart(cartItem.id!);
@@ -81,20 +86,17 @@ class CartController {
         .toList();
   }
 
+  // Memperbarui jumlah kuantitas dari sebuah item di keranjang.
   Future<void> updateCartQuantity(CartModel cartItem, int quantity) async {
     cartItem.quantity = quantity;
     if (cartItem.id != null) await DBHelper.updateCart(cartItem);
     cartItemsNotifier.value = List.from(cartItemsNotifier.value);
   }
 
+  // Memperbarui jumlah hari sewa dari sebuah item di keranjang.
   Future<void> updateRentalDays(CartModel cartItem, int days) async {
     cartItem.rentalDays = days;
     if (cartItem.id != null) await DBHelper.updateCart(cartItem);
     cartItemsNotifier.value = List.from(cartItemsNotifier.value);
-  }
-
-  Future<void> clearCart() async {
-    await DBHelper.clearCart();
-    cartItemsNotifier.value = [];
   }
 }

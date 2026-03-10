@@ -1,7 +1,7 @@
-// ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'dart:convert';
 import 'product_model.dart';
 
+// ignore_for_file: public_member_api_docs, sort_constructors_first
 class CartModel {
   final int? id;
   final ProductModel product;
@@ -22,7 +22,7 @@ class CartModel {
       'store_id': product.storeId,
       'quantity': quantity,
       'rental_days': rentalDays,
-      'product_data': jsonEncode(product.toMap()), // simpan JSON
+      'product_data': jsonEncode(product.toMap()),
     };
   }
 

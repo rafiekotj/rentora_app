@@ -2,12 +2,14 @@ import 'package:rentora_app/models/product_model.dart';
 import 'package:rentora_app/services/database/sqflite.dart';
 
 class ProductController {
+  // Menambahkan produk baru ke database.
   Future<int> addProduct(ProductModel product) async {
     final db = await DBHelper.database();
 
     return await db.insert('product', product.toMap());
   }
 
+  // Memperbarui data produk yang ada di database berdasarkan ID.
   Future<int> updateProduct(ProductModel product) async {
     final db = await DBHelper.database();
 
@@ -19,18 +21,7 @@ class ProductController {
     );
   }
 
-  Future<List<ProductModel>> getProductByUser(int userId) async {
-    final db = await DBHelper.database();
-
-    final result = await db.query(
-      'product',
-      where: 'userId = ?',
-      whereArgs: [userId],
-    );
-
-    return result.map((e) => ProductModel.fromMap(e)).toList();
-  }
-
+  // Mengambil daftar produk dari database berdasarkan kategori tertentu.
   Future<List<ProductModel>> getProductByKategori(String kategori) async {
     final db = await DBHelper.database();
 
@@ -43,12 +34,7 @@ class ProductController {
     return result.map((e) => ProductModel.fromMap(e)).toList();
   }
 
-  Future<void> deleteProduct(int id) async {
-    final db = await DBHelper.database();
-
-    await db.delete('product', where: 'id = ?', whereArgs: [id]);
-  }
-
+  // Mengambil semua produk yang ada dari database.
   Future<List<ProductModel>> getAllProduct() async {
     final db = await DBHelper.database();
 

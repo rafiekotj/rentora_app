@@ -25,35 +25,79 @@ class _HomeScreenState extends State<HomeScreen> {
   Timer? _timer;
 
   final ProductController _produkController = ProductController();
-
   List<ProductModel> produkList = [];
   bool isLoading = true;
 
+  // Daftar gambar untuk banner.
   final List<String> bannerImages = [
     "assets/images/banner1.jpg",
     "assets/images/banner2.jpg",
     "assets/images/banner3.jpg",
   ];
 
-  Future<void> _loadProduk() async {
-    final data = await _produkController.getAllProduct();
-
-    if (!mounted) return;
-
-    setState(() {
-      produkList = data;
-      isLoading = false;
-    });
-  }
+  // Daftar kategori.
+  final List<CategoryItem> categoryItems = const [
+    CategoryItem(
+      label: "Elektronik",
+      value: "Elektronik & Gadget",
+      icon: Symbols.speaker,
+      color: Color(0xff98A1BC),
+    ),
+    CategoryItem(
+      label: "Pakaian",
+      value: "Pakaian & Kostum",
+      icon: Symbols.apparel,
+      color: Color(0xffFF9B51),
+    ),
+    CategoryItem(
+      label: "Sepatu",
+      value: "Sepatu & Alas Kaki",
+      icon: Symbols.shoe_cleats,
+      color: Color(0xff578FCA),
+    ),
+    CategoryItem(
+      label: "Tas",
+      value: "Tas & Koper",
+      icon: Symbols.backpack,
+      color: Color(0xffF16727),
+    ),
+    CategoryItem(
+      label: "Furniture",
+      value: "Furniture & Rumah Tangga",
+      icon: Symbols.chair,
+      color: Color(0xffFACC15),
+    ),
+    CategoryItem(
+      label: "Buku",
+      value: "Buku & Mainan",
+      icon: Symbols.book_2,
+      color: Color(0xffE2B59A),
+    ),
+    CategoryItem(
+      label: "Hobi",
+      value: "Hobi & Alat Musik",
+      icon: Symbols.stadia_controller,
+      color: Color(0xff758A93),
+    ),
+    CategoryItem(
+      label: "Otomotif",
+      value: "Otomotif & Transportasi",
+      icon: Symbols.search_hands_free,
+      color: Color(0xffBBDCE5),
+    ),
+  ];
 
   @override
   void initState() {
     super.initState();
     _pageController = PageController(initialPage: 0);
+    // Auto-play banner
     _startAutoPlay();
+    // Memuat data produk
     _loadProduk();
   }
 
+  // Pre-cache gambar banner
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -62,6 +106,26 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  // Membersihkan controller dan timer
+  @override
+  void dispose() {
+    _timer?.cancel();
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  // Memuat data semua produk.
+  Future<void> _loadProduk() async {
+    final data = await _produkController.getAllProduct();
+    if (!mounted) return;
+
+    setState(() {
+      produkList = data;
+      isLoading = false;
+    });
+  }
+
+  // Memulai timer yang mengganti halaman banner
   void _startAutoPlay() {
     _timer = Timer.periodic(const Duration(seconds: 3), (Timer timer) {
       if (_currentBannerIndex < bannerImages.length - 1) {
@@ -78,13 +142,6 @@ class _HomeScreenState extends State<HomeScreen> {
         );
       }
     });
-  }
-
-  @override
-  void dispose() {
-    _timer?.cancel();
-    _pageController.dispose();
-    super.dispose();
   }
 
   @override
@@ -107,14 +164,11 @@ class _HomeScreenState extends State<HomeScreen> {
                     color: AppColor.textOnPrimary,
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: TextField(
+                  child: const TextField(
                     cursorColor: AppColor.textSecondary,
                     textAlignVertical: TextAlignVertical.center,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      color: AppColor.textPrimary,
-                    ),
-                    decoration: const InputDecoration(
+                    style: TextStyle(fontSize: 14, color: AppColor.textPrimary),
+                    decoration: InputDecoration(
                       isDense: true,
                       hintText: "Search",
                       hintStyle: TextStyle(
@@ -170,66 +224,14 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // KATEGORI
+            // --- KATEGORI ---
             const Text(
               "Kategori",
               style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
             ),
             const SizedBox(height: 12),
-
             Builder(
               builder: (context) {
-                const List<CategoryItem> categoryItems = [
-                  CategoryItem(
-                    label: "Elektronik",
-                    value: "Elektronik & Gadget",
-                    icon: Symbols.speaker,
-                    color: Color(0xff98A1BC),
-                  ),
-                  CategoryItem(
-                    label: "Pakaian",
-                    value: "Pakaian & Kostum",
-                    icon: Symbols.apparel,
-                    color: Color(0xffFF9B51),
-                  ),
-                  CategoryItem(
-                    label: "Sepatu",
-                    value: "Sepatu & Alas Kaki",
-                    icon: Symbols.shoe_cleats,
-                    color: Color(0xff578FCA),
-                  ),
-                  CategoryItem(
-                    label: "Tas",
-                    value: "Tas & Koper",
-                    icon: Symbols.backpack,
-                    color: Color(0xffF16727),
-                  ),
-                  CategoryItem(
-                    label: "Furniture",
-                    value: "Furniture & Rumah Tangga",
-                    icon: Symbols.chair,
-                    color: Color(0xffFACC15),
-                  ),
-                  CategoryItem(
-                    label: "Buku",
-                    value: "Buku & Mainan",
-                    icon: Symbols.book_2,
-                    color: Color(0xffE2B59A),
-                  ),
-                  CategoryItem(
-                    label: "Hobi",
-                    value: "Hobi & Alat Musik",
-                    icon: Symbols.stadia_controller,
-                    color: Color(0xff758A93),
-                  ),
-                  CategoryItem(
-                    label: "Otomotif",
-                    value: "Otomotif & Transportasi",
-                    icon: Symbols.search_hands_free,
-                    color: Color(0xffBBDCE5),
-                  ),
-                ];
-
                 final screenWidth = MediaQuery.of(context).size.width;
                 const double sidePadding = 16.0;
                 const double spacing = 12.0;
@@ -239,31 +241,29 @@ class _HomeScreenState extends State<HomeScreen> {
                 return Wrap(
                   spacing: spacing,
                   runSpacing: 12.0,
-                  children: categoryItems
-                      .map(
-                        (item) => GestureDetector(
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => CategoryScreen(
-                                  title: item.label,
-                                  categoryValue: item.value,
-                                ),
-                              ),
-                            );
-                          },
-                          child: SizedBox(width: itemWidth, child: item),
-                        ),
-                      )
-                      .toList(),
+                  children: categoryItems.map((item) {
+                    return GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => CategoryScreen(
+                              title: item.label,
+                              categoryValue: item.value,
+                            ),
+                          ),
+                        );
+                      },
+                      child: SizedBox(width: itemWidth, child: item),
+                    );
+                  }).toList(),
                 );
               },
             ),
 
             const SizedBox(height: 12),
 
-            // BANNER
+            // --- BANNER ---
             SizedBox(
               height: 140,
               width: double.infinity,
@@ -316,48 +316,47 @@ class _HomeScreenState extends State<HomeScreen> {
 
             const SizedBox(height: 12),
 
-            // LIST PRODUK
+            // --- LIST PRODUK ---
             const Text(
               "Rekomendasi Produk",
               style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
             ),
             const SizedBox(height: 12),
+            isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : Builder(
+                    builder: (context) {
+                      final screenWidth = MediaQuery.of(context).size.width;
+                      const double sidePadding = 16.0;
+                      const double crossSpacing = 8.0;
+                      final itemWidth =
+                          (screenWidth - (sidePadding * 2) - crossSpacing) / 2;
 
-            Builder(
-              builder: (context) {
-                final screenWidth = MediaQuery.of(context).size.width;
-                const double sidePadding = 16.0;
-                const double crossSpacing = 8.0;
-                final itemWidth =
-                    (screenWidth - (sidePadding * 2) - crossSpacing) / 2;
-
-                return Wrap(
-                  spacing: crossSpacing,
-                  runSpacing: 8.0,
-                  children: produkList
-                      .map(
-                        (produk) => SizedBox(
-                          width: itemWidth,
-                          child: GestureDetector(
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => DetailProductScreen(
-                                    produk: produk,
-                                    storeId: produk.storeId,
+                      return Wrap(
+                        spacing: crossSpacing,
+                        runSpacing: 8.0,
+                        children: produkList.map((produk) {
+                          return SizedBox(
+                            width: itemWidth,
+                            child: GestureDetector(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => DetailProductScreen(
+                                      produk: produk,
+                                      storeId: produk.storeId,
+                                    ),
                                   ),
-                                ),
-                              );
-                            },
-                            child: ProductCard(produk: produk),
-                          ),
-                        ),
-                      )
-                      .toList(),
-                );
-              },
-            ),
+                                );
+                              },
+                              child: ProductCard(produk: produk),
+                            ),
+                          );
+                        }).toList(),
+                      );
+                    },
+                  ),
           ],
         ),
       ),
@@ -365,44 +364,20 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
-class ProductCard extends StatefulWidget {
+class ProductCard extends StatelessWidget {
   final ProductModel produk;
 
   const ProductCard({super.key, required this.produk});
 
-  @override
-  State<ProductCard> createState() => _ProductCardState();
-}
-
-class _ProductCardState extends State<ProductCard> {
-  final StoreController _storeController = StoreController();
-  StoreModel? store;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadStore();
-  }
-
-  Future<void> _loadStore() async {
-    final stores = await _storeController.getStoresByUser(
-      widget.produk.storeId,
-    );
-
-    if (mounted && stores.isNotEmpty) {
-      setState(() {
-        store = stores.first;
-      });
-    }
-  }
-
-  String formatRupiah(int number) {
+  String _formatRupiah(int number) {
     final value = NumberFormat("#,###", "id_ID").format(number);
     return "Rp $value";
   }
 
   @override
   Widget build(BuildContext context) {
+    final storeController = StoreController();
+
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -419,26 +394,26 @@ class _ProductCardState extends State<ProductCard> {
                   topLeft: Radius.circular(6),
                   topRight: Radius.circular(6),
                 ),
-                image: widget.produk.images.isNotEmpty
+                image: produk.images.isNotEmpty
                     ? DecorationImage(
-                        image: FileImage(File(widget.produk.images.first)),
+                        image: FileImage(File(produk.images.first)),
                         fit: BoxFit.cover,
                       )
                     : null,
-                color: widget.produk.images.isEmpty ? Colors.grey[200] : null,
+                color: produk.images.isEmpty ? Colors.grey[200] : null,
               ),
-              child: widget.produk.images.isEmpty
+              child: produk.images.isEmpty
                   ? const Icon(Icons.image, color: Colors.grey)
                   : null,
             ),
           ),
-          Container(
+          Padding(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  widget.produk.namaProduk,
+                  produk.namaProduk,
                   style: const TextStyle(
                     fontWeight: FontWeight.w600,
                     fontSize: 14,
@@ -450,7 +425,7 @@ class _ProductCardState extends State<ProductCard> {
                 Row(
                   children: [
                     Text(
-                      formatRupiah(widget.produk.hargaPerHari),
+                      _formatRupiah(produk.hargaPerHari),
                       style: TextStyle(
                         color: AppColor.primary,
                         fontWeight: FontWeight.w700,
@@ -464,32 +439,48 @@ class _ProductCardState extends State<ProductCard> {
                   ],
                 ),
                 const SizedBox(height: 4),
-                Row(
-                  children: [
-                    Icon(
-                      Symbols.location_pin,
-                      color: AppColor.textHint,
-                      size: 12,
-                    ),
-                    const SizedBox(width: 4),
-                    if (store != null)
-                      Text(
-                        store!.location?.toUpperCase() ??
-                            "LOKASI TIDAK TERSEDIA",
-                        style: TextStyle(
+                // Menangani data yang akan datang (Future)
+                FutureBuilder<List<StoreModel>>(
+                  // `future` adalah proses yang kita tunggu.
+                  future: storeController.getStoresByUser(produk.storeId),
+                  // `builder` akan membangun UI berdasarkan status dari `future`.
+                  builder: (context, snapshot) {
+                    // `snapshot` berisi informasi tentang status Future (loading, error, done).
+                    String locationText = "...";
+
+                    if (snapshot.connectionState == ConnectionState.done &&
+                        snapshot.hasData &&
+                        snapshot.data!.isNotEmpty) {
+                      final store = snapshot.data!.first;
+                      locationText =
+                          store.location?.toUpperCase() ?? "LOKASI TIDAK ADA";
+                    }
+
+                    if (snapshot.connectionState == ConnectionState.done &&
+                        (!snapshot.hasData ||
+                            snapshot.data!.isEmpty ||
+                            snapshot.hasError)) {
+                      locationText = "LOKASI TIDAK ADA";
+                    }
+
+                    return Row(
+                      children: [
+                        Icon(
+                          Symbols.location_pin,
                           color: AppColor.textHint,
-                          fontSize: 10,
+                          size: 12,
                         ),
-                      )
-                    else
-                      Text(
-                        "",
-                        style: TextStyle(
-                          color: AppColor.textHint,
-                          fontSize: 10,
+                        const SizedBox(width: 4),
+                        Text(
+                          locationText,
+                          style: TextStyle(
+                            color: AppColor.textHint,
+                            fontSize: 10,
+                          ),
                         ),
-                      ),
-                  ],
+                      ],
+                    );
+                  },
                 ),
               ],
             ),

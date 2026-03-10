@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:rentora_app/controllers/user_controller.dart';
 import 'package:rentora_app/core/constants/app_color.dart';
 import 'package:rentora_app/core/extensions/navigator.dart';
-import 'package:rentora_app/models/user_model.dart';
-import 'package:rentora_app/services/database/sqflite.dart';
-import 'package:rentora_app/services/local_storage/preference_handler.dart';
 import 'package:rentora_app/views/auth/login_screen.dart';
 import 'package:rentora_app/views/home/bottom_navbar.dart';
 import 'package:rentora_app/widgets/custom_button.dart';
@@ -21,8 +19,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final TextEditingController passwordController = TextEditingController();
   final TextEditingController phoneController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
+  final UserController _userController = UserController();
 
   bool isVisibility = true;
+  bool _isLoading = false;
 
   void visibilityOnOff() {
     isVisibility = !isVisibility;
@@ -62,7 +62,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
                           // ===== JUDUL =====
                           const Text(
-                            "Masuk ke Rentora",
+                            "Daftar di Rentora",
                             style: TextStyle(
                               fontSize: 20,
                               fontWeight: FontWeight.bold,
@@ -149,25 +149,25 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             },
                           ),
 
-                          const SizedBox(height: 8),
+                          const SizedBox(height: 24),
 
                           // ===== BUTTON DAFTAR =====
                           CustomButton(
                             text: "Daftar",
+                            isLoading: _isLoading,
                             onPressed: () async {
                               if (_formKey.currentState!.validate()) {
-                                await DBHelper.registerUser(
-                                  UserModel(
-                                    email: emailController.text,
-                                    password: passwordController.text,
-                                    phone: phoneController.text,
-                                  ),
+                                setState(() {
+                                  _isLoading = true;
+                                });
+
+                                await _userController.register(
+                                  email: emailController.text,
+                                  password: passwordController.text,
+                                  phone: phoneController.text,
                                 );
 
-                                PreferenceHandler().storingIsLogin(true);
-                                PreferenceHandler().storingUserEmail(
-                                  emailController.text,
-                                );
+                                if (!mounted) return;
 
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(
@@ -175,9 +175,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                   ),
                                 );
 
-                                await Future.delayed(
-                                  const Duration(seconds: 1),
-                                );
                                 Navigator.of(context).pushAndRemoveUntil(
                                   MaterialPageRoute(
                                     builder: (context) => const BottomNavbar(),
@@ -226,7 +223,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               ),
                               GestureDetector(
                                 onTap: () {
-                                  context.push(LoginScreen());
+                                  context.push(const LoginScreen());
                                 },
                                 child: const Text(
                                   "Masuk sekarang",

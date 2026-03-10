@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:rentora_app/controllers/user_controller.dart';
 import 'package:rentora_app/core/constants/app_color.dart';
 import 'package:rentora_app/core/extensions/navigator.dart';
-import 'package:rentora_app/models/user_model.dart';
-import 'package:rentora_app/services/database/sqflite.dart';
-import 'package:rentora_app/services/local_storage/preference_handler.dart';
 import 'package:rentora_app/views/auth/register_screen.dart';
 import 'package:rentora_app/views/home/bottom_navbar.dart';
 import 'package:rentora_app/widgets/custom_button.dart';
@@ -20,8 +18,10 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
+  final UserController _userController = UserController();
 
   bool isVisibility = true;
+  bool _isLoading = false;
 
   void visibilityOnOff() {
     setState(() {
@@ -145,28 +145,26 @@ class _LoginScreenState extends State<LoginScreen> {
                           // ===== BUTTON LOGIN =====
                           CustomButton(
                             text: "Masuk",
+                            isLoading: _isLoading,
                             onPressed: () async {
                               if (_formKey.currentState!.validate()) {
-                                final UserModel? login =
-                                    await DBHelper.loginUser(
-                                      email: emailController.text,
-                                      password: passwordController.text,
-                                    );
+                                setState(() {
+                                  _isLoading = true;
+                                });
 
-                                if (login != null) {
-                                  PreferenceHandler().storingIsLogin(true);
-                                  PreferenceHandler().storingUserEmail(
-                                    login.email,
-                                  );
+                                final bool isSuccess =
+                                    await _userController.login(
+                                  email: emailController.text,
+                                  password: passwordController.text,
+                                );
 
+                                if (!mounted) return;
+
+                                if (isSuccess) {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     const SnackBar(
                                       content: Text("Login Berhasil"),
                                     ),
-                                  );
-
-                                  await Future.delayed(
-                                    const Duration(seconds: 1),
                                   );
                                   Navigator.of(context).pushAndRemoveUntil(
                                     MaterialPageRoute(
@@ -184,6 +182,10 @@ class _LoginScreenState extends State<LoginScreen> {
                                     ),
                                   );
                                 }
+
+                                setState(() {
+                                  _isLoading = false;
+                                });
                               }
                             },
                           ),
