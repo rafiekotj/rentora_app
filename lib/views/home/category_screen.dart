@@ -22,10 +22,18 @@ class CategoryScreen extends StatefulWidget {
 
 class _CategoryScreenState extends State<CategoryScreen> {
   List<ProductModel> productList = [];
+
   bool isLoading = true;
 
   final ProductController _produkController = ProductController();
 
+  @override
+  void initState() {
+    super.initState();
+    _loadProducts();
+  }
+
+  // Mengambil data produk dari controller berdasarkan kategori
   Future<void> _loadProducts() async {
     final data = await _produkController.getProductByKategori(
       widget.categoryValue,
@@ -40,12 +48,6 @@ class _CategoryScreenState extends State<CategoryScreen> {
   }
 
   @override
-  void initState() {
-    super.initState();
-    _loadProducts();
-  }
-
-  @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColor.backgroundLight,
@@ -55,7 +57,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
         foregroundColor: AppColor.textOnPrimary,
         titleSpacing: 0,
         title: Container(
-          padding: EdgeInsets.only(right: 8),
+          padding: const EdgeInsets.only(right: 8),
           child: Row(
             children: [
               Expanded(
@@ -65,7 +67,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
                     color: AppColor.textOnPrimary,
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: TextField(
+                  child: const TextField(
                     cursorColor: AppColor.textSecondary,
                     textAlignVertical: TextAlignVertical.center,
                     style: TextStyle(fontSize: 14, color: AppColor.textPrimary),
@@ -92,7 +94,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
                   ),
                 ),
               ),
-              SizedBox(width: 8),
+              const SizedBox(width: 8),
               IconButton(
                 onPressed: () {},
                 icon: Icon(
@@ -107,21 +109,24 @@ class _CategoryScreenState extends State<CategoryScreen> {
         ),
       ),
       body: isLoading
-          ? Center(child: CircularProgressIndicator())
+          ? const Center(child: CircularProgressIndicator())
           : Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                SizedBox(height: 8),
+                const SizedBox(height: 8),
                 Container(
-                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
                   width: double.infinity,
-                  decoration: BoxDecoration(color: Colors.white),
+                  decoration: const BoxDecoration(color: Colors.white),
                   child: Row(
                     children: [
-                      Text("Kategori: ", style: TextStyle(fontSize: 16)),
+                      const Text("Kategori: ", style: TextStyle(fontSize: 16)),
                       Text(
                         widget.categoryValue,
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
                         ),
@@ -129,13 +134,13 @@ class _CategoryScreenState extends State<CategoryScreen> {
                     ],
                   ),
                 ),
-                SizedBox(height: 8),
+                const SizedBox(height: 8),
                 Expanded(
                   child: productList.isEmpty
                       ? Container(
                           width: double.infinity,
-                          decoration: BoxDecoration(color: Colors.white),
-                          child: Center(
+                          decoration: const BoxDecoration(color: Colors.white),
+                          child: const Center(
                             child: Text('Tidak ada produk dalam kategori ini.'),
                           ),
                         )
@@ -144,7 +149,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Container(
-                                padding: EdgeInsets.symmetric(
+                                padding: const EdgeInsets.symmetric(
                                   horizontal: 16,
                                   vertical: 8,
                                 ),
@@ -152,7 +157,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
                                 decoration: const BoxDecoration(
                                   color: Colors.white,
                                 ),
-                                child: Text(
+                                child: const Text(
                                   "Rekomendasi",
                                   style: TextStyle(
                                     fontSize: 16,
@@ -160,15 +165,15 @@ class _CategoryScreenState extends State<CategoryScreen> {
                                   ),
                                 ),
                               ),
+                              // Grid untuk menampilkan produk.
                               Container(
-                                padding: EdgeInsets.all(8),
+                                padding: const EdgeInsets.all(8),
                                 child: LayoutBuilder(
                                   builder: (context, constraints) {
-                                    double crossSpacing = 8.0;
+                                    const double crossSpacing = 8.0;
                                     final itemWidth =
                                         (constraints.maxWidth - crossSpacing) /
                                         2;
-
                                     return Wrap(
                                       spacing: crossSpacing,
                                       runSpacing: 8.0,

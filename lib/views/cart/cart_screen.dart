@@ -4,15 +4,9 @@ import 'package:material_symbols_icons/symbols.dart';
 import 'package:rentora_app/controllers/cart_controller.dart';
 import 'package:rentora_app/controllers/store_controller.dart';
 import 'package:rentora_app/core/constants/app_color.dart';
+import 'package:rentora_app/core/utils/app_formatters.dart';
 import 'package:rentora_app/models/cart_model.dart';
 import 'package:rentora_app/models/store_model.dart';
-import 'package:intl/intl.dart';
-
-String formatRupiah(String number) {
-  if (number.isEmpty) return "";
-  final value = int.tryParse(number.replaceAll(".", "")) ?? 0;
-  return NumberFormat("#,###", "id_ID").format(value).replaceAll(",", ".");
-}
 
 class CartScreen extends StatefulWidget {
   const CartScreen({super.key});
@@ -23,15 +17,182 @@ class CartScreen extends StatefulWidget {
 
 class _CartScreenState extends State<CartScreen> {
   final CartController _cartController = CartController();
+  final StoreController _storeController = StoreController();
+
+  // Map untuk menyimpan data toko yang sudah dimuat
+  final Map<int, StoreModel?> _stores = {};
+
+  // Map untuk menyimpan jumlah hari sewa untuk setiap toko
+  final Map<int, int> _rentalDays = {};
 
   @override
   void initState() {
     super.initState();
     _cartController.loadCartFromDB();
+    // Menambahkan listener untuk mendeteksi perubahan pada item keranjang setiap kali ada perubahan
+    _cartController.cartItemsNotifier.addListener(_onCartItemsChanged);
+  }
+
+  @override
+  void dispose() {
+    _cartController.cartItemsNotifier.removeListener(_onCartItemsChanged);
+    super.dispose();
+  }
+
+  // Fungsi yang dipanggil setiap ada perubahan pada data keranjang
+  void _onCartItemsChanged() {
+    final cartItems = _cartController.cartItemsNotifier.value;
+    // Memperbarui jumlah hari sewa berdasarkan data keranjang terbaru
+    _initializeRentalDays(cartItems);
+    // Memuat data toko untuk item yang ada di keranjang
+    _loadStoresForCartItems(cartItems);
+  }
+
+  // Menginisialisasi jumlah hari sewa
+  void _initializeRentalDays(List<CartModel> cartItems) {
+    final groupedByStore = _groupCartItemsByStore(cartItems);
+    final currentStoreIds = groupedByStore.keys.toSet();
+
+    bool needsSetState = false;
+
+    // Menghapus data hari sewa untuk toko yang sudah tidak ada di keranjang
+    _rentalDays.removeWhere((storeId, _) {
+      final shouldRemove = !currentStoreIds.contains(storeId);
+      if (shouldRemove) needsSetState = true;
+      return shouldRemove;
+    });
+
+    // Menambahkan data hari sewa untuk toko yang baru ditambahkan ke keranjang
+    for (var entry in groupedByStore.entries) {
+      if (!_rentalDays.containsKey(entry.key) && entry.value.isNotEmpty) {
+        _rentalDays[entry.key] = entry.value.first.rentalDays;
+        needsSetState = true;
+      }
+    }
+
+    if (needsSetState && mounted) {
+      setState(() {});
+    }
+  }
+
+  // Memuat data detail toko untuk setiap toko yang ada di keranjang
+  void _loadStoresForCartItems(List<CartModel> cartItems) async {
+    final groupedByStore = _groupCartItemsByStore(cartItems);
+    bool needsSetState = false;
+
+    // Menghapus data toko jika toko tersebut tidak lagi ada di keranjang
+    _stores.removeWhere((storeId, _) {
+      final shouldRemove = !groupedByStore.keys.toSet().contains(storeId);
+      if (shouldRemove) needsSetState = true;
+      return shouldRemove;
+    });
+
+    // Memuat data untuk toko yang belum ada di keranjang
+    for (var storeId in groupedByStore.keys) {
+      if (_stores[storeId] == null) {
+        final store = await _storeController.getStoreByUserId(storeId);
+        if (mounted) {
+          _stores[storeId] = store;
+          needsSetState = true;
+        }
+      }
+    }
+
+    if (needsSetState && mounted) {
+      setState(() {});
+    }
+  }
+
+  // Menambah jumlah hari sewa untuk semua item dalam satu toko
+  void _incrementDays(int userId, List<CartModel> cartItems) {
+    if (cartItems.isEmpty) return;
+
+    // Menentukan batas maksimal hari pinjam dari semua item di toko tersebut.
+    final maxDays = cartItems
+        .map((item) => item.product.maxHariPinjam)
+        .reduce((a, b) => a < b ? a : b);
+
+    int currentRentalDays = _rentalDays[userId] ?? 1;
+
+    if (currentRentalDays < maxDays) {
+      setState(() {
+        _rentalDays[userId] = currentRentalDays + 1;
+      });
+      for (var item in cartItems) {
+        _cartController.updateRentalDays(item, currentRentalDays + 1);
+      }
+    } else {
+      // Menampilkan peringatan jika sudah mencapai batas maksimal
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Maksimal sewa untuk salah satu barang adalah $maxDays hari',
+          ),
+          duration: const Duration(seconds: 2),
+        ),
+      );
+    }
+  }
+
+  // Mengurangi jumlah hari sewa.
+  void _decrementDays(int userId, List<CartModel> cartItems) {
+    int currentRentalDays = _rentalDays[userId] ?? 1;
+    if (currentRentalDays > 1) {
+      setState(() {
+        _rentalDays[userId] = currentRentalDays - 1;
+      });
+      for (var item in cartItems) {
+        _cartController.updateRentalDays(item, currentRentalDays - 1);
+      }
+    }
+  }
+
+  // Menambah kuantitas satu item
+  void _incrementQuantity(CartModel cartItem) {
+    if (cartItem.quantity < cartItem.product.stok) {
+      _cartController.updateCartQuantity(cartItem, cartItem.quantity + 1);
+    }
+  }
+
+  // Mengurangi kuantitas satu item
+  void _decrementQuantity(CartModel cartItem) {
+    if (cartItem.quantity > 1) {
+      _cartController.updateCartQuantity(cartItem, cartItem.quantity - 1);
+    }
+  }
+
+  // Mengelompokkan item keranjang berdasarkan ID toko
+  Map<int, List<CartModel>> _groupCartItemsByStore(List<CartModel> cartItems) {
+    final Map<int, List<CartModel>> groupedItems = {};
+    for (var item in cartItems) {
+      if (groupedItems.containsKey(item.product.storeId)) {
+        groupedItems[item.product.storeId]!.add(item);
+      } else {
+        groupedItems[item.product.storeId] = [item];
+      }
+    }
+    return groupedItems;
+  }
+
+  // Menghitung total harga dari semua item yang dipilih di keranjang
+  int _calculateTotal(
+    Map<int, List<CartModel>> groupedItems,
+    List<int> selectedProductIds,
+  ) {
+    int total = 0;
+    groupedItems.forEach((userId, items) {
+      for (var item in items) {
+        if (selectedProductIds.contains(item.product.id)) {
+          total += item.product.hargaPerHari * item.quantity * item.rentalDays;
+        }
+      }
+    });
+    return total;
   }
 
   @override
   Widget build(BuildContext context) {
+    // ValueListenableBuilder digunakan untuk secara otomatis membangun ulang UI setiap kali ada perubahan pada `cartItemsNotifier`.
     return ValueListenableBuilder<List<CartModel>>(
       valueListenable: _cartController.cartItemsNotifier,
       builder: (context, cartItems, child) {
@@ -60,11 +221,25 @@ class _CartScreenState extends State<CartScreen> {
               : SingleChildScrollView(
                   padding: const EdgeInsets.all(8),
                   child: Column(
+                    // Membuat daftar `StoreCartCard` untuk setiap toko.
                     children: groupedByStore.entries.map((entry) {
+                      final storeId = entry.key;
+                      final items = entry.value;
+                      final store = _stores[storeId];
+                      final rentalDays =
+                          _rentalDays[storeId] ??
+                          (items.isNotEmpty ? items.first.rentalDays : 1);
+
                       return StoreCartCard(
-                        userId: entry.key,
-                        cartItems: entry.value,
+                        userId: storeId,
+                        cartItems: items,
                         cartController: _cartController,
+                        store: store,
+                        rentalDays: rentalDays,
+                        onIncrementDays: () => _incrementDays(storeId, items),
+                        onDecrementDays: () => _decrementDays(storeId, items),
+                        onIncrementQuantity: _incrementQuantity,
+                        onDecrementQuantity: _decrementQuantity,
                       );
                     }).toList(),
                   ),
@@ -74,7 +249,7 @@ class _CartScreenState extends State<CartScreen> {
             builder: (context, selectedProductIds, child) {
               return Container(
                 height: 56,
-                decoration: BoxDecoration(color: Colors.white),
+                decoration: const BoxDecoration(color: Colors.white),
                 padding: const EdgeInsets.symmetric(
                   horizontal: 16,
                   vertical: 8,
@@ -83,14 +258,14 @@ class _CartScreenState extends State<CartScreen> {
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
                     Text(
-                      "Rp ${formatRupiah(_calculateTotal(groupedByStore, selectedProductIds).toString())}",
+                      "Rp ${AppFormatters.formatRupiah(_calculateTotal(groupedByStore, selectedProductIds).toString())}",
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                         color: AppColor.secondary,
                       ),
                     ),
-                    SizedBox(width: 12),
+                    const SizedBox(width: 12),
                     GestureDetector(
                       onTap: () {},
                       child: Container(
@@ -101,7 +276,7 @@ class _CartScreenState extends State<CartScreen> {
                         width: 120,
                         height: double.infinity,
                         alignment: Alignment.center,
-                        child: Text(
+                        child: const Text(
                           "Checkout",
                           style: TextStyle(
                             color: Colors.white,
@@ -120,110 +295,32 @@ class _CartScreenState extends State<CartScreen> {
       },
     );
   }
-
-  Map<int, List<CartModel>> _groupCartItemsByStore(List<CartModel> cartItems) {
-    final Map<int, List<CartModel>> groupedItems = {};
-    for (var item in cartItems) {
-      if (groupedItems.containsKey(item.product.storeId)) {
-        groupedItems[item.product.storeId]!.add(item);
-      } else {
-        groupedItems[item.product.storeId] = [item];
-      }
-    }
-    return groupedItems;
-  }
-
-  int _calculateTotal(
-    Map<int, List<CartModel>> groupedItems,
-    List<int> selectedProductIds,
-  ) {
-    int total = 0;
-    groupedItems.forEach((userId, items) {
-      for (var item in items) {
-        if (selectedProductIds.contains(item.product.id)) {
-          total += item.product.hargaPerHari * item.quantity * item.rentalDays;
-        }
-      }
-    });
-    return total;
-  }
 }
 
-class StoreCartCard extends StatefulWidget {
+// Menampilkan semua item dari satu toko yang sama dalam sebuah kartu
+class StoreCartCard extends StatelessWidget {
   final int userId;
   final List<CartModel> cartItems;
   final CartController cartController;
+  final StoreModel? store;
+  final int rentalDays;
+  final VoidCallback onIncrementDays;
+  final VoidCallback onDecrementDays;
+  final ValueChanged<CartModel> onIncrementQuantity;
+  final ValueChanged<CartModel> onDecrementQuantity;
 
   const StoreCartCard({
     super.key,
     required this.userId,
     required this.cartItems,
     required this.cartController,
+    required this.store,
+    required this.rentalDays,
+    required this.onIncrementDays,
+    required this.onDecrementDays,
+    required this.onIncrementQuantity,
+    required this.onDecrementQuantity,
   });
-
-  @override
-  State<StoreCartCard> createState() => _StoreCartCardState();
-}
-
-class _StoreCartCardState extends State<StoreCartCard> {
-  final StoreController _storeController = StoreController();
-  StoreModel? _store;
-  int _rentalDays = 1;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadStore();
-    if (widget.cartItems.isNotEmpty) {
-      _rentalDays = widget.cartItems.first.rentalDays;
-    }
-  }
-
-  Future<void> _loadStore() async {
-    final store = await _storeController.getStoreByUserId(widget.userId);
-    if (mounted) {
-      setState(() {
-        _store = store;
-      });
-    }
-  }
-
-  void _incrementDays() {
-    if (widget.cartItems.isEmpty) return;
-
-    final maxDays = widget.cartItems
-        .map((item) => item.product.maxHariPinjam)
-        .reduce((a, b) => a < b ? a : b);
-
-    if (_rentalDays < maxDays) {
-      setState(() {
-        _rentalDays++;
-      });
-      for (var item in widget.cartItems) {
-        widget.cartController.updateRentalDays(item, _rentalDays);
-      }
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Maksimal sewa untuk salah satu barang adalah $maxDays hari',
-          ),
-          duration: const Duration(seconds: 2),
-        ),
-      );
-    }
-  }
-
-  void _decrementDays() {
-    if (_rentalDays > 1) {
-      setState(() {
-        _rentalDays--;
-      });
-      for (var item in widget.cartItems) {
-        widget.cartController.updateRentalDays(item, _rentalDays);
-      }
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -235,9 +332,9 @@ class _StoreCartCardState extends State<StoreCartCard> {
         borderRadius: BorderRadius.circular(8),
       ),
       child: ValueListenableBuilder<int?>(
-        valueListenable: widget.cartController.selectedStoreId,
+        valueListenable: cartController.selectedStoreId,
         builder: (context, selectedStoreId, _) {
-          final bool isSelected = selectedStoreId == widget.userId;
+          final bool isSelected = selectedStoreId == userId;
           return Column(
             children: [
               Row(
@@ -247,11 +344,11 @@ class _StoreCartCardState extends State<StoreCartCard> {
                     value: isSelected,
                     activeColor: AppColor.primary,
                     onChanged: (value) {
-                      widget.cartController.selectStore(widget.userId);
+                      cartController.selectStore(userId);
                     },
                   ),
                   Text(
-                    _store?.name ?? 'Memuat nama toko...',
+                    store?.name ?? 'Memuat nama toko...',
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w500,
@@ -269,17 +366,17 @@ class _StoreCartCardState extends State<StoreCartCard> {
                         IconButton(
                           padding: EdgeInsets.zero,
                           iconSize: 16,
-                          onPressed: _decrementDays,
+                          onPressed: onDecrementDays,
                           icon: const Icon(Icons.remove),
                         ),
                         Text(
-                          "$_rentalDays hari",
+                          "$rentalDays hari",
                           style: const TextStyle(fontSize: 12),
                         ),
                         IconButton(
                           padding: EdgeInsets.zero,
                           iconSize: 16,
-                          onPressed: _incrementDays,
+                          onPressed: onIncrementDays,
                           icon: const Icon(Icons.add),
                         ),
                       ],
@@ -289,17 +386,19 @@ class _StoreCartCardState extends State<StoreCartCard> {
               ),
               const SizedBox(height: 12),
               ValueListenableBuilder<List<int>>(
-                valueListenable: widget.cartController.selectedProductIds,
+                valueListenable: cartController.selectedProductIds,
                 builder: (context, selectedProductIds, _) {
                   return Column(
-                    children: widget.cartItems.map((cartItem) {
+                    children: cartItems.map((cartItem) {
                       return CartItemCard(
                         cartItem: cartItem,
-                        cartController: widget.cartController,
+                        cartController: cartController,
                         isEnabled: isSelected,
                         isSelected: selectedProductIds.contains(
                           cartItem.product.id,
                         ),
+                        onIncrement: () => onIncrementQuantity(cartItem),
+                        onDecrement: () => onDecrementQuantity(cartItem),
                       );
                     }).toList(),
                   );
@@ -313,11 +412,14 @@ class _StoreCartCardState extends State<StoreCartCard> {
   }
 }
 
-class CartItemCard extends StatefulWidget {
+// Menampilkan detail satu item di dalam keranjang, seperti gambar, nama produk, harga, dan kuantitas
+class CartItemCard extends StatelessWidget {
   final CartModel cartItem;
   final CartController cartController;
   final bool isEnabled;
   final bool isSelected;
+  final VoidCallback onIncrement;
+  final VoidCallback onDecrement;
 
   const CartItemCard({
     super.key,
@@ -325,32 +427,9 @@ class CartItemCard extends StatefulWidget {
     required this.cartController,
     required this.isEnabled,
     required this.isSelected,
+    required this.onIncrement,
+    required this.onDecrement,
   });
-
-  @override
-  State<CartItemCard> createState() => _CartItemCardState();
-}
-
-class _CartItemCardState extends State<CartItemCard> {
-  void _incrementQuantity() {
-    if (widget.cartItem.quantity < widget.cartItem.product.stok) {
-      widget.cartItem.quantity++;
-      widget.cartController.updateCartQuantity(
-        widget.cartItem,
-        widget.cartItem.quantity,
-      );
-    }
-  }
-
-  void _decrementQuantity() {
-    if (widget.cartItem.quantity > 1) {
-      widget.cartItem.quantity--;
-      widget.cartController.updateCartQuantity(
-        widget.cartItem,
-        widget.cartItem.quantity,
-      );
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -360,14 +439,12 @@ class _CartItemCardState extends State<CartItemCard> {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Checkbox(
-            value: widget.isSelected,
+            value: isSelected,
             activeColor: AppColor.primary,
-            onChanged: widget.isEnabled
+            onChanged: isEnabled
                 ? (value) {
-                    if (widget.cartItem.product.id != null) {
-                      widget.cartController.selectProduct(
-                        widget.cartItem.product.id!,
-                      );
+                    if (cartItem.product.id != null) {
+                      cartController.selectProduct(cartItem.product.id!);
                     }
                   }
                 : null,
@@ -377,16 +454,14 @@ class _CartItemCardState extends State<CartItemCard> {
             height: 80,
             decoration: BoxDecoration(
               border: Border.all(color: AppColor.border),
-              image: widget.cartItem.product.images.isNotEmpty
+              image: cartItem.product.images.isNotEmpty
                   ? DecorationImage(
-                      image: FileImage(
-                        File(widget.cartItem.product.images.first),
-                      ),
+                      image: FileImage(File(cartItem.product.images.first)),
                       fit: BoxFit.cover,
                     )
                   : null,
             ),
-            child: widget.cartItem.product.images.isEmpty
+            child: cartItem.product.images.isEmpty
                 ? const Icon(Icons.image, color: Colors.grey)
                 : null,
           ),
@@ -396,7 +471,7 @@ class _CartItemCardState extends State<CartItemCard> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  widget.cartItem.product.namaProduk,
+                  cartItem.product.namaProduk,
                   style: const TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w500,
@@ -406,19 +481,16 @@ class _CartItemCardState extends State<CartItemCard> {
                 Row(
                   children: [
                     Text(
-                      "Rp${formatRupiah(widget.cartItem.product.hargaPerHari.toString())}",
+                      "Rp${AppFormatters.formatRupiah(cartItem.product.hargaPerHari.toString())}",
                       style: const TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.bold,
                         color: AppColor.secondary,
                       ),
                     ),
-                    Text(
+                    const Text(
                       "/hari",
-                      style: const TextStyle(
-                        fontSize: 10,
-                        color: AppColor.textHint,
-                      ),
+                      style: TextStyle(fontSize: 10, color: AppColor.textHint),
                     ),
                   ],
                 ),
@@ -435,20 +507,20 @@ class _CartItemCardState extends State<CartItemCard> {
                       IconButton(
                         padding: EdgeInsets.zero,
                         iconSize: 16,
-                        onPressed: _decrementQuantity,
+                        onPressed: onDecrement,
                         icon: const Icon(Icons.remove),
                       ),
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 2),
                         child: Text(
-                          "${widget.cartItem.quantity} buah",
+                          "${cartItem.quantity} buah",
                           style: const TextStyle(fontSize: 12),
                         ),
                       ),
                       IconButton(
                         padding: EdgeInsets.zero,
                         iconSize: 16,
-                        onPressed: _incrementQuantity,
+                        onPressed: onIncrement,
                         icon: const Icon(Icons.add),
                       ),
                     ],
@@ -463,6 +535,7 @@ class _CartItemCardState extends State<CartItemCard> {
                 context: context,
                 builder: (BuildContext context) {
                   return AlertDialog(
+                    backgroundColor: Colors.white,
                     title: const Text("Hapus Barang"),
                     content: const Text(
                       "Apakah Anda yakin ingin menghapus barang ini dari keranjang?",
@@ -476,7 +549,7 @@ class _CartItemCardState extends State<CartItemCard> {
                       ),
                       TextButton(
                         onPressed: () {
-                          widget.cartController.removeFromCart(widget.cartItem);
+                          cartController.removeFromCart(cartItem);
                           Navigator.of(context).pop();
                         },
                         child: const Text(

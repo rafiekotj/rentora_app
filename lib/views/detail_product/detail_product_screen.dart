@@ -1,11 +1,10 @@
 import 'dart:io';
-
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:rentora_app/controllers/cart_controller.dart';
 import 'package:rentora_app/controllers/store_controller.dart';
 import 'package:rentora_app/core/constants/app_color.dart';
+import 'package:rentora_app/core/utils/app_formatters.dart';
 import 'package:rentora_app/models/cart_model.dart';
 import 'package:rentora_app/models/product_model.dart';
 import 'package:rentora_app/models/store_model.dart';
@@ -27,16 +26,20 @@ class DetailProductScreen extends StatefulWidget {
 
 class _DetailProductScreenState extends State<DetailProductScreen> {
   late PageController _pageController;
+
   int _currentImageIndex = 0;
+
   final StoreController _storeController = StoreController();
+
+  // Menampung data yang akan datang dari proses asynchronous, yaitu data toko yang diambil dari database.
   late Future<StoreModel?> _storeFuture;
+
   final CartController _cartController = CartController();
 
   @override
   void initState() {
     super.initState();
     _pageController = PageController();
-
     _storeFuture = _storeController.getStoreById(widget.produk.storeId);
   }
 
@@ -44,11 +47,6 @@ class _DetailProductScreenState extends State<DetailProductScreen> {
   void dispose() {
     _pageController.dispose();
     super.dispose();
-  }
-
-  String formatRupiah(int number) {
-    final value = NumberFormat("#,###", "id_ID").format(number);
-    return "Rp $value";
   }
 
   @override
@@ -133,7 +131,7 @@ class _DetailProductScreenState extends State<DetailProductScreen> {
         child: SingleChildScrollView(
           child: Column(
             children: [
-              // IMAGE SECTION
+              // --- BAGIAN GAMBAR PRODUK ---
               AspectRatio(
                 aspectRatio: 1,
                 child: Stack(
@@ -195,500 +193,44 @@ class _DetailProductScreenState extends State<DetailProductScreen> {
                 ),
               ),
 
-              Container(
-                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                width: double.infinity,
-                decoration: BoxDecoration(color: Colors.white),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            Text(
-                              "Rp",
-                              style: TextStyle(
-                                color: AppColor.secondary,
-                                fontSize: 16,
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                            Text(
-                              NumberFormat(
-                                "#,###",
-                                "id_ID",
-                              ).format(widget.produk.hargaPerHari),
-                              style: TextStyle(
-                                color: AppColor.secondary,
-                                fontSize: 24,
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                            Text(
-                              "/hari",
-                              style: TextStyle(
-                                color: AppColor.textHint,
-                                fontSize: 16,
-                              ),
-                            ),
-                          ],
-                        ),
+              // --- BAGIAN INFORMASI PRODUK (Harga dan Nama) ---
+              ProductInfoSection(produk: widget.produk),
 
-                        Text("2x Disewa"),
-                      ],
-                    ),
-                    SizedBox(height: 8),
-                    Text(
-                      widget.produk.namaProduk,
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+              const SizedBox(height: 8),
 
-              SizedBox(height: 8),
+              // --- BAGIAN ULASAN PRODUK ---
+              const ReviewsSection(),
 
-              Container(
-                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                decoration: BoxDecoration(color: Colors.white),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          "Ulasan",
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        GestureDetector(
-                          child: Text(
-                            "Lihat Semua",
-                            style: TextStyle(
-                              color: AppColor.textHint,
-                              fontSize: 10,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
+              const SizedBox(height: 8),
 
-                    SizedBox(height: 8),
-
-                    Row(
-                      children: [
-                        Icon(
-                          Symbols.star,
-                          fill: 1,
-                          size: 20,
-                          color: Colors.amber,
-                        ),
-
-                        SizedBox(width: 4),
-
-                        Text(
-                          "5.0",
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-
-                        SizedBox(width: 4),
-
-                        Text(
-                          "Penilaian Produk ",
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-
-                        Text("(60)", style: TextStyle(fontSize: 12)),
-                      ],
-                    ),
-
-                    SizedBox(height: 8),
-
-                    Row(
-                      children: [
-                        CircleAvatar(
-                          radius: 12,
-                          backgroundColor: AppColor.primarySoft,
-                          child: Icon(
-                            Icons.person,
-                            size: 16,
-                            color: AppColor.primary,
-                          ),
-                        ),
-
-                        SizedBox(width: 12),
-
-                        Text(
-                          "user1234",
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
-                    ),
-
-                    SizedBox(height: 8),
-
-                    Row(
-                      children: [
-                        Icon(
-                          Symbols.star,
-                          fill: 1,
-                          size: 16,
-                          color: Colors.amber,
-                        ),
-                        Icon(
-                          Symbols.star,
-                          fill: 1,
-                          size: 16,
-                          color: Colors.amber,
-                        ),
-                        Icon(
-                          Symbols.star,
-                          fill: 1,
-                          size: 16,
-                          color: Colors.amber,
-                        ),
-                        Icon(
-                          Symbols.star,
-                          fill: 1,
-                          size: 16,
-                          color: Colors.amber,
-                        ),
-                        Icon(
-                          Symbols.star,
-                          fill: 1,
-                          size: 16,
-                          color: Colors.amber,
-                        ),
-                      ],
-                    ),
-
-                    SizedBox(height: 8),
-
-                    Text(
-                      "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.",
-                      style: TextStyle(fontSize: 14),
-                    ),
-
-                    SizedBox(height: 8),
-
-                    Row(
-                      children: [
-                        Expanded(
-                          child: AspectRatio(
-                            aspectRatio: 1,
-                            child: Container(
-                              decoration: BoxDecoration(
-                                color: AppColor.textHint,
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: AspectRatio(
-                            aspectRatio: 1,
-                            child: Container(
-                              decoration: BoxDecoration(
-                                color: AppColor.textHint,
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: AspectRatio(
-                            aspectRatio: 1,
-                            child: Container(
-                              decoration: BoxDecoration(
-                                color: AppColor.textHint,
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-
-              SizedBox(height: 8),
-
+              // --- BAGIAN INFORMASI TOKO ---
               FutureBuilder<StoreModel?>(
                 future: _storeFuture,
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
-                    return Center(child: CircularProgressIndicator());
+                    return const Center(child: CircularProgressIndicator());
                   } else if (snapshot.hasError) {
                     return Center(child: Text("Error: ${snapshot.error}"));
                   } else if (snapshot.hasData && snapshot.data != null) {
                     final store = snapshot.data!;
-                    return Container(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 8,
-                      ),
-                      decoration: BoxDecoration(color: Colors.white),
-                      child: Column(
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Row(
-                                children: [
-                                  store.image != null
-                                      ? ClipOval(
-                                          child: Image.file(
-                                            File(store.image!),
-                                            width: 56,
-                                            height: 56,
-                                            fit: BoxFit.cover,
-                                          ),
-                                        )
-                                      : CircleAvatar(
-                                          radius: 28,
-                                          backgroundColor: AppColor.primarySoft,
-                                          child: Icon(
-                                            Icons.person,
-                                            size: 32,
-                                            color: AppColor.primary,
-                                          ),
-                                        ),
-                                  SizedBox(width: 12),
-                                  Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        store.name,
-                                        style: TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.w700,
-                                        ),
-                                      ),
-                                      Text(
-                                        "Aktif 2 menit lalu",
-                                        style: TextStyle(fontSize: 14),
-                                      ),
-                                      Text(
-                                        store.location?.toUpperCase() ??
-                                            "Lokasi tidak ada",
-                                        style: TextStyle(fontSize: 14),
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                              OutlinedButton(
-                                onPressed: () {},
-                                style: OutlinedButton.styleFrom(
-                                  minimumSize: Size(0, 28),
-                                  padding: EdgeInsets.symmetric(horizontal: 12),
-                                  side: BorderSide(color: AppColor.primary),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                ),
-                                child: Text(
-                                  "Kunjungi",
-                                  style: TextStyle(
-                                    color: AppColor.primary,
-                                    fontSize: 12,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          SizedBox(height: 12),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Expanded(
-                                child: Center(
-                                  child: Column(
-                                    children: [
-                                      Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          Text(
-                                            "4.8",
-                                            style: TextStyle(
-                                              fontSize: 14,
-                                              fontWeight: FontWeight.w500,
-                                            ),
-                                          ),
-                                          SizedBox(width: 4),
-                                          Icon(
-                                            Symbols.star,
-                                            fill: 1,
-                                            size: 16,
-                                            color: Colors.amber,
-                                          ),
-                                        ],
-                                      ),
-                                      Text(
-                                        "Penilaian",
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.w500,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                              Container(
-                                width: 1,
-                                height: 24,
-                                color: AppColor.divider,
-                              ),
-                              Expanded(
-                                child: Center(
-                                  child: Column(
-                                    children: [
-                                      Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          Text(
-                                            "16",
-                                            style: TextStyle(
-                                              fontSize: 14,
-                                              fontWeight: FontWeight.w500,
-                                            ),
-                                          ),
-                                          SizedBox(width: 4),
-                                          Icon(
-                                            Symbols.box,
-                                            size: 16,
-                                            color: Colors.brown,
-                                          ),
-                                        ],
-                                      ),
-                                      Text(
-                                        "Produk",
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.w500,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    );
+                    return StoreInfoSection(store: store);
                   } else {
-                    return Center(child: Text("Toko tidak ditemukan"));
+                    return const Center(child: Text("Toko tidak ditemukan"));
                   }
                 },
               ),
 
-              SizedBox(height: 8),
+              const SizedBox(height: 8),
 
-              Container(
-                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                decoration: BoxDecoration(color: Colors.white),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      "Lokasi Pengambilan",
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    SizedBox(height: 8),
-                    Container(height: 132, color: AppColor.border),
-                    SizedBox(height: 8),
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Icon(Symbols.location_pin, size: 18),
-                        SizedBox(width: 8),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  Text(
-                                    "Rafie",
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.w700,
-                                    ),
-                                  ),
-                                  SizedBox(width: 8),
-                                  Text(
-                                    "(+62) 888-8888-8888",
-                                    style: TextStyle(
-                                      color: AppColor.textHint,
-                                      fontSize: 12,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              Text(
-                                "Jl. Jalan Ks Tubun II C, RW 01, Slipi, Palmerah, West Jakarta, Special Capital Region of Jakarta, Java, 10260, Indonesia",
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
+              // --- BAGIAN LOKASI PENGAMBILAN ---
+              const PickupLocationSection(),
 
-              SizedBox(height: 8),
+              const SizedBox(height: 8),
 
-              Container(
-                width: double.infinity,
-                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                decoration: BoxDecoration(color: Colors.white),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      "Deskripsi",
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    SizedBox(height: 8),
-                    Wrap(children: [Text(widget.produk.deskripsiProduk)]),
-                  ],
-                ),
-              ),
+              // --- BAGIAN DESKRIPSI PRODUK ---
+              DescriptionSection(description: widget.produk.deskripsiProduk),
 
-              SizedBox(height: 8),
+              const SizedBox(height: 8),
             ],
           ),
         ),
@@ -709,11 +251,12 @@ class _DetailProductScreenState extends State<DetailProductScreen> {
             ),
             Container(width: 1, height: 24, color: AppColor.divider),
 
-            // Icon tambah ke keranjang
             Expanded(
               child: GestureDetector(
                 onTap: () {
+                  // Memanggil fungsi dari CartController untuk menambah produk ke keranjang.
                   _cartController.addToCart(CartModel(product: widget.produk));
+                  // Menampilkan pesan singkat di bawah layar (SnackBar).
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
                       content: Text('Produk ditambahkan ke keranjang'),
@@ -736,7 +279,7 @@ class _DetailProductScreenState extends State<DetailProductScreen> {
                 height: double.infinity,
                 alignment: Alignment.center,
                 color: AppColor.primary,
-                child: Text(
+                child: const Text(
                   "Sewa",
                   style: TextStyle(
                     color: Colors.white,
@@ -748,6 +291,424 @@ class _DetailProductScreenState extends State<DetailProductScreen> {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+// Menampilkan bagian informasi produk (harga, nama)
+class ProductInfoSection extends StatelessWidget {
+  const ProductInfoSection({super.key, required this.produk});
+
+  final ProductModel produk;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      width: double.infinity,
+      decoration: const BoxDecoration(color: Colors.white),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  const Text(
+                    "Rp",
+                    style: TextStyle(
+                      color: AppColor.secondary,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  Text(
+                    AppFormatters.formatRupiah(produk.hargaPerHari),
+                    style: const TextStyle(
+                      color: AppColor.secondary,
+                      fontSize: 24,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const Text(
+                    "/hari",
+                    style: TextStyle(color: AppColor.textHint, fontSize: 16),
+                  ),
+                ],
+              ),
+              const Text("2x Disewa"),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            produk.namaProduk,
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// Menampilkan bagian ulasan produk (dummy)
+class ReviewsSection extends StatelessWidget {
+  const ReviewsSection({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      decoration: const BoxDecoration(color: Colors.white),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                "Ulasan",
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+              ),
+              GestureDetector(
+                child: Text(
+                  "Lihat Semua",
+                  style: TextStyle(
+                    color: AppColor.textHint,
+                    fontSize: 10,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          const Row(
+            children: [
+              Icon(Symbols.star, fill: 1, size: 20, color: Colors.amber),
+              SizedBox(width: 4),
+              Text(
+                "5.0",
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+              ),
+              SizedBox(width: 4),
+              Text(
+                "Penilaian Produk ",
+                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
+              ),
+              Text("(60)", style: TextStyle(fontSize: 12)),
+            ],
+          ),
+          const SizedBox(height: 8),
+          const Row(
+            children: [
+              CircleAvatar(
+                radius: 12,
+                backgroundColor: AppColor.primarySoft,
+                child: Icon(Icons.person, size: 16, color: AppColor.primary),
+              ),
+              SizedBox(width: 12),
+              Text(
+                "user1234",
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          const Row(
+            children: [
+              Icon(Symbols.star, fill: 1, size: 16, color: Colors.amber),
+              Icon(Symbols.star, fill: 1, size: 16, color: Colors.amber),
+              Icon(Symbols.star, fill: 1, size: 16, color: Colors.amber),
+              Icon(Symbols.star, fill: 1, size: 16, color: Colors.amber),
+              Icon(Symbols.star, fill: 1, size: 16, color: Colors.amber),
+            ],
+          ),
+          const SizedBox(height: 8),
+          const Text(
+            "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.",
+            style: TextStyle(fontSize: 14),
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Expanded(
+                child: AspectRatio(
+                  aspectRatio: 1,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: AppColor.textHint,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: AspectRatio(
+                  aspectRatio: 1,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: AppColor.textHint,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: AspectRatio(
+                  aspectRatio: 1,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: AppColor.textHint,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// Menampilkan informasi toko (nama, lokasi, rating, dll)
+class StoreInfoSection extends StatelessWidget {
+  const StoreInfoSection({super.key, required this.store});
+
+  final StoreModel store;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      decoration: const BoxDecoration(color: Colors.white),
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  store.image != null
+                      ? ClipOval(
+                          child: Image.file(
+                            File(store.image!),
+                            width: 56,
+                            height: 56,
+                            fit: BoxFit.cover,
+                          ),
+                        )
+                      : const CircleAvatar(
+                          radius: 28,
+                          backgroundColor: AppColor.primarySoft,
+                          child: Icon(
+                            Icons.person,
+                            size: 32,
+                            color: AppColor.primary,
+                          ),
+                        ),
+                  const SizedBox(width: 12),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        store.name,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const Text(
+                        "Aktif 2 menit lalu",
+                        style: TextStyle(fontSize: 14),
+                      ),
+                      Text(
+                        store.location?.toUpperCase() ?? "Lokasi tidak ada",
+                        style: const TextStyle(fontSize: 14),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              OutlinedButton(
+                onPressed: () {},
+                style: OutlinedButton.styleFrom(
+                  minimumSize: const Size(0, 28),
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  side: const BorderSide(color: AppColor.primary),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                child: const Text(
+                  "Kunjungi",
+                  style: TextStyle(color: AppColor.primary, fontSize: 12),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Expanded(
+                child: Center(
+                  child: Column(
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            "4.8",
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          SizedBox(width: 4),
+                          Icon(
+                            Symbols.star,
+                            fill: 1,
+                            size: 16,
+                            color: Colors.amber,
+                          ),
+                        ],
+                      ),
+                      Text(
+                        "Penilaian",
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              Container(width: 1, height: 24, color: AppColor.divider),
+              const Expanded(
+                child: Center(
+                  child: Column(
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            "16",
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          SizedBox(width: 4),
+                          Icon(Symbols.box, size: 16, color: Colors.brown),
+                        ],
+                      ),
+                      Text(
+                        "Produk",
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// Menampilkan lokasi pengambilan barang (dummy)
+class PickupLocationSection extends StatelessWidget {
+  const PickupLocationSection({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      decoration: const BoxDecoration(color: Colors.white),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            "Lokasi Pengambilan",
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+          ),
+          const SizedBox(height: 8),
+          Container(height: 132, color: AppColor.border),
+          const SizedBox(height: 8),
+          const Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(Symbols.location_pin, size: 18),
+              SizedBox(width: 8),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Text(
+                          "Rafie",
+                          style: TextStyle(fontWeight: FontWeight.w700),
+                        ),
+                        SizedBox(width: 8),
+                        Text(
+                          "(+62) 888-8888-8888",
+                          style: TextStyle(
+                            color: AppColor.textHint,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
+                    Text(
+                      "Jl. Jalan Ks Tubun II C, RW 01, Slipi, Palmerah, West Jakarta, Special Capital Region of Jakarta, Java, 10260, Indonesia",
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// Menampilkan deskripsi produk
+class DescriptionSection extends StatelessWidget {
+  const DescriptionSection({super.key, required this.description});
+
+  final String description;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      decoration: const BoxDecoration(color: Colors.white),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            "Deskripsi",
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+          ),
+          const SizedBox(height: 8),
+          Wrap(children: [Text(description)]),
+        ],
       ),
     );
   }
