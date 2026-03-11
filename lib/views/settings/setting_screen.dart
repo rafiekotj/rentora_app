@@ -17,6 +17,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppColor.backgroundLight,
       appBar: AppBar(
         toolbarHeight: 58,
         backgroundColor: AppColor.primary,
@@ -42,6 +43,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 );
               },
             ),
+            const SizedBox(height: 8),
             CustomButton(
               text: "Keluar",
               isOutlined: true,

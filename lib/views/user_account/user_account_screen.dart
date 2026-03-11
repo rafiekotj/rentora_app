@@ -53,11 +53,14 @@ class _UserAccountScreenState extends State<UserAccountScreen> {
         title: Text("Account", style: TextStyle(fontWeight: FontWeight.w600)),
         actions: [
           IconButton(
-            onPressed: () {
-              Navigator.push(
+            onPressed: () async {
+              await Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => SettingsScreen()),
               );
+              if (mounted) {
+                _loadUserData();
+              }
             },
             icon: Icon(Symbols.settings, weight: 600),
           ),

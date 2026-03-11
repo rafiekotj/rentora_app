@@ -168,11 +168,13 @@ class _SellerSettingsScreenState extends State<SellerSettingsScreen> {
               CustomTextField(
                 controller: _nameController,
                 hintText: 'Nama Toko',
+                prefixIcon: Symbols.storefront,
               ),
               const SizedBox(height: 16),
               CustomTextField(
                 controller: _locationController,
                 hintText: 'Lokasi',
+                prefixIcon: Symbols.location_on,
               ),
             ],
           ),

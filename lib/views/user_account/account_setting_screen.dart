@@ -162,13 +162,13 @@ class _AccountSettingScreenState extends State<AccountSettingScreen> {
               CustomTextField(
                 controller: _usernameController,
                 hintText: 'Username',
-                prefixIcon: Icons.person,
+                prefixIcon: Symbols.person,
               ),
               const SizedBox(height: 16),
               CustomTextField(
                 controller: _emailController,
                 hintText: 'Email',
-                prefixIcon: Icons.email_outlined,
+                prefixIcon: Symbols.email,
                 enabled: false,
                 readOnly: true,
               ),
@@ -176,7 +176,7 @@ class _AccountSettingScreenState extends State<AccountSettingScreen> {
               CustomTextField(
                 controller: _phoneController,
                 hintText: 'Nomor Telepon',
-                prefixIcon: Icons.phone,
+                prefixIcon: Symbols.phone,
                 keyboardType: TextInputType.number,
               ),
             ],
