@@ -18,6 +18,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   final TextEditingController phoneController = TextEditingController();
+  final TextEditingController usernameController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
   final UserController _userController = UserController();
 
@@ -70,6 +71,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           ),
 
                           const SizedBox(height: 16),
+
+                          // ===== USERNAME =====
+                          CustomTextField(
+                            controller: usernameController,
+                            hintText: "Username",
+                          ),
+                          const SizedBox(height: 8),
 
                           // ===== EMAIL =====
                           CustomTextField(
@@ -165,6 +173,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                   email: emailController.text,
                                   password: passwordController.text,
                                   phone: phoneController.text,
+                                  username: usernameController.text.isNotEmpty
+                                      ? usernameController.text
+                                      : null,
                                 );
 
                                 if (!mounted) return;

@@ -669,6 +669,7 @@ class _DetailProductScreenState extends State<DetailProductScreen> {
               SizedBox(height: 8),
 
               Container(
+                width: double.infinity,
                 padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 decoration: BoxDecoration(color: Colors.white),
                 child: Column(

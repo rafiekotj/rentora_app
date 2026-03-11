@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:rentora_app/controllers/user_controller.dart';
@@ -15,6 +16,8 @@ class UserAccountScreen extends StatefulWidget {
 class _UserAccountScreenState extends State<UserAccountScreen> {
   final UserController _userController = UserController();
   String _email = '';
+  String? _username;
+  String? _imagePath;
 
   @override
   void initState() {
@@ -22,14 +25,20 @@ class _UserAccountScreenState extends State<UserAccountScreen> {
     _loadUserData();
   }
 
-  // Mengambil data email user
+  // Mengambil data user lengkap
   Future<void> _loadUserData() async {
-    final email = await _userController.getUserEmail();
+    final user = await _userController.getCurrentUser();
 
     if (!mounted) return;
 
     setState(() {
-      _email = email ?? 'user@example.com';
+      if (user != null) {
+        _email = user.email;
+        _username = user.username;
+        _imagePath = user.image;
+      } else {
+        _email = 'user@example.com';
+      }
     });
   }
 
@@ -67,14 +76,21 @@ class _UserAccountScreenState extends State<UserAccountScreen> {
                   CircleAvatar(
                     radius: 28,
                     backgroundColor: Colors.white,
-                    child: Icon(Icons.person, size: 30),
+                    backgroundImage: (_imagePath ?? '').isNotEmpty
+                        ? FileImage(File(_imagePath!)) as ImageProvider
+                        : null,
+                    child: (_imagePath == null || _imagePath!.isEmpty)
+                        ? Icon(Icons.person, size: 30)
+                        : null,
                   ),
                   SizedBox(width: 16),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        _email,
+                        _username != null && _username!.isNotEmpty
+                            ? _username!
+                            : _email,
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.w600,

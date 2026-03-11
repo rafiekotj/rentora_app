@@ -11,7 +11,8 @@ class DBHelper {
 
     return await openDatabase(
       join(dbPath, 'rentora.db'),
-      version: 1,
+      // bump version to 2 to add username and image columns to user table
+      version: 2,
 
       // Dijalankan saat database pertama kali dibuat
       onCreate: (db, version) async {
@@ -23,7 +24,9 @@ class DBHelper {
           id INTEGER PRIMARY KEY AUTOINCREMENT,
           email TEXT UNIQUE,
           password TEXT,
-          phone TEXT
+          phone TEXT,
+          username TEXT,
+          image TEXT
         )
         ''');
 
@@ -77,6 +80,13 @@ class DBHelper {
         )
         ''');
       },
+      onUpgrade: (db, oldVersion, newVersion) async {
+        if (oldVersion < 2) {
+          // add new columns to user table without losing existing data
+          await db.execute('ALTER TABLE user ADD COLUMN username TEXT');
+          await db.execute('ALTER TABLE user ADD COLUMN image TEXT');
+        }
+      },
     );
   }
 
@@ -89,6 +99,17 @@ class DBHelper {
     final db = await database();
 
     return await db.insert('user', user.toMap());
+  }
+
+  // update data user, useful for settings page
+  static Future<int> updateUser(UserModel user) async {
+    final db = await database();
+    return await db.update(
+      'user',
+      user.toMap(),
+      where: 'id = ?',
+      whereArgs: [user.id],
+    );
   }
 
   // Memverifikasi user dari database saat login

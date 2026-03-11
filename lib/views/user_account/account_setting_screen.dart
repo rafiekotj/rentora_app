@@ -2,26 +2,26 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:material_symbols_icons/symbols.dart';
-import 'package:rentora_app/controllers/store_controller.dart';
+import 'package:rentora_app/controllers/user_controller.dart';
 import 'package:rentora_app/core/constants/app_color.dart';
 import 'package:rentora_app/widgets/custom_button.dart';
 import 'package:rentora_app/widgets/custom_text_field.dart';
 
-class SellerSettingsScreen extends StatefulWidget {
-  const SellerSettingsScreen({super.key});
+class AccountSettingScreen extends StatefulWidget {
+  const AccountSettingScreen({super.key});
 
   @override
-  State<SellerSettingsScreen> createState() => _SellerSettingsScreenState();
+  State<AccountSettingScreen> createState() => _AccountSettingScreenState();
 }
 
-class _SellerSettingsScreenState extends State<SellerSettingsScreen> {
-  final _storeController = StoreController();
+class _AccountSettingScreenState extends State<AccountSettingScreen> {
+  final _userController = UserController();
 
-  final _nameController = TextEditingController();
-  final _locationController = TextEditingController();
+  final _usernameController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _phoneController = TextEditingController();
 
   final _imagePicker = ImagePicker();
-
   String? _imagePath;
 
   bool _isLoading = false;
@@ -29,36 +29,34 @@ class _SellerSettingsScreenState extends State<SellerSettingsScreen> {
   @override
   void initState() {
     super.initState();
-    _loadStoreData();
+    _loadUserData();
   }
 
   @override
   void dispose() {
-    _nameController.dispose();
-    _locationController.dispose();
+    _usernameController.dispose();
+    _emailController.dispose();
+    _phoneController.dispose();
     super.dispose();
   }
 
-  // Memuat data toko
-  Future<void> _loadStoreData() async {
+  Future<void> _loadUserData() async {
     setState(() => _isLoading = true);
     try {
-      final store = await _storeController.getStore();
-      if (store != null) {
-        _nameController.text = store.name;
-        _locationController.text = store.location ?? '';
-        if (store.image != null && store.image!.isNotEmpty) {
-          _imagePath = store.image;
+      final user = await _userController.getCurrentUser();
+      if (user != null) {
+        _usernameController.text = user.username ?? '';
+        _emailController.text = user.email;
+        _phoneController.text = user.phone;
+        if (user.image != null && user.image!.isNotEmpty) {
+          _imagePath = user.image;
         }
       }
     } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
-  // Membuka galeri untuk memilih gambar profil toko
   Future<void> _pickImage() async {
     final pickedFile = await _imagePicker.pickImage(
       source: ImageSource.gallery,
@@ -70,36 +68,31 @@ class _SellerSettingsScreenState extends State<SellerSettingsScreen> {
     }
   }
 
-  // Menyimpan data toko yang telah diubah
-  Future<void> _saveStore() async {
-    if (_nameController.text.isEmpty) {
+  Future<void> _saveUser() async {
+    if (_usernameController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Nama toko tidak boleh kosong')),
+        const SnackBar(content: Text('Username tidak boleh kosong')),
       );
       return;
     }
 
     setState(() => _isLoading = true);
     try {
-      await _storeController.saveStore(
-        name: _nameController.text,
-        location: _locationController.text,
+      await _userController.updateCurrentUser(
+        username: _usernameController.text,
+        phone: _phoneController.text,
         image: _imagePath,
       );
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Pengaturan toko berhasil disimpan')),
-      );
-      if (mounted) {
-        Navigator.of(context).pop();
-      }
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Profil berhasil disimpan')));
+      if (mounted) Navigator.of(context).pop();
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Gagal menyimpan: ${e.toString()}')),
       );
     } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
@@ -112,7 +105,7 @@ class _SellerSettingsScreenState extends State<SellerSettingsScreen> {
         backgroundColor: AppColor.primary,
         foregroundColor: AppColor.textOnPrimary,
         title: const Text(
-          "Pengaturan Toko",
+          "Pengaturan Akun",
           style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
         ),
       ),
@@ -120,6 +113,7 @@ class _SellerSettingsScreenState extends State<SellerSettingsScreen> {
         padding: const EdgeInsets.all(16.0),
         child: Center(
           child: Column(
+            mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Center(
@@ -133,7 +127,7 @@ class _SellerSettingsScreenState extends State<SellerSettingsScreen> {
                           : null,
                       child: _imagePath == null
                           ? const Icon(
-                              Symbols.store,
+                              Symbols.person,
                               size: 60,
                               color: Colors.white,
                             )
@@ -166,13 +160,24 @@ class _SellerSettingsScreenState extends State<SellerSettingsScreen> {
               ),
               const SizedBox(height: 24),
               CustomTextField(
-                controller: _nameController,
-                hintText: 'Nama Toko',
+                controller: _usernameController,
+                hintText: 'Username',
+                prefixIcon: Icons.person,
               ),
               const SizedBox(height: 16),
               CustomTextField(
-                controller: _locationController,
-                hintText: 'Lokasi',
+                controller: _emailController,
+                hintText: 'Email',
+                prefixIcon: Icons.email_outlined,
+                enabled: false,
+                readOnly: true,
+              ),
+              const SizedBox(height: 16),
+              CustomTextField(
+                controller: _phoneController,
+                hintText: 'Nomor Telepon',
+                prefixIcon: Icons.phone,
+                keyboardType: TextInputType.number,
               ),
             ],
           ),
@@ -182,7 +187,7 @@ class _SellerSettingsScreenState extends State<SellerSettingsScreen> {
         padding: const EdgeInsets.all(8.0),
         child: CustomButton(
           text: 'Simpan',
-          onPressed: _saveStore,
+          onPressed: _saveUser,
           isLoading: _isLoading,
         ),
       ),

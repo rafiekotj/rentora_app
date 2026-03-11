@@ -1,13 +1,13 @@
 import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:intl/intl.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:rentora_app/controllers/product_controller.dart';
+import 'package:rentora_app/controllers/store_controller.dart';
 import 'package:rentora_app/controllers/user_controller.dart';
 import 'package:rentora_app/core/constants/app_color.dart';
+import 'package:rentora_app/core/utils/app_formatters.dart';
 import 'package:rentora_app/models/product_model.dart';
 import 'package:rentora_app/services/local_storage/preference_handler.dart';
 import 'package:rentora_app/widgets/custom_button.dart';
@@ -24,6 +24,7 @@ class SellerCuProductScreen extends StatefulWidget {
 class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
   final UserController _userController = UserController();
   final ProductController _productController = ProductController();
+  final StoreController _storeController = StoreController();
 
   String? _selectedKategori;
   String? _hargaPerHari;
@@ -31,6 +32,7 @@ class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
 
   final List<File> _images = [];
   final ImagePicker _picker = ImagePicker();
+
   final TextEditingController _namaProdukController = TextEditingController();
   final TextEditingController _deskripsiProdukController =
       TextEditingController();
@@ -49,12 +51,25 @@ class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
   bool _isSaving = false;
   int? _currentStoreId;
 
-  String formatRupiah(String number) {
-    if (number.isEmpty) return "";
-    final value = int.tryParse(number.replaceAll(".", "")) ?? 0;
-    return NumberFormat("#,###", "id_ID").format(value).replaceAll(",", ".");
-  }
+  // daftar kategori produk
+  static const List<String> _kategoriList = [
+    "Elektronik & Gadget",
+    "Kamera & Fotografi",
+    "Pakaian & Kostum",
+    "Sepatu & Alas Kaki",
+    "Tas & Koper",
+    "Furniture & Rumah Tangga",
+    "Peralatan Pesta & Event",
+    "Olahraga & Outdoor",
+    "Hobi & Alat Musik",
+    "Buku & Mainan",
+    "Peralatan Bayi & Anak",
+    "Otomotif & Transportasi",
+    "Peralatan Tukang & Perkakas",
+    "Kesehatan & Medis",
+  ];
 
+  // Memilih gambar dan menyalin ke local storage aplikasi.
   Future<void> _pickImage() async {
     if (_images.length >= 5) return;
     final XFile? pickedImage = await _picker.pickImage(
@@ -69,6 +84,13 @@ class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
     }
   }
 
+  void _removeImage(File image) {
+    setState(() {
+      _images.remove(image);
+    });
+  }
+
+  // Menyalin file gambar dari galeri ke direktori aplikasi
   Future<File> _saveImageToLocal(File image) async {
     final directory = await getApplicationDocumentsDirectory();
     final imageDir = Directory("${directory.path}/produk_images");
@@ -84,28 +106,39 @@ class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
     final email = await PreferenceHandler.getUserEmail();
     if (email != null) {
       final user = await _userController.getCurrentUser();
-      setState(() {
-        _currentStoreId = user?.id;
-      });
+      if (user != null) {
+        final store = await _storeController.getStoreByUserId(user.id!);
+        if (mounted && store != null) {
+          setState(() {
+            _currentStoreId = store.id;
+          });
+        }
+      }
     }
   }
 
   Future<void> _simpanProduk() async {
+    // Validasi Input
     if (_images.isEmpty ||
         _namaProdukController.text.isEmpty ||
         _deskripsiProdukController.text.isEmpty ||
         _selectedKategori == null ||
         (_hargaPerHari == null || _hargaPerHari!.isEmpty) ||
         (_dendaPerHari == null || _dendaPerHari!.isEmpty)) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text("Lengkapi semua data produk")));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Lengkapi semua data produk")),
+      );
       return;
     }
 
+    // Validasi Toko
     if (_currentStoreId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("User tidak ditemukan. Silakan login ulang.")),
+        const SnackBar(
+          content: Text(
+            "Profil toko tidak ditemukan. Silakan lengkapi profil toko Anda.",
+          ),
+        ),
       );
       return;
     }
@@ -120,6 +153,7 @@ class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
         namaProduk: _namaProdukController.text,
         deskripsiProduk: _deskripsiProdukController.text,
         kategori: _selectedKategori!,
+        // Konversi input string menjadi integer
         hargaPerHari: int.tryParse(_hargaPerHari!.replaceAll(".", "")) ?? 0,
         dendaPerHari: int.tryParse(_dendaPerHari!.replaceAll(".", "")) ?? 0,
         stok: int.tryParse(_stokController.text) ?? 0,
@@ -127,24 +161,25 @@ class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
         maxHariPinjam: int.tryParse(_hariPinjamController.text) ?? 7,
       );
 
-      print('Data Produk yang akan disimpan: ${produk.toJson()}');
-
+      // Simpan (Update jika ada ID, Insert jika baru)
       if (widget.produk != null) {
         await _productController.updateProduct(produk);
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text("Produk berhasil diupdate")));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Produk berhasil diupdate")),
+        );
       } else {
         await _productController.addProduct(produk);
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text("Produk berhasil disimpan")));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Produk berhasil disimpan")),
+        );
       }
 
       Navigator.pop(context);
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Terjadi kesalahan saat menyimpan produk")),
+        const SnackBar(
+          content: Text("Terjadi kesalahan saat menyimpan produk"),
+        ),
       );
     } finally {
       if (mounted) {
@@ -157,6 +192,8 @@ class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
   void initState() {
     super.initState();
     _loadCurrentUser();
+
+    // Jika widget.produk tidak null, masuk Mode Edit.
     if (widget.produk != null) {
       _namaProdukController.text = widget.produk!.namaProduk;
       _deskripsiProdukController.text = widget.produk!.deskripsiProduk;
@@ -170,6 +207,315 @@ class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
     }
   }
 
+  // Menampilkan pilihan kategori
+  void _showCategoryPicker() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.white,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (context) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                margin: const EdgeInsets.only(top: 12, bottom: 8),
+                height: 4,
+                width: 40,
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade300,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+              ),
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    "Pilih Kategori",
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: AppColor.textPrimary,
+                    ),
+                  ),
+                ),
+              ),
+              const Divider(height: 1, color: AppColor.divider),
+              Flexible(
+                child: ListView.builder(
+                  itemCount: _kategoriList.length,
+                  itemBuilder: (context, index) {
+                    final item = _kategoriList[index];
+                    return ListTile(
+                      title: Text(item),
+                      trailing: _selectedKategori == item
+                          ? const Icon(Symbols.check, color: AppColor.primary)
+                          : null,
+                      onTap: () {
+                        setState(() {
+                          _selectedKategori = item;
+                        });
+                        Navigator.pop(context);
+                      },
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  // Menampilkan input harga
+  void _showPricePicker() {
+    _hargaController.text = _hargaPerHari ?? "";
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.white,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (context) {
+        return Padding(
+          padding: EdgeInsets.only(
+            bottom:
+                MediaQuery.of(context).viewInsets.bottom +
+                MediaQuery.of(context).padding.bottom +
+                2,
+            left: 16,
+            right: 16,
+            top: 12,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  margin: const EdgeInsets.only(bottom: 16),
+                  height: 4,
+                  width: 40,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade300,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
+              ),
+              Text(
+                "Atur Harga Sewa",
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: AppColor.textPrimary,
+                ),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: _hargaController,
+                keyboardType: TextInputType.number,
+                autofocus: true,
+                style: const TextStyle(fontSize: 16),
+                onChanged: (value) {
+                  String formatted = AppFormatters.formatRupiah(value);
+                  _hargaController.value = TextEditingValue(
+                    text: formatted,
+                    selection: TextSelection.collapsed(
+                      offset: formatted.length,
+                    ),
+                  );
+                },
+                decoration: InputDecoration(
+                  prefixText: "Rp ",
+                  prefixStyle: const TextStyle(
+                    color: AppColor.textPrimary,
+                    fontSize: 16,
+                  ),
+                  hintText: "0",
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: const BorderSide(color: AppColor.border),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: const BorderSide(color: AppColor.primary),
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 24),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColor.primary,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  onPressed: () {
+                    setState(() {
+                      _hargaPerHari = _hargaController.text.replaceAll(".", "");
+                    });
+                    Navigator.pop(context);
+                  },
+                  child: const Text(
+                    "Simpan",
+                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  // Menampilkan input denda
+  void _showFinePicker() {
+    _dendaController.text = _dendaPerHari ?? "";
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.white,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (context) {
+        return Padding(
+          padding: EdgeInsets.only(
+            bottom:
+                MediaQuery.of(context).viewInsets.bottom +
+                MediaQuery.of(context).padding.bottom +
+                2,
+            left: 16,
+            right: 16,
+            top: 12,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  margin: const EdgeInsets.only(bottom: 16),
+                  height: 4,
+                  width: 40,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade300,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
+              ),
+              Text(
+                "Atur Denda Keterlambatan",
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: AppColor.textPrimary,
+                ),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: _dendaController,
+                keyboardType: TextInputType.number,
+                autofocus: true,
+                style: const TextStyle(fontSize: 16),
+                onChanged: (value) {
+                  String formatted = AppFormatters.formatRupiah(value);
+                  _dendaController.value = TextEditingValue(
+                    text: formatted,
+                    selection: TextSelection.collapsed(
+                      offset: formatted.length,
+                    ),
+                  );
+                },
+                decoration: InputDecoration(
+                  prefixText: "Rp ",
+                  prefixStyle: const TextStyle(
+                    color: AppColor.textPrimary,
+                    fontSize: 16,
+                  ),
+                  hintText: "0",
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: const BorderSide(color: AppColor.border),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: const BorderSide(color: AppColor.primary),
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 24),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColor.primary,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  onPressed: () {
+                    final harga =
+                        int.tryParse(
+                          _hargaPerHari?.replaceAll(".", "") ?? "0",
+                        ) ??
+                        0;
+                    final denda =
+                        int.tryParse(
+                          _dendaController.text.replaceAll(".", ""),
+                        ) ??
+                        0;
+                    if (denda > harga * 0.5) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text(
+                            "Denda tidak boleh melebihi 50% dari harga sewa.",
+                          ),
+                        ),
+                      );
+                      return;
+                    }
+                    setState(() {
+                      _dendaPerHari = _dendaController.text.replaceAll(".", "");
+                    });
+                    Navigator.pop(context);
+                  },
+                  child: const Text(
+                    "Simpan",
+                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -178,17 +524,18 @@ class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
         toolbarHeight: 58,
         backgroundColor: AppColor.primary,
         foregroundColor: AppColor.textOnPrimary,
-        title: Text(
+        title: const Text(
           "Tambah Produk",
           style: TextStyle(fontWeight: FontWeight.w600),
         ),
       ),
       body: SingleChildScrollView(
-        padding: EdgeInsets.all(8),
+        padding: const EdgeInsets.all(8),
         child: Column(
           children: [
+            // Foto Produk, Nama, dan Deskripsi
             Container(
-              padding: EdgeInsets.symmetric(vertical: 16),
+              padding: const EdgeInsets.symmetric(vertical: 16),
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(8),
@@ -199,12 +546,12 @@ class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 16),
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           RichText(
-                            text: TextSpan(
+                            text: const TextSpan(
                               text: "Foto Produk ",
                               style: TextStyle(
                                 fontSize: 14,
@@ -218,16 +565,14 @@ class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
                               ],
                             ),
                           ),
-
-                          SizedBox(height: 12),
-
+                          const SizedBox(height: 12),
                           SingleChildScrollView(
                             scrollDirection: Axis.horizontal,
                             child: Row(
                               children: [
                                 ..._images.map((image) {
                                   return Padding(
-                                    padding: EdgeInsets.only(right: 10),
+                                    padding: const EdgeInsets.only(right: 10),
                                     child: Stack(
                                       children: [
                                         Container(
@@ -247,23 +592,18 @@ class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
                                             ),
                                           ),
                                         ),
-
                                         Positioned(
                                           top: 4,
                                           right: 4,
                                           child: GestureDetector(
-                                            onTap: () {
-                                              setState(() {
-                                                _images.remove(image);
-                                              });
-                                            },
+                                            onTap: () => _removeImage(image),
                                             child: Container(
-                                              decoration: BoxDecoration(
+                                              decoration: const BoxDecoration(
                                                 color: AppColor.error,
                                                 shape: BoxShape.circle,
                                               ),
-                                              padding: EdgeInsets.all(4),
-                                              child: Icon(
+                                              padding: const EdgeInsets.all(4),
+                                              child: const Icon(
                                                 Icons.close,
                                                 color: Colors.white,
                                                 size: 8,
@@ -275,7 +615,6 @@ class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
                                     ),
                                   );
                                 }),
-
                                 if (_images.length < 5)
                                   GestureDetector(
                                     onTap: _pickImage,
@@ -290,7 +629,7 @@ class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
                                         color: AppColor.primarySoft,
                                         borderRadius: BorderRadius.circular(8),
                                       ),
-                                      child: Column(
+                                      child: const Column(
                                         mainAxisAlignment:
                                             MainAxisAlignment.center,
                                         children: [
@@ -317,138 +656,103 @@ class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
                         ],
                       ),
                     ),
-
-                    Divider(
+                    const Divider(
                       height: 32,
                       indent: 16,
                       endIndent: 16,
                       color: AppColor.divider,
                     ),
-
-                    Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              RichText(
-                                text: TextSpan(
-                                  text: "Nama Produk ",
-                                  style: TextStyle(
-                                    color: AppColor.textPrimary,
-                                    fontSize: 14,
-                                  ),
-                                  children: [
-                                    TextSpan(
-                                      text: "*",
-                                      style: TextStyle(color: AppColor.error),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              Text(
-                                "${_namaProdukController.text.length}/255",
-                                style: TextStyle(
-                                  color: AppColor.textHint,
-                                  fontSize: 12,
-                                ),
-                              ),
-                            ],
-                          ),
-                          TextField(
-                            controller: _namaProdukController,
-                            maxLength: 255,
-                            onChanged: (value) {
-                              setState(() {});
-                            },
-                            decoration: InputDecoration(
-                              counterText: "",
-                              hintText: "Masukkan Nama Produk",
-                              hintStyle: TextStyle(
-                                color: AppColor.textHint,
-                                fontSize: 14,
-                              ),
-                              border: InputBorder.none,
-                              isDense: true,
-                              contentPadding: EdgeInsets.symmetric(vertical: 8),
-                            ),
-                          ),
-                        ],
-                      ),
+                    _InfoProdukTextField(
+                      controller: _namaProdukController,
+                      onChanged: (value) {
+                        setState(() {});
+                      },
+                      label: "Nama Produk",
+                      maxLength: 255,
+                      hint: "Masukkan Nama Produk",
                     ),
-
-                    Divider(
+                    const Divider(
                       height: 32,
                       indent: 16,
                       endIndent: 16,
                       color: AppColor.divider,
                     ),
-
-                    Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              RichText(
-                                text: TextSpan(
-                                  text: "Deskripsi Produk ",
-                                  style: TextStyle(
-                                    color: AppColor.textPrimary,
-                                    fontSize: 14,
-                                  ),
-                                  children: [
-                                    TextSpan(
-                                      text: "*",
-                                      style: TextStyle(color: AppColor.error),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              Text(
-                                "${_deskripsiProdukController.text.length}/3000",
-                                style: TextStyle(
-                                  color: AppColor.textHint,
-                                  fontSize: 12,
-                                ),
-                              ),
-                            ],
-                          ),
-                          TextField(
-                            controller: _deskripsiProdukController,
-                            maxLength: 3000,
-                            maxLines: null,
-                            keyboardType: TextInputType.multiline,
-                            onChanged: (value) {
-                              setState(() {});
-                            },
-                            decoration: InputDecoration(
-                              counterText: "",
-                              hintText: "Masukkan Deskripsi Produk",
-                              hintStyle: TextStyle(
-                                color: AppColor.textHint,
-                                fontSize: 14,
-                              ),
-                              border: InputBorder.none,
-                              isDense: true,
-                              contentPadding: EdgeInsets.symmetric(vertical: 8),
-                            ),
-                          ),
-                        ],
-                      ),
+                    _InfoProdukTextField(
+                      controller: _deskripsiProdukController,
+                      onChanged: (value) {
+                        setState(() {});
+                      },
+                      label: "Deskripsi Produk",
+                      maxLength: 3000,
+                      hint: "Masukkan Deskripsi Produk",
+                      isMultiLine: true,
                     ),
                   ],
                 ),
               ),
             ),
-
-            SizedBox(height: 8),
-
-            // KATEGORI
+            const SizedBox(height: 8),
+            // Pilihan Kategori
+            Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: ListTile(
+                  dense: true,
+                  contentPadding: const EdgeInsets.only(left: 16, right: 12),
+                  leading: const Icon(
+                    Symbols.list,
+                    color: AppColor.textPrimary,
+                    size: 22,
+                  ),
+                  title: Row(
+                    children: [
+                      RichText(
+                        text: const TextSpan(
+                          text: "Kategori ",
+                          style: TextStyle(
+                            color: AppColor.textPrimary,
+                            fontSize: 14,
+                          ),
+                          children: [
+                            TextSpan(
+                              text: "*",
+                              style: TextStyle(color: AppColor.error),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Text(
+                          _selectedKategori ?? 'Pilih Kategori',
+                          textAlign: TextAlign.end,
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 1,
+                          style: TextStyle(
+                            color: _selectedKategori != null
+                                ? AppColor.textPrimary
+                                : AppColor.textHint,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  trailing: const Icon(
+                    Symbols.chevron_right,
+                    color: AppColor.textHint,
+                    size: 20,
+                  ),
+                  onTap: _showCategoryPicker,
+                ),
+              ),
+            ),
+            const SizedBox(height: 8),
+            // Harga, Stok, dan Aturan Peminjaman
             Container(
               decoration: BoxDecoration(
                 color: Colors.white,
@@ -458,688 +762,60 @@ class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
                 borderRadius: BorderRadius.circular(8),
                 child: Column(
                   children: [
-                    ListTile(
-                      dense: true,
-                      contentPadding: EdgeInsets.only(left: 16, right: 12),
-                      leading: Icon(
-                        Symbols.list,
-                        color: AppColor.textPrimary,
-                        size: 22,
-                      ),
-                      title: Row(
-                        children: [
-                          RichText(
-                            text: TextSpan(
-                              text: "Kategori ",
-                              style: TextStyle(
-                                color: AppColor.textPrimary,
-                                fontSize: 14,
-                              ),
-                              children: [
-                                TextSpan(
-                                  text: "*",
-                                  style: TextStyle(color: AppColor.error),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: Text(
-                              _selectedKategori ?? '',
-                              textAlign: TextAlign.end,
-                              overflow: TextOverflow.ellipsis,
-                              maxLines: 1,
-                              style: TextStyle(
-                                color: _selectedKategori != null
-                                    ? AppColor.textPrimary
-                                    : AppColor.textHint,
-                                fontSize: 14,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      trailing: Icon(
-                        Symbols.chevron_right,
-                        color: AppColor.textHint,
-                        size: 20,
-                      ),
-                      onTap: () {
-                        final List<String> kategoriList = [
-                          "Elektronik & Gadget",
-                          "Kamera & Fotografi",
-                          "Pakaian & Kostum",
-                          "Sepatu & Alas Kaki",
-                          "Tas & Koper",
-                          "Furniture & Rumah Tangga",
-                          "Peralatan Pesta & Event",
-                          "Olahraga & Outdoor",
-                          "Hobi & Alat Musik",
-                          "Buku & Mainan",
-                          "Peralatan Bayi & Anak",
-                          "Otomotif & Transportasi",
-                          "Peralatan Tukang & Perkakas",
-                          "Kesehatan & Medis",
-                        ];
-
-                        showModalBottomSheet(
-                          context: context,
-                          backgroundColor: Colors.white,
-                          isScrollControlled: true,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.vertical(
-                              top: Radius.circular(16),
-                            ),
-                          ),
-                          builder: (context) {
-                            return SafeArea(
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Container(
-                                    margin: EdgeInsets.only(top: 12, bottom: 8),
-                                    height: 4,
-                                    width: 40,
-                                    decoration: BoxDecoration(
-                                      color: Colors.grey.shade300,
-                                      borderRadius: BorderRadius.circular(4),
-                                    ),
-                                  ),
-                                  Padding(
-                                    padding: EdgeInsets.symmetric(
-                                      horizontal: 16,
-                                      vertical: 8,
-                                    ),
-                                    child: Align(
-                                      alignment: Alignment.centerLeft,
-                                      child: Text(
-                                        "Pilih Kategori",
-                                        style: TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.w600,
-                                          color: AppColor.textPrimary,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                  Divider(height: 1, color: AppColor.divider),
-                                  Flexible(
-                                    child: ListView.builder(
-                                      itemCount: kategoriList.length,
-                                      itemBuilder: (context, index) {
-                                        final item = kategoriList[index];
-                                        return ListTile(
-                                          title: Text(item),
-                                          trailing: _selectedKategori == item
-                                              ? Icon(
-                                                  Symbols.check,
-                                                  color: AppColor.primary,
-                                                )
-                                              : null,
-                                          onTap: () {
-                                            setState(() {
-                                              _selectedKategori = item;
-                                            });
-                                            Navigator.pop(context);
-                                          },
-                                        );
-                                      },
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            );
-                          },
-                        );
-                      },
+                    _OptionTile(
+                      icon: Symbols.sell,
+                      title: "Harga / hari",
+                      value: _hargaPerHari != null && _hargaPerHari!.isNotEmpty
+                          ? "Rp ${AppFormatters.formatRupiah(_hargaPerHari!)}"
+                          : "Atur",
+                      onTap: _showPricePicker,
                     ),
-                  ],
-                ),
-              ),
-            ),
-
-            SizedBox(height: 8),
-
-            Container(
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: Column(
-                  children: [
-                    // HARGA / HARI
-                    ListTile(
-                      dense: true,
-                      contentPadding: EdgeInsets.only(left: 16, right: 12),
-                      leading: Icon(
-                        Symbols.sell,
-                        color: AppColor.textPrimary,
-                        size: 22,
-                      ),
-                      title: RichText(
-                        text: TextSpan(
-                          text: "Harga / hari ",
-                          style: TextStyle(
-                            color: AppColor.textPrimary,
-                            fontSize: 14,
-                          ),
-                          children: [
-                            TextSpan(
-                              text: "*",
-                              style: TextStyle(color: AppColor.error),
-                            ),
-                          ],
-                        ),
-                      ),
-                      trailing: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            _hargaPerHari != null && _hargaPerHari!.isNotEmpty
-                                ? "Rp ${formatRupiah(_hargaPerHari!)}"
-                                : "Atur",
-                            style: TextStyle(
-                              color: AppColor.textPrimary,
-                              fontSize: 14,
-                            ),
-                          ),
-                          Icon(
-                            Symbols.chevron_right,
-                            color: AppColor.textHint,
-                            size: 20,
-                          ),
-                        ],
-                      ),
-                      onTap: () {
-                        _hargaController.text = _hargaPerHari ?? "";
-
-                        showModalBottomSheet(
-                          context: context,
-                          backgroundColor: Colors.white,
-                          isScrollControlled: true,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.vertical(
-                              top: Radius.circular(16),
-                            ),
-                          ),
-                          builder: (context) {
-                            return Padding(
-                              padding: EdgeInsets.only(
-                                bottom:
-                                    MediaQuery.of(context).viewInsets.bottom +
-                                    MediaQuery.of(context).padding.bottom +
-                                    2,
-                                left: 16,
-                                right: 16,
-                                top: 12,
-                              ),
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Center(
-                                    child: Container(
-                                      margin: EdgeInsets.only(bottom: 16),
-                                      height: 4,
-                                      width: 40,
-                                      decoration: BoxDecoration(
-                                        color: Colors.grey.shade300,
-                                        borderRadius: BorderRadius.circular(4),
-                                      ),
-                                    ),
-                                  ),
-                                  Text(
-                                    "Atur Harga Sewa",
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w600,
-                                      color: AppColor.textPrimary,
-                                    ),
-                                  ),
-                                  SizedBox(height: 16),
-                                  TextField(
-                                    controller: _hargaController,
-                                    keyboardType: TextInputType.number,
-                                    autofocus: true,
-                                    style: TextStyle(fontSize: 16),
-                                    onChanged: (value) {
-                                      String formatted = formatRupiah(value);
-
-                                      _hargaController.value = TextEditingValue(
-                                        text: formatted,
-                                        selection: TextSelection.collapsed(
-                                          offset: formatted.length,
-                                        ),
-                                      );
-                                    },
-                                    decoration: InputDecoration(
-                                      prefixText: "Rp ",
-                                      prefixStyle: TextStyle(
-                                        color: AppColor.textPrimary,
-                                        fontSize: 16,
-                                      ),
-                                      hintText: "0",
-                                      border: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(8),
-                                        borderSide: BorderSide(
-                                          color: AppColor.border,
-                                        ),
-                                      ),
-                                      focusedBorder: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(8),
-                                        borderSide: BorderSide(
-                                          color: AppColor.primary,
-                                        ),
-                                      ),
-                                      contentPadding: EdgeInsets.symmetric(
-                                        horizontal: 16,
-                                        vertical: 12,
-                                      ),
-                                    ),
-                                  ),
-                                  SizedBox(height: 24),
-
-                                  SizedBox(
-                                    width: double.infinity,
-                                    child: ElevatedButton(
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor: AppColor.primary,
-                                        foregroundColor: Colors.white,
-                                        padding: EdgeInsets.symmetric(
-                                          vertical: 14,
-                                        ),
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(
-                                            8,
-                                          ),
-                                        ),
-                                      ),
-                                      onPressed: () {
-                                        setState(() {
-                                          setState(() {
-                                            _hargaPerHari = _hargaController
-                                                .text
-                                                .replaceAll(".", "");
-                                          });
-                                        });
-                                        Navigator.pop(context);
-                                      },
-                                      child: Text(
-                                        "Simpan",
-                                        style: TextStyle(
-                                          fontSize: 14,
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                  SizedBox(height: 16),
-                                ],
-                              ),
-                            );
-                          },
-                        );
-                      },
-                    ),
-
-                    Divider(
+                    const Divider(
                       height: 1,
                       indent: 16,
                       endIndent: 16,
                       color: AppColor.divider,
                     ),
-
-                    // DENDA KETERLAMBATAN / HARI
-                    ListTile(
-                      dense: true,
-                      contentPadding: EdgeInsets.only(left: 16, right: 12),
-                      leading: Icon(
-                        Symbols.payments,
-                        color: AppColor.textPrimary,
-                        size: 22,
-                      ),
-                      title: RichText(
-                        text: TextSpan(
-                          text: "Denda Keterlambatan / hari ",
-                          style: TextStyle(
-                            color: AppColor.textPrimary,
-                            fontSize: 14,
-                          ),
-                          children: [
-                            TextSpan(
-                              text: "*",
-                              style: TextStyle(color: AppColor.error),
-                            ),
-                          ],
-                        ),
-                      ),
-                      trailing: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            _dendaPerHari != null && _dendaPerHari!.isNotEmpty
-                                ? "Rp ${formatRupiah(_dendaPerHari!)}"
-                                : "Atur",
-                            style: TextStyle(
-                              color: AppColor.textPrimary,
-                              fontSize: 14,
-                            ),
-                          ),
-                          Icon(
-                            Symbols.chevron_right,
-                            color: AppColor.textHint,
-                            size: 20,
-                          ),
-                        ],
-                      ),
-                      onTap: () {
-                        _dendaController.text = _dendaPerHari ?? "";
-
-                        showModalBottomSheet(
-                          context: context,
-                          backgroundColor: Colors.white,
-                          isScrollControlled: true,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.vertical(
-                              top: Radius.circular(16),
-                            ),
-                          ),
-                          builder: (context) {
-                            return Padding(
-                              padding: EdgeInsets.only(
-                                bottom:
-                                    MediaQuery.of(context).viewInsets.bottom +
-                                    MediaQuery.of(context).padding.bottom +
-                                    2,
-                                left: 16,
-                                right: 16,
-                                top: 12,
-                              ),
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Center(
-                                    child: Container(
-                                      margin: EdgeInsets.only(bottom: 16),
-                                      height: 4,
-                                      width: 40,
-                                      decoration: BoxDecoration(
-                                        color: Colors.grey.shade300,
-                                        borderRadius: BorderRadius.circular(4),
-                                      ),
-                                    ),
-                                  ),
-                                  Text(
-                                    "Atur Denda Keterlambatan",
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w600,
-                                      color: AppColor.textPrimary,
-                                    ),
-                                  ),
-                                  SizedBox(height: 16),
-                                  TextField(
-                                    controller: _dendaController,
-                                    keyboardType: TextInputType.number,
-                                    autofocus: true,
-                                    style: TextStyle(fontSize: 16),
-                                    onChanged: (value) {
-                                      String formatted = formatRupiah(value);
-                                      _dendaController.value = TextEditingValue(
-                                        text: formatted,
-                                        selection: TextSelection.collapsed(
-                                          offset: formatted.length,
-                                        ),
-                                      );
-                                    },
-                                    decoration: InputDecoration(
-                                      prefixText: "Rp ",
-                                      prefixStyle: TextStyle(
-                                        color: AppColor.textPrimary,
-                                        fontSize: 16,
-                                      ),
-                                      hintText: "0",
-                                      border: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(8),
-                                        borderSide: BorderSide(
-                                          color: AppColor.border,
-                                        ),
-                                      ),
-                                      focusedBorder: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(8),
-                                        borderSide: BorderSide(
-                                          color: AppColor.primary,
-                                        ),
-                                      ),
-                                      contentPadding: EdgeInsets.symmetric(
-                                        horizontal: 16,
-                                        vertical: 12,
-                                      ),
-                                    ),
-                                  ),
-                                  SizedBox(height: 24),
-                                  SizedBox(
-                                    width: double.infinity,
-                                    child: ElevatedButton(
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor: AppColor.primary,
-                                        foregroundColor: Colors.white,
-                                        padding: EdgeInsets.symmetric(
-                                          vertical: 14,
-                                        ),
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(
-                                            8,
-                                          ),
-                                        ),
-                                      ),
-                                      onPressed: () {
-                                        final harga =
-                                            int.tryParse(
-                                              _hargaPerHari?.replaceAll(
-                                                    ".",
-                                                    "",
-                                                  ) ??
-                                                  "0",
-                                            ) ??
-                                            0;
-                                        final denda =
-                                            int.tryParse(
-                                              _dendaController.text.replaceAll(
-                                                ".",
-                                                "",
-                                              ),
-                                            ) ??
-                                            0;
-                                        if (denda > harga * 0.5) {
-                                          ScaffoldMessenger.of(
-                                            context,
-                                          ).showSnackBar(
-                                            SnackBar(
-                                              content: Text(
-                                                "Denda tidak boleh melebihi 50% dari harga sewa.",
-                                              ),
-                                            ),
-                                          );
-                                          return;
-                                        }
-                                        setState(() {
-                                          _dendaPerHari = _dendaController.text
-                                              .replaceAll(".", "");
-                                        });
-                                        Navigator.pop(context);
-                                      },
-                                      child: Text(
-                                        "Simpan",
-                                        style: TextStyle(
-                                          fontSize: 14,
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                  SizedBox(height: 16),
-                                ],
-                              ),
-                            );
-                          },
-                        );
-                      },
+                    _OptionTile(
+                      icon: Symbols.payments,
+                      title: "Denda Keterlambatan / hari",
+                      value: _dendaPerHari != null && _dendaPerHari!.isNotEmpty
+                          ? "Rp ${AppFormatters.formatRupiah(_dendaPerHari!)}"
+                          : "Atur",
+                      onTap: _showFinePicker,
                     ),
-
-                    Divider(
+                    const Divider(
                       height: 1,
                       indent: 16,
                       endIndent: 16,
                       color: AppColor.divider,
                     ),
-
-                    // STOK
-                    ListTile(
-                      dense: true,
-                      contentPadding: EdgeInsets.only(left: 16, right: 16),
-                      leading: Icon(
-                        Symbols.layers,
-                        color: AppColor.textPrimary,
-                        size: 22,
-                      ),
-                      title: RichText(
-                        text: TextSpan(
-                          text: "Stok ",
-                          style: TextStyle(
-                            color: AppColor.textPrimary,
-                            fontSize: 14,
-                          ),
-                          children: [
-                            TextSpan(
-                              text: "*",
-                              style: TextStyle(color: AppColor.error),
-                            ),
-                          ],
-                        ),
-                      ),
-
-                      trailing: SizedBox(
-                        width: 60,
-                        child: TextField(
-                          controller: _stokController,
-                          keyboardType: TextInputType.number,
-                          textAlign: TextAlign.end,
-                          style: TextStyle(
-                            color: AppColor.textPrimary,
-                            fontSize: 14,
-                          ),
-                          decoration: InputDecoration(
-                            isDense: true,
-                            border: InputBorder.none,
-                            contentPadding: EdgeInsets.zero,
-                          ),
-                        ),
-                      ),
+                    _NumericInputTile(
+                      icon: Symbols.layers,
+                      title: "Stok",
+                      controller: _stokController,
                     ),
-
-                    Divider(
+                    const Divider(
                       height: 1,
                       indent: 16,
                       endIndent: 16,
                       color: AppColor.divider,
                     ),
-
-                    // MIN. JUMLAH BARANG
-                    ListTile(
-                      dense: true,
-                      contentPadding: EdgeInsets.only(left: 16, right: 16),
-                      leading: Icon(
-                        Symbols.layers,
-                        color: AppColor.textPrimary,
-                        size: 22,
-                      ),
-                      title: RichText(
-                        text: TextSpan(
-                          text: "Min. Jumlah Peminjaman ",
-                          style: TextStyle(
-                            color: AppColor.textPrimary,
-                            fontSize: 14,
-                          ),
-                          children: [
-                            TextSpan(
-                              text: "*",
-                              style: TextStyle(color: AppColor.error),
-                            ),
-                          ],
-                        ),
-                      ),
-                      trailing: SizedBox(
-                        width: 60,
-                        child: TextField(
-                          controller: _jumlahPinjamController,
-                          keyboardType: TextInputType.number,
-                          textAlign: TextAlign.end,
-                          style: TextStyle(
-                            color: AppColor.textPrimary,
-                            fontSize: 14,
-                          ),
-                          decoration: InputDecoration(
-                            isDense: true,
-                            border: InputBorder.none,
-                            contentPadding: EdgeInsets.zero,
-                          ),
-                        ),
-                      ),
+                    _NumericInputTile(
+                      icon: Symbols.layers,
+                      title: "Min. Jumlah Peminjaman",
+                      controller: _jumlahPinjamController,
                     ),
-
-                    Divider(
+                    const Divider(
                       height: 1,
                       indent: 16,
                       endIndent: 16,
                       color: AppColor.divider,
                     ),
-
-                    // MAKS. HARI PEMINJAMAN
-                    ListTile(
-                      dense: true,
-                      contentPadding: EdgeInsets.only(left: 16, right: 16),
-                      leading: Icon(
-                        Symbols.layers,
-                        color: AppColor.textPrimary,
-                        size: 22,
-                      ),
-                      title: RichText(
-                        text: TextSpan(
-                          text: "Maks. Hari Peminjaman ",
-                          style: TextStyle(
-                            color: AppColor.textPrimary,
-                            fontSize: 14,
-                          ),
-                          children: [
-                            TextSpan(
-                              text: "*",
-                              style: TextStyle(color: AppColor.error),
-                            ),
-                          ],
-                        ),
-                      ),
-                      trailing: SizedBox(
-                        width: 60,
-                        child: TextField(
-                          controller: _hariPinjamController,
-                          keyboardType: TextInputType.number,
-                          textAlign: TextAlign.end,
-                          style: TextStyle(
-                            color: AppColor.textPrimary,
-                            fontSize: 14,
-                          ),
-                          decoration: InputDecoration(
-                            isDense: true,
-                            border: InputBorder.none,
-                            contentPadding: EdgeInsets.zero,
-                          ),
-                        ),
-                      ),
+                    _NumericInputTile(
+                      icon: Symbols.layers,
+                      title: "Maks. Hari Peminjaman",
+                      controller: _hariPinjamController,
                     ),
                   ],
                 ),
@@ -1148,17 +824,17 @@ class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
           ],
         ),
       ),
-
+      // Tombol Simpan
       bottomNavigationBar: SafeArea(
         child: Container(
-          padding: EdgeInsets.all(8),
+          padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
             color: Colors.white,
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withOpacity(0.05),
                 blurRadius: 10,
-                offset: Offset(0, -4),
+                offset: const Offset(0, -4),
               ),
             ],
           ),
@@ -1166,6 +842,176 @@ class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
             text: "Simpan",
             onPressed: _simpanProduk,
             isLoading: _isSaving,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// TextField
+class _InfoProdukTextField extends StatelessWidget {
+  final TextEditingController controller;
+  final ValueChanged<String> onChanged;
+  final String label;
+  final int maxLength;
+  final String hint;
+  final bool isMultiLine;
+
+  const _InfoProdukTextField({
+    required this.controller,
+    required this.onChanged,
+    required this.label,
+    required this.maxLength,
+    required this.hint,
+    this.isMultiLine = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              RichText(
+                text: TextSpan(
+                  text: "$label ",
+                  style: const TextStyle(
+                    color: AppColor.textPrimary,
+                    fontSize: 14,
+                  ),
+                  children: const [
+                    TextSpan(
+                      text: "*",
+                      style: TextStyle(color: AppColor.error),
+                    ),
+                  ],
+                ),
+              ),
+              Text(
+                "${controller.text.length}/$maxLength",
+                style: const TextStyle(color: AppColor.textHint, fontSize: 12),
+              ),
+            ],
+          ),
+          TextField(
+            controller: controller,
+            maxLength: maxLength,
+            maxLines: isMultiLine ? null : 1,
+            keyboardType: isMultiLine
+                ? TextInputType.multiline
+                : TextInputType.text,
+            onChanged: onChanged,
+            decoration: InputDecoration(
+              counterText: "",
+              hintText: hint,
+              hintStyle: const TextStyle(
+                color: AppColor.textHint,
+                fontSize: 14,
+              ),
+              border: InputBorder.none,
+              isDense: true,
+              contentPadding: const EdgeInsets.symmetric(vertical: 8),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// Tile untuk menampilkan opsi Harga/Denda
+class _OptionTile extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String value;
+  final VoidCallback onTap;
+
+  const _OptionTile({
+    required this.icon,
+    required this.title,
+    required this.value,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      dense: true,
+      contentPadding: const EdgeInsets.only(left: 16, right: 12),
+      leading: Icon(icon, color: AppColor.textPrimary, size: 22),
+      title: RichText(
+        text: TextSpan(
+          text: "$title ",
+          style: const TextStyle(color: AppColor.textPrimary, fontSize: 14),
+          children: const [
+            TextSpan(
+              text: "*",
+              style: TextStyle(color: AppColor.error),
+            ),
+          ],
+        ),
+      ),
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            value,
+            style: const TextStyle(color: AppColor.textPrimary, fontSize: 14),
+          ),
+          const Icon(Symbols.chevron_right, color: AppColor.textHint, size: 20),
+        ],
+      ),
+      onTap: onTap,
+    );
+  }
+}
+
+// Tile input angka langsung di baris
+class _NumericInputTile extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final TextEditingController controller;
+
+  const _NumericInputTile({
+    required this.icon,
+    required this.title,
+    required this.controller,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      dense: true,
+      contentPadding: const EdgeInsets.only(left: 16, right: 16),
+      leading: Icon(icon, color: AppColor.textPrimary, size: 22),
+      title: RichText(
+        text: TextSpan(
+          text: "$title ",
+          style: const TextStyle(color: AppColor.textPrimary, fontSize: 14),
+          children: const [
+            TextSpan(
+              text: "*",
+              style: TextStyle(color: AppColor.error),
+            ),
+          ],
+        ),
+      ),
+      trailing: SizedBox(
+        width: 60,
+        child: TextField(
+          controller: controller,
+          keyboardType: TextInputType.number,
+          textAlign: TextAlign.end,
+          style: const TextStyle(color: AppColor.textPrimary, fontSize: 14),
+          decoration: const InputDecoration(
+            isDense: true,
+            border: InputBorder.none,
+            contentPadding: EdgeInsets.zero,
           ),
         ),
       ),

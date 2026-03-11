@@ -10,6 +10,8 @@ class CustomTextField extends StatelessWidget {
   final VoidCallback? onVisibilityToggle;
   final TextInputType keyboardType;
   final String? Function(String?)? validator;
+  final bool enabled;
+  final bool readOnly;
 
   const CustomTextField({
     super.key,
@@ -21,6 +23,8 @@ class CustomTextField extends StatelessWidget {
     this.onVisibilityToggle,
     this.keyboardType = TextInputType.text,
     this.validator,
+    this.enabled = true,
+    this.readOnly = false,
   });
 
   @override
@@ -30,6 +34,8 @@ class CustomTextField extends StatelessWidget {
       cursorColor: AppColor.textHint,
       obscureText: isPassword ? isVisibility : false,
       keyboardType: keyboardType,
+      enabled: enabled,
+      readOnly: readOnly,
       decoration: InputDecoration(
         isDense: true,
         hintText: hintText,
@@ -65,9 +71,19 @@ class CustomTextField extends StatelessWidget {
                 return AppColor.textHint;
               })
             : null,
+        filled: !enabled || readOnly,
+        fillColor: (!enabled || readOnly) ? AppColor.backgroundLight : null,
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
-          borderSide: const BorderSide(color: AppColor.textHint),
+          borderSide: BorderSide(
+            color: enabled
+                ? AppColor.textHint
+                : AppColor.textHint.withOpacity(0.5),
+          ),
+        ),
+        disabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: BorderSide(color: AppColor.textHint.withOpacity(0.5)),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),

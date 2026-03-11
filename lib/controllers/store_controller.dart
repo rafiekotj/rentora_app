@@ -3,7 +3,7 @@ import 'package:rentora_app/models/store_model.dart';
 import 'package:rentora_app/services/database/sqflite.dart';
 
 class StoreController {
-  // Mengambil beberapa toko berdasarkan daftar ID.
+  // Mengambil beberapa toko berdasarkan daftar ID
   Future<Map<int, StoreModel>> getStoresByIds(List<int> storeIds) async {
     if (storeIds.isEmpty) {
       return {};
@@ -25,7 +25,7 @@ class StoreController {
     return {};
   }
 
-  // Mengambil semua toko yang dimiliki oleh seorang user berdasarkan userId.
+  // Mengambil semua toko yang dimiliki oleh seorang user berdasarkan userId
   Future<List<StoreModel>> getStoresByUser(int userId) async {
     final db = await DBHelper.database();
 
@@ -38,7 +38,7 @@ class StoreController {
     return result.map((e) => StoreModel.fromMap(e)).toList();
   }
 
-  // Mengambil data satu toko berdasarkan ID toko.
+  // Mengambil data satu toko berdasarkan ID toko
   Future<StoreModel?> getStoreById(int storeId) async {
     final db = await DBHelper.database();
 
@@ -53,7 +53,7 @@ class StoreController {
     return null;
   }
 
-  // Mengambil data satu toko berdasarkan ID user yang memiliki toko tersebut.
+  // Mengambil data satu toko berdasarkan ID user yang memiliki toko tersebut
   Future<StoreModel?> getStoreByUserId(int userId) async {
     final db = await DBHelper.database();
 
@@ -70,7 +70,7 @@ class StoreController {
     return null;
   }
 
-  // Mengambil data toko milik user yang sedang login saat ini.
+  // Mengambil data toko milik user yang sedang login saat ini
   Future<StoreModel?> getStore() async {
     final userController = UserController();
     final user = await userController.getCurrentUser();
@@ -80,7 +80,7 @@ class StoreController {
     return await getStoreByUserId(user.id!);
   }
 
-  // Menyimpan (membuat atau memperbarui) data toko untuk user yang sedang login.
+  // Menyimpan data toko untuk user yang sedang login
   Future<void> saveStore({
     required String name,
     String? location,
@@ -99,7 +99,6 @@ class StoreController {
     final existingStore = await getStoreByUserId(user.id!);
 
     if (existingStore != null) {
-      // update store jika sudah ada
       await db.update(
         'stores',
         {'name': name, 'location': location, 'image': image},
@@ -107,7 +106,6 @@ class StoreController {
         whereArgs: [user.id],
       );
     } else {
-      // insert store baru jika belum ada
       await db.insert('stores', {
         'userId': user.id,
         'name': name,

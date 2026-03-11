@@ -152,11 +152,11 @@ class _LoginScreenState extends State<LoginScreen> {
                                   _isLoading = true;
                                 });
 
-                                final bool isSuccess =
-                                    await _userController.login(
-                                  email: emailController.text,
-                                  password: passwordController.text,
-                                );
+                                final bool isSuccess = await _userController
+                                    .login(
+                                      email: emailController.text,
+                                      password: passwordController.text,
+                                    );
 
                                 if (!mounted) return;
 
