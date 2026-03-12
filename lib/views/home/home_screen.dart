@@ -125,15 +125,16 @@ class _HomeScreenState extends State<HomeScreen> {
     final storeController = StoreController();
 
     // Ambil semua store unik
-    final storeIds = products.map((p) => p.storeId).toSet();
+    final storeIds = products.map((p) => p.storeId).toList();
 
     Map<int, String> tempStoreMap = {};
 
-    for (var id in storeIds) {
-      final stores = await storeController.getStoresByUser(id);
-      tempStoreMap[id] =
-          (stores.isNotEmpty ? stores.first.location?.toUpperCase() : null) ??
-          "LOKASI TIDAK ADA";
+    final storesMap = await storeController.getStoresByIds(storeIds);
+
+    for (var storeId in storeIds) {
+      final store = storesMap[storeId];
+      tempStoreMap[storeId] =
+          store?.location?.toUpperCase() ?? "LOKASI TIDAK ADA";
     }
 
     if (!mounted) return;

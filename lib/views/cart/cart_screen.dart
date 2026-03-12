@@ -393,17 +393,44 @@ class StoreCartCard extends StatelessWidget {
                     value: isSelected,
                     activeColor: AppColor.primary,
                     onChanged: (value) {
-                      cartController.selectStore(userId);
+                      if (value == true) {
+                        // Select store dan semua produk
+                        cartController.selectStore(userId);
+                        for (CartModel item in cartItems) {
+                          if (item.product.id != null &&
+                              !cartController.selectedProductIds.value.contains(
+                                item.product.id,
+                              )) {
+                            cartController.selectProduct(item.product.id!);
+                          }
+                        }
+                      } else {
+                        // Unselect semua produk di store ini
+                        final selectedIds =
+                            cartController.selectedProductIds.value;
+                        for (CartModel item in cartItems) {
+                          if (item.product.id != null &&
+                              selectedIds.contains(item.product.id)) {
+                            cartController.selectProduct(item.product.id!);
+                          }
+                        }
+                        // Toggle store (akan otomatis deselect)
+                        cartController.selectStore(userId);
+                      }
                     },
                   ),
-                  Text(
-                    store?.name ?? 'Memuat nama toko...',
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
+                  Expanded(
+                    child: Text(
+                      store?.name ?? 'Memuat nama toko...',
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
-                  const Spacer(),
+                  const SizedBox(width: 8),
                   Container(
                     height: 28,
                     decoration: BoxDecoration(

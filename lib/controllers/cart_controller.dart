@@ -48,6 +48,20 @@ class CartController {
       newSelectedProductIds.add(productId);
     }
     selectedProductIds.value = newSelectedProductIds;
+
+    final currentStoreId = selectedStoreId.value;
+    if (currentStoreId != null) {
+      final hasSelectedProductInCurrentStore = cartItemsNotifier.value.any(
+        (item) =>
+            item.product.storeId == currentStoreId &&
+            item.product.id != null &&
+            newSelectedProductIds.contains(item.product.id),
+      );
+
+      if (!hasSelectedProductInCurrentStore) {
+        selectedStoreId.value = null;
+      }
+    }
   }
 
   // Menambahkan produk ke keranjang

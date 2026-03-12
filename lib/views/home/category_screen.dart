@@ -52,12 +52,13 @@ class _CategoryScreenState extends State<CategoryScreen> {
     Map<int, String> tempStoreMap = {};
 
     // Ambil lokasi store untuk semua produk
-    final storeIds = data.map((p) => p.storeId).toSet();
-    for (var id in storeIds) {
-      final stores = await storeController.getStoresByUser(id);
-      tempStoreMap[id] =
-          (stores.isNotEmpty ? stores.first.location?.toUpperCase() : null) ??
-          "LOKASI TIDAK ADA";
+    final storeIds = data.map((p) => p.storeId).toList();
+    final storesMap = await storeController.getStoresByIds(storeIds);
+
+    for (var storeId in storeIds) {
+      final store = storesMap[storeId];
+      tempStoreMap[storeId] =
+          store?.location?.toUpperCase() ?? "LOKASI TIDAK ADA";
     }
 
     if (!mounted) return;
