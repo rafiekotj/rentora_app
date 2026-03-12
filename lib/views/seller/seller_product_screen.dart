@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:lottie/lottie.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:rentora_app/controllers/product_controller.dart';
 import 'package:rentora_app/core/constants/app_color.dart';
@@ -132,10 +133,16 @@ class _SellerProductScreenState extends State<SellerProductScreen> {
             // Daftar produk
             Expanded(
               child: produkList.isEmpty
-                  ? const Center(
-                      child: Text(
-                        "Belum ada produk",
-                        style: TextStyle(color: AppColor.textSecondary),
+                  ? Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Lottie.asset("assets/animations/EmptyBox.json"),
+                          Text(
+                            "Belum ada produk",
+                            style: TextStyle(color: AppColor.textSecondary),
+                          ),
+                        ],
                       ),
                     )
                   : ListView.builder(

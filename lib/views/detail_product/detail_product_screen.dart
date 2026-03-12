@@ -198,6 +198,11 @@ class _DetailProductScreenState extends State<DetailProductScreen> {
 
               const SizedBox(height: 8),
 
+              // --- BAGIAN DESKRIPSI PRODUK ---
+              DescriptionSection(description: widget.produk.deskripsiProduk),
+
+              const SizedBox(height: 8),
+
               // --- BAGIAN ULASAN PRODUK ---
               const ReviewsSection(),
 
@@ -226,11 +231,6 @@ class _DetailProductScreenState extends State<DetailProductScreen> {
               const PickupLocationSection(),
 
               const SizedBox(height: 8),
-
-              // --- BAGIAN DESKRIPSI PRODUK ---
-              DescriptionSection(description: widget.produk.deskripsiProduk),
-
-              const SizedBox(height: 8),
             ],
           ),
         ),
@@ -244,19 +244,20 @@ class _DetailProductScreenState extends State<DetailProductScreen> {
             Expanded(
               child: GestureDetector(
                 onTap: () {},
+                behavior: HitTestBehavior.opaque,
                 child: Center(
                   child: Icon(Symbols.chat, color: AppColor.primary),
                 ),
               ),
             ),
+
             Container(width: 1, height: 24, color: AppColor.divider),
 
             Expanded(
               child: GestureDetector(
                 onTap: () {
-                  // Memanggil fungsi dari CartController untuk menambah produk ke keranjang.
+                  // Menambah produk ke keranjang
                   _cartController.addToCart(CartModel(product: widget.produk));
-                  // Menampilkan pesan singkat di bawah layar (SnackBar).
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
                       content: Text('Produk ditambahkan ke keranjang'),
@@ -264,6 +265,7 @@ class _DetailProductScreenState extends State<DetailProductScreen> {
                     ),
                   );
                 },
+                behavior: HitTestBehavior.opaque,
                 child: Center(
                   child: Icon(
                     Symbols.add_shopping_cart,
@@ -272,6 +274,7 @@ class _DetailProductScreenState extends State<DetailProductScreen> {
                 ),
               ),
             ),
+
             GestureDetector(
               onTap: () {},
               child: Container(

@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:lottie/lottie.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:rentora_app/controllers/cart_controller.dart';
 import 'package:rentora_app/controllers/store_controller.dart';
@@ -217,7 +218,15 @@ class _CartScreenState extends State<CartScreen> {
             ],
           ),
           body: cartItems.isEmpty
-              ? const Center(child: Text('Keranjang Anda kosong'))
+              ? Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Lottie.asset("assets/animations/EmptyBox.json"),
+                      const Text('Keranjang Anda kosong'),
+                    ],
+                  ),
+                )
               : SingleChildScrollView(
                   padding: const EdgeInsets.all(8),
                   child: Column(

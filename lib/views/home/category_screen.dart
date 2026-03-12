@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lottie/lottie.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:rentora_app/controllers/product_controller.dart';
 import 'package:rentora_app/core/constants/app_color.dart';
@@ -140,8 +141,14 @@ class _CategoryScreenState extends State<CategoryScreen> {
                       ? Container(
                           width: double.infinity,
                           decoration: const BoxDecoration(color: Colors.white),
-                          child: const Center(
-                            child: Text('Tidak ada produk dalam kategori ini.'),
+                          child: Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Lottie.asset("assets/animations/EmptyBox.json"),
+                                Text('Tidak ada produk dalam kategori ini.'),
+                              ],
+                            ),
                           ),
                         )
                       : SingleChildScrollView(
