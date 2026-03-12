@@ -187,7 +187,7 @@ class _SellerProductScreenState extends State<SellerProductScreen> {
                                         Navigator.pop(context, true),
                                     child: const Text(
                                       "Hapus",
-                                      style: TextStyle(color: Colors.red),
+                                      style: TextStyle(color: AppColor.error),
                                     ),
                                   ),
                                 ],
@@ -216,19 +216,19 @@ class _SellerProductScreenState extends State<SellerProductScreen> {
         ),
       ),
 
-      bottomNavigationBar: SafeArea(
-        child: Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.05),
-                blurRadius: 10,
-                offset: const Offset(0, -4),
-              ),
-            ],
-          ),
+      bottomNavigationBar: Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: AppColor.surface,
+          boxShadow: [
+            BoxShadow(
+              color: AppColor.shadowMedium,
+              blurRadius: 10,
+              offset: const Offset(0, -4),
+            ),
+          ],
+        ),
+        child: SafeArea(
           child: CustomButton(
             text: "Tambah Produk",
             onPressed: () async {
@@ -264,7 +264,7 @@ class _ProductCard extends StatelessWidget {
       padding: const EdgeInsets.all(12),
       margin: const EdgeInsets.only(bottom: 8),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColor.surface,
         borderRadius: BorderRadius.circular(8),
       ),
       child: Row(
@@ -281,10 +281,13 @@ class _ProductCard extends StatelessWidget {
                       File(product.images.first),
                       fit: BoxFit.cover,
                       errorBuilder: (context, error, stackTrace) {
-                        return const Icon(Symbols.image, color: Colors.grey);
+                        return const Icon(
+                          Symbols.image,
+                          color: AppColor.textHint,
+                        );
                       },
                     )
-                  : const Icon(Symbols.image, color: Colors.grey),
+                  : const Icon(Symbols.image, color: AppColor.textHint),
             ),
           ),
           const SizedBox(width: 12),
@@ -347,7 +350,7 @@ class _ProductCard extends StatelessWidget {
                           icon: const Icon(
                             Icons.edit_outlined,
                             size: 20,
-                            color: Colors.orange,
+                            color: AppColor.warning,
                           ),
                           constraints: const BoxConstraints(),
                           padding: const EdgeInsets.symmetric(horizontal: 8),
@@ -358,7 +361,7 @@ class _ProductCard extends StatelessWidget {
                           icon: const Icon(
                             Icons.delete_outline,
                             size: 20,
-                            color: Colors.red,
+                            color: AppColor.error,
                           ),
                           constraints: const BoxConstraints(),
                           padding: const EdgeInsets.symmetric(horizontal: 8),

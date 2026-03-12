@@ -224,7 +224,7 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // --- KATEGORI ---
+            // ----- KATEGORI -----
             const Text(
               "Kategori",
               style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
@@ -263,7 +263,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
             const SizedBox(height: 12),
 
-            // --- BANNER ---
+            // ----- BANNER -----
             SizedBox(
               height: 140,
               width: double.infinity,
@@ -302,8 +302,8 @@ class _HomeScreenState extends State<HomeScreen> {
                             height: 8,
                             decoration: BoxDecoration(
                               color: _currentBannerIndex == index
-                                  ? AppColor.divider
-                                  : Colors.white.withAlpha(150),
+                                  ? AppColor.secondary
+                                  : AppColor.surface.withAlpha(150),
                               borderRadius: BorderRadius.circular(4),
                             ),
                           ),
@@ -317,7 +317,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
             const SizedBox(height: 12),
 
-            // --- LIST PRODUK ---
+            // ----- LIST PRODUK -----
             const Text(
               "Rekomendasi Produk",
               style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
@@ -381,8 +381,15 @@ class ProductCard extends StatelessWidget {
 
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(6),
+        color: AppColor.surface,
+        borderRadius: BorderRadius.circular(8),
+        boxShadow: [
+          BoxShadow(
+            color: AppColor.shadowLight,
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -401,10 +408,10 @@ class ProductCard extends StatelessWidget {
                         fit: BoxFit.cover,
                       )
                     : null,
-                color: produk.images.isEmpty ? Colors.grey[200] : null,
+                color: produk.images.isEmpty ? AppColor.border : null,
               ),
               child: produk.images.isEmpty
-                  ? const Icon(Icons.image, color: Colors.grey)
+                  ? const Icon(Icons.image, color: AppColor.textHint)
                   : null,
             ),
           ),
@@ -428,7 +435,7 @@ class ProductCard extends StatelessWidget {
                     Text(
                       _formatRupiah(produk.hargaPerHari),
                       style: TextStyle(
-                        color: AppColor.primary,
+                        color: AppColor.secondary,
                         fontWeight: FontWeight.w700,
                         fontSize: 14,
                       ),

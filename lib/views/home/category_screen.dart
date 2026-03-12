@@ -110,7 +110,9 @@ class _CategoryScreenState extends State<CategoryScreen> {
         ),
       ),
       body: isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(
+              child: CircularProgressIndicator(color: AppColor.primary),
+            )
           : Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -121,7 +123,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
                     vertical: 8,
                   ),
                   width: double.infinity,
-                  decoration: const BoxDecoration(color: Colors.white),
+                  decoration: const BoxDecoration(color: AppColor.surface),
                   child: Row(
                     children: [
                       const Text("Kategori: ", style: TextStyle(fontSize: 16)),
@@ -140,7 +142,9 @@ class _CategoryScreenState extends State<CategoryScreen> {
                   child: productList.isEmpty
                       ? Container(
                           width: double.infinity,
-                          decoration: const BoxDecoration(color: Colors.white),
+                          decoration: const BoxDecoration(
+                            color: AppColor.surface,
+                          ),
                           child: Center(
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
@@ -162,7 +166,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
                                 ),
                                 width: double.infinity,
                                 decoration: const BoxDecoration(
-                                  color: Colors.white,
+                                  color: AppColor.surface,
                                 ),
                                 child: const Text(
                                   "Rekomendasi",

@@ -5,16 +5,11 @@ import 'package:path/path.dart';
 import 'package:rentora_app/models/user_model.dart';
 
 class DBHelper {
-  // Membuka atau membuat database
   static Future<Database> database() async {
     final dbPath = await getDatabasesPath();
 
     return await openDatabase(
       join(dbPath, 'rentora.db'),
-      // bump version to 2 to add username and image columns to user table
-      version: 2,
-
-      // Dijalankan saat database pertama kali dibuat
       onCreate: (db, version) async {
         // ==========================
         // TABLE USER
@@ -80,6 +75,7 @@ class DBHelper {
         )
         ''');
       },
+      version: 2,
       onUpgrade: (db, oldVersion, newVersion) async {
         if (oldVersion < 2) {
           // add new columns to user table without losing existing data

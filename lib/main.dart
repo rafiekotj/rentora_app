@@ -19,9 +19,9 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         fontFamily: 'Inter',
-        textTheme: const TextTheme(
-          bodyLarge: TextStyle(color: AppColor.textPrimary),
-          bodyMedium: TextStyle(color: AppColor.textPrimary),
+        textTheme: const TextTheme().apply(
+          bodyColor: AppColor.textPrimary,
+          displayColor: AppColor.textPrimary,
         ),
         textSelectionTheme: const TextSelectionThemeData(
           selectionHandleColor: AppColor.secondary,

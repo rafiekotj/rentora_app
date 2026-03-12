@@ -50,7 +50,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         children: [
                           const Spacer(),
 
-                          // ===== LOGO =====
+                          // ----- LOGO -----
                           Center(
                             child: Image.asset(
                               "assets/icons/rentora_logo.png",
@@ -60,7 +60,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
                           const SizedBox(height: 64),
 
-                          // ===== JUDUL =====
+                          // ----- JUDUL -----
                           const Text(
                             "Masuk ke Rentora",
                             style: TextStyle(
@@ -71,7 +71,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
                           const SizedBox(height: 16),
 
-                          // ===== EMAIL =====
+                          // ----- EMAIL -----
                           CustomTextField(
                             controller: emailController,
                             hintText: "Email",
@@ -89,7 +89,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
                           const SizedBox(height: 8),
 
-                          // ===== PASSWORD =====
+                          // ----- PASSWORD -----
                           CustomTextField(
                             controller: passwordController,
                             hintText: "Kata Sandi",
@@ -123,7 +123,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             },
                           ),
 
-                          // ===== LUPA PASSWORD =====
+                          // ----- LUPA PASSWORD -----
                           Padding(
                             padding: const EdgeInsets.symmetric(vertical: 12),
                             child: Align(
@@ -142,7 +142,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                           ),
 
-                          // ===== BUTTON LOGIN =====
+                          // ----- BUTTON LOGIN -----
                           CustomButton(
                             text: "Masuk",
                             isLoading: _isLoading,
@@ -192,7 +192,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
                           const SizedBox(height: 16),
 
-                          // ===== ATAU TEXT =====
+                          // ----- ATAU TEXT -----
                           const SizedBox(
                             width: double.infinity,
                             child: Text(
@@ -208,7 +208,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
                           const SizedBox(height: 16),
 
-                          // ===== GOOGLE =====
+                          // ----- GOOGLE -----
                           CustomButton(
                             text: "Google",
                             isOutlined: true,
@@ -218,7 +218,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
                           const Spacer(),
 
-                          // ===== DAFTAR =====
+                          // ----- DAFTAR -----
                           Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [

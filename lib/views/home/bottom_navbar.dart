@@ -33,36 +33,47 @@ class _BottomNavbarState extends State<BottomNavbar> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: _widgetOptions.elementAt(_selectedIndex),
-      bottomNavigationBar: BottomNavigationBar(
-        type: BottomNavigationBarType.fixed,
-        items: const <BottomNavigationBarItem>[
-          BottomNavigationBarItem(
-            icon: Icon(Symbols.home, weight: 700),
-            label: "Home",
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Symbols.notifications, weight: 700),
-            label: "Notifikasi",
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Symbols.article, weight: 700),
-            label: "Transaksi",
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Symbols.person, weight: 700),
-            label: "Akun",
-          ),
-        ],
-        currentIndex: _selectedIndex,
-        selectedItemColor: AppColor.primary,
-        unselectedItemColor: AppColor.textPrimary,
-        backgroundColor: AppColor.textOnPrimary,
-        selectedLabelStyle: const TextStyle(
-          fontSize: 12,
-          fontWeight: FontWeight.w400,
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          boxShadow: [
+            BoxShadow(
+              color: AppColor.shadowLight,
+              blurRadius: 6,
+              offset: const Offset(0, -2),
+            ),
+          ],
         ),
-        unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w400),
-        onTap: _onItemTapped,
+        child: BottomNavigationBar(
+          type: BottomNavigationBarType.fixed,
+          items: const <BottomNavigationBarItem>[
+            BottomNavigationBarItem(
+              icon: Icon(Symbols.home, fill: 1, weight: 700),
+              label: "Home",
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Symbols.notifications, fill: 1, weight: 700),
+              label: "Notifikasi",
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Symbols.article, fill: 1, weight: 700),
+              label: "Transaksi",
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Symbols.person, fill: 1, weight: 700),
+              label: "Akun",
+            ),
+          ],
+          currentIndex: _selectedIndex,
+          selectedItemColor: AppColor.primary,
+          unselectedItemColor: AppColor.textHint,
+          backgroundColor: AppColor.surface,
+          selectedLabelStyle: const TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w400,
+          ),
+          unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w400),
+          onTap: _onItemTapped,
+        ),
       ),
     );
   }

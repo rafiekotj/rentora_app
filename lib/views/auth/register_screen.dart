@@ -50,7 +50,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         children: [
                           const Spacer(),
 
-                          // ===== LOGO =====
+                          // ----- LOGO -----
                           Center(
                             child: Image.asset(
                               "assets/icons/rentora_logo.png",
@@ -60,7 +60,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
                           const SizedBox(height: 64),
 
-                          // ===== JUDUL =====
+                          // ----- JUDUL -----
                           const Text(
                             "Daftar di Rentora",
                             style: TextStyle(
@@ -71,7 +71,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
                           const SizedBox(height: 16),
 
-                          // ===== EMAIL =====
+                          // ----- EMAIL -----
                           CustomTextField(
                             controller: emailController,
                             hintText: "Email",
@@ -89,7 +89,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
                           const SizedBox(height: 8),
 
-                          // ===== PASSWORD =====
+                          // ----- PASSWORD -----
                           CustomTextField(
                             controller: passwordController,
                             hintText: "Kata Sandi",
@@ -125,7 +125,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
                           const SizedBox(height: 8),
 
-                          // ===== NOMOR TELEPON =====
+                          // ----- NOMOR TELEPON -----
                           CustomTextField(
                             controller: phoneController,
                             hintText: "Nomor Telepon",
@@ -151,7 +151,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
                           const SizedBox(height: 24),
 
-                          // ===== BUTTON DAFTAR =====
+                          // ----- BUTTON DAFTAR -----
                           CustomButton(
                             text: "Daftar",
                             isLoading: _isLoading,
@@ -187,7 +187,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
                           const SizedBox(height: 16),
 
-                          // ===== ATAU TEXT =====
+                          // ----- ATAU TEXT -----
                           const SizedBox(
                             width: double.infinity,
                             child: Text(
@@ -203,7 +203,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
                           const SizedBox(height: 16),
 
-                          // ===== GOOGLE =====
+                          // ----- GOOGLE -----
                           CustomButton(
                             text: "Google",
                             isOutlined: true,
@@ -213,7 +213,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
                           const Spacer(),
 
-                          // ===== LOGIN =====
+                          // ----- LOGIN -----
                           Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [

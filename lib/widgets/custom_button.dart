@@ -82,7 +82,7 @@ class CustomButton extends StatelessWidget {
                       width: 24,
                       height: 24,
                       child: CircularProgressIndicator(
-                        color: Colors.white,
+                        color: AppColor.surface,
                         strokeWidth: 2,
                       ),
                     )
@@ -91,7 +91,7 @@ class CustomButton extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w500,
-                        color: textColor ?? Colors.white,
+                        color: textColor ?? AppColor.surface,
                       ),
                     ),
             ),

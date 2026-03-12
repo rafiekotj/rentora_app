@@ -7,7 +7,7 @@ class UserModel {
   final String password;
   final String phone;
   final String? username;
-  final String? image; // path to profile image
+  final String? image;
 
   UserModel({
     this.id,

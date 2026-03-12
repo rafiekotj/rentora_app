@@ -258,7 +258,7 @@ class _CartScreenState extends State<CartScreen> {
             builder: (context, selectedProductIds, child) {
               return Container(
                 height: 56,
-                decoration: const BoxDecoration(color: Colors.white),
+                decoration: const BoxDecoration(color: AppColor.surface),
                 padding: const EdgeInsets.symmetric(
                   horizontal: 16,
                   vertical: 8,
@@ -288,7 +288,7 @@ class _CartScreenState extends State<CartScreen> {
                         child: const Text(
                           "Checkout",
                           style: TextStyle(
-                            color: Colors.white,
+                            color: AppColor.surface,
                             fontSize: 16,
                             fontWeight: FontWeight.w700,
                           ),
@@ -337,7 +337,7 @@ class StoreCartCard extends StatelessWidget {
       padding: const EdgeInsets.only(top: 8, right: 8, bottom: 8),
       margin: const EdgeInsets.only(bottom: 8),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColor.surface,
         borderRadius: BorderRadius.circular(8),
       ),
       child: ValueListenableBuilder<int?>(
@@ -471,7 +471,7 @@ class CartItemCard extends StatelessWidget {
                   : null,
             ),
             child: cartItem.product.images.isEmpty
-                ? const Icon(Icons.image, color: Colors.grey)
+                ? const Icon(Icons.image, color: AppColor.textHint)
                 : null,
           ),
           const SizedBox(width: 10),
@@ -544,7 +544,7 @@ class CartItemCard extends StatelessWidget {
                 context: context,
                 builder: (BuildContext context) {
                   return AlertDialog(
-                    backgroundColor: Colors.white,
+                    backgroundColor: AppColor.surface,
                     title: const Text("Hapus Barang"),
                     content: const Text(
                       "Apakah Anda yakin ingin menghapus barang ini dari keranjang?",
@@ -566,7 +566,7 @@ class CartItemCard extends StatelessWidget {
                         },
                         child: const Text(
                           "Hapus",
-                          style: TextStyle(color: Colors.red),
+                          style: TextStyle(color: AppColor.error),
                         ),
                       ),
                     ],
@@ -574,7 +574,7 @@ class CartItemCard extends StatelessWidget {
                 },
               );
             },
-            icon: const Icon(Icons.delete_outline, color: Colors.red),
+            icon: const Icon(Icons.delete_outline, color: AppColor.error),
           ),
         ],
       ),

@@ -1,10 +1,6 @@
 import 'package:shared_preferences/shared_preferences.dart';
 
 class PreferenceHandler {
-  // ===============================
-  // SINGLETON (hanya 1 instance)
-  // ===============================
-
   static final PreferenceHandler _instance = PreferenceHandler._internal();
   late SharedPreferences _preferences;
 
@@ -12,18 +8,9 @@ class PreferenceHandler {
 
   PreferenceHandler._internal();
 
-  // ===============================
-  // INIT SHARED PREFERENCES
-  // dipanggil di main.dart
-  // ===============================
-
   Future<void> init() async {
     _preferences = await SharedPreferences.getInstance();
   }
-
-  // ===============================
-  // KEY
-  // ===============================
 
   static const String _isLogin = 'isLogin';
   static const String _userEmail = 'userEmail';

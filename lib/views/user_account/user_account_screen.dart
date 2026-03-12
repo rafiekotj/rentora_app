@@ -70,7 +70,7 @@ class _UserAccountScreenState extends State<UserAccountScreen> {
       body: SingleChildScrollView(
         child: Column(
           children: [
-            // --- HEADER PROFIL AKUN ---
+            // ----- HEADER PROFIL AKUN -----
             Container(
               padding: EdgeInsets.symmetric(horizontal: 16, vertical: 20),
               decoration: BoxDecoration(color: AppColor.primary),
@@ -78,12 +78,16 @@ class _UserAccountScreenState extends State<UserAccountScreen> {
                 children: [
                   CircleAvatar(
                     radius: 28,
-                    backgroundColor: Colors.white,
+                    backgroundColor: AppColor.primarySoft,
                     backgroundImage: (_imagePath ?? '').isNotEmpty
                         ? FileImage(File(_imagePath!)) as ImageProvider
                         : null,
                     child: (_imagePath == null || _imagePath!.isEmpty)
-                        ? Icon(Icons.person, size: 30)
+                        ? Icon(
+                            Icons.person,
+                            size: 30,
+                            color: AppColor.secondary,
+                          )
                         : null,
                   ),
                   SizedBox(width: 16),
@@ -118,7 +122,7 @@ class _UserAccountScreenState extends State<UserAccountScreen> {
               padding: EdgeInsets.all(8),
               child: Column(
                 children: [
-                  // --- SECTION PEMINJAMAN SAYA ---
+                  // ----- SECTION PEMINJAMAN SAYA -----
                   SectionCard(
                     title: "Peminjaman Saya",
                     child: Row(
@@ -147,7 +151,7 @@ class _UserAccountScreenState extends State<UserAccountScreen> {
                     ),
                   ),
 
-                  // --- SECTION AKTIVITAS ---
+                  // ----- SECTION AKTIVITAS -----
                   SectionCard(
                     title: "Aktivitas",
                     child: Column(
@@ -162,6 +166,7 @@ class _UserAccountScreenState extends State<UserAccountScreen> {
                         MenuItemCard(
                           icon: Symbols.favorite,
                           text: "Favorit Saya",
+                          fill: 1,
                           iconColor: Colors.red,
                           onTap: () {},
                         ),
@@ -190,7 +195,7 @@ class _UserAccountScreenState extends State<UserAccountScreen> {
                     ),
                   ),
 
-                  // --- SECTION SELLER ---
+                  // ----- SECTION SELLER -----
                   SectionCard(
                     title: "Seller",
                     child: Column(
@@ -262,7 +267,7 @@ class SectionCard extends StatelessWidget {
       padding: EdgeInsets.all(16),
       margin: EdgeInsets.only(bottom: 8),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColor.surface,
         borderRadius: BorderRadius.circular(8),
       ),
       child: Column(
@@ -284,13 +289,15 @@ class MenuItemCard extends StatelessWidget {
   final IconData icon;
   final String text;
   final Color iconColor;
+  final double? fill;
   final VoidCallback onTap;
 
   const MenuItemCard({
     super.key,
     required this.icon,
     required this.text,
-    this.iconColor = Colors.black,
+    this.iconColor = AppColor.textPrimary,
+    this.fill,
     required this.onTap,
   });
 
@@ -303,11 +310,11 @@ class MenuItemCard extends StatelessWidget {
         decoration: BoxDecoration(
           border: Border.all(color: AppColor.border),
           borderRadius: BorderRadius.circular(8),
-          color: Colors.white,
+          color: AppColor.surface,
         ),
         child: Row(
           children: [
-            Icon(icon, size: 24, color: iconColor),
+            Icon(icon, size: 24, color: iconColor, fill: fill),
             SizedBox(width: 12),
             Expanded(
               child: Text(text, style: TextStyle(fontWeight: FontWeight.w500)),

@@ -33,7 +33,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             CustomButton(
-              text: "Pengaturan Profil",
+              text: "Pengaturan Akun",
               isOutlined: true,
               onPressed: () {
                 Navigator.of(context).push(

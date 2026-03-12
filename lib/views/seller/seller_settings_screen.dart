@@ -135,7 +135,7 @@ class _SellerSettingsScreenState extends State<SellerSettingsScreen> {
                           ? const Icon(
                               Symbols.store,
                               size: 60,
-                              color: Colors.white,
+                              color: AppColor.surface,
                             )
                           : null,
                     ),
@@ -148,13 +148,16 @@ class _SellerSettingsScreenState extends State<SellerSettingsScreen> {
                           decoration: BoxDecoration(
                             color: AppColor.primary,
                             shape: BoxShape.circle,
-                            border: Border.all(color: Colors.white, width: 2),
+                            border: Border.all(
+                              color: AppColor.surface,
+                              width: 2,
+                            ),
                           ),
                           child: const Padding(
                             padding: EdgeInsets.all(8.0),
                             child: Icon(
                               Icons.camera_alt,
-                              color: Colors.white,
+                              color: AppColor.surface,
                               size: 20,
                             ),
                           ),
@@ -180,12 +183,24 @@ class _SellerSettingsScreenState extends State<SellerSettingsScreen> {
           ),
         ),
       ),
-      bottomNavigationBar: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: CustomButton(
-          text: 'Simpan',
-          onPressed: _saveStore,
-          isLoading: _isLoading,
+      bottomNavigationBar: Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: AppColor.surface,
+          boxShadow: [
+            BoxShadow(
+              color: AppColor.shadowMedium,
+              blurRadius: 10,
+              offset: Offset(0, -4),
+            ),
+          ],
+        ),
+        child: SafeArea(
+          child: CustomButton(
+            text: 'Simpan',
+            onPressed: _saveStore,
+            isLoading: _isLoading,
+          ),
         ),
       ),
     );

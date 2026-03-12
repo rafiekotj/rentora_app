@@ -151,7 +151,7 @@ class _SellerHomeScreenState extends State<SellerHomeScreen> {
                         else
                           const CircleAvatar(
                             radius: 28,
-                            backgroundColor: Colors.white,
+                            backgroundColor: AppColor.surface,
                             child: Icon(Icons.person, size: 30),
                           ),
                         const SizedBox(width: 16),
@@ -183,7 +183,7 @@ class _SellerHomeScreenState extends State<SellerHomeScreen> {
                       width: double.infinity,
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: AppColor.surface,
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: const Row(
@@ -322,7 +322,7 @@ class SectionCard extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       margin: const EdgeInsets.only(bottom: 8),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColor.surface,
         borderRadius: BorderRadius.circular(8),
       ),
       child: Column(
@@ -350,7 +350,7 @@ class MenuItemCard extends StatelessWidget {
     super.key,
     required this.icon,
     required this.text,
-    this.iconColor = Colors.black,
+    this.iconColor = AppColor.textPrimary,
     required this.onTap,
   });
 
@@ -363,7 +363,7 @@ class MenuItemCard extends StatelessWidget {
         decoration: BoxDecoration(
           border: Border.all(color: AppColor.border),
           borderRadius: BorderRadius.circular(8),
-          color: Colors.white,
+          color: AppColor.surface,
         ),
         child: Row(
           children: [

@@ -211,7 +211,7 @@ class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
   void _showCategoryPicker() {
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.white,
+      backgroundColor: AppColor.surface,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
@@ -226,7 +226,7 @@ class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
                 height: 4,
                 width: 40,
                 decoration: BoxDecoration(
-                  color: Colors.grey.shade300,
+                  color: AppColor.textHint,
                   borderRadius: BorderRadius.circular(4),
                 ),
               ),
@@ -277,7 +277,7 @@ class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
     _hargaController.text = _hargaPerHari ?? "";
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.white,
+      backgroundColor: AppColor.surface,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
@@ -303,7 +303,7 @@ class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
                   height: 4,
                   width: 40,
                   decoration: BoxDecoration(
-                    color: Colors.grey.shade300,
+                    color: AppColor.textHint,
                     borderRadius: BorderRadius.circular(4),
                   ),
                 ),
@@ -358,7 +358,7 @@ class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColor.primary,
-                    foregroundColor: Colors.white,
+                    foregroundColor: AppColor.surface,
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
@@ -389,7 +389,7 @@ class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
     _dendaController.text = _dendaPerHari ?? "";
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.white,
+      backgroundColor: AppColor.surface,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
@@ -415,7 +415,7 @@ class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
                   height: 4,
                   width: 40,
                   decoration: BoxDecoration(
-                    color: Colors.grey.shade300,
+                    color: AppColor.textHint,
                     borderRadius: BorderRadius.circular(4),
                   ),
                 ),
@@ -470,7 +470,7 @@ class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColor.primary,
-                    foregroundColor: Colors.white,
+                    foregroundColor: AppColor.surface,
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
@@ -537,7 +537,7 @@ class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
             Container(
               padding: const EdgeInsets.symmetric(vertical: 16),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: AppColor.surface,
                 borderRadius: BorderRadius.circular(8),
               ),
               child: ClipRRect(
@@ -605,7 +605,7 @@ class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
                                               padding: const EdgeInsets.all(4),
                                               child: const Icon(
                                                 Icons.close,
-                                                color: Colors.white,
+                                                color: AppColor.surface,
                                                 size: 8,
                                               ),
                                             ),
@@ -695,7 +695,7 @@ class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
             // Pilihan Kategori
             Container(
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: AppColor.surface,
                 borderRadius: BorderRadius.circular(8),
               ),
               child: ClipRRect(
@@ -755,7 +755,7 @@ class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
             // Harga, Stok, dan Aturan Peminjaman
             Container(
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: AppColor.surface,
                 borderRadius: BorderRadius.circular(8),
               ),
               child: ClipRRect(
@@ -825,19 +825,19 @@ class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
         ),
       ),
       // Tombol Simpan
-      bottomNavigationBar: SafeArea(
-        child: Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.05),
-                blurRadius: 10,
-                offset: const Offset(0, -4),
-              ),
-            ],
-          ),
+      bottomNavigationBar: Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: AppColor.surface,
+          boxShadow: [
+            BoxShadow(
+              color: AppColor.shadowMedium,
+              blurRadius: 10,
+              offset: const Offset(0, -4),
+            ),
+          ],
+        ),
+        child: SafeArea(
           child: CustomButton(
             text: "Simpan",
             onPressed: _simpanProduk,

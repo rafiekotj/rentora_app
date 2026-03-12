@@ -131,7 +131,7 @@ class _DetailProductScreenState extends State<DetailProductScreen> {
         child: SingleChildScrollView(
           child: Column(
             children: [
-              // --- BAGIAN GAMBAR PRODUK ---
+              // ----- BAGIAN GAMBAR PRODUK -----
               AspectRatio(
                 aspectRatio: 1,
                 child: Stack(
@@ -156,11 +156,14 @@ class _DetailProductScreenState extends State<DetailProductScreen> {
                                   )
                                 : null,
                             color: widget.produk.images.isEmpty
-                                ? Colors.grey[200]
+                                ? AppColor.border
                                 : null,
                           ),
                           child: widget.produk.images.isEmpty
-                              ? const Icon(Icons.image, color: Colors.grey)
+                              ? const Icon(
+                                  Icons.image,
+                                  color: AppColor.textHint,
+                                )
                               : null,
                         );
                       },
@@ -181,8 +184,8 @@ class _DetailProductScreenState extends State<DetailProductScreen> {
                               height: 8,
                               decoration: BoxDecoration(
                                 color: _currentImageIndex == index
-                                    ? AppColor.divider
-                                    : Colors.white.withAlpha(150),
+                                    ? AppColor.primary
+                                    : AppColor.surface.withAlpha(150),
                                 borderRadius: BorderRadius.circular(4),
                               ),
                             ),
@@ -193,22 +196,22 @@ class _DetailProductScreenState extends State<DetailProductScreen> {
                 ),
               ),
 
-              // --- BAGIAN INFORMASI PRODUK (Harga dan Nama) ---
+              // ----- BAGIAN INFORMASI PRODUK (Harga dan Nama) -----
               ProductInfoSection(produk: widget.produk),
 
               const SizedBox(height: 8),
 
-              // --- BAGIAN DESKRIPSI PRODUK ---
+              // ----- BAGIAN DESKRIPSI PRODUK -----
               DescriptionSection(description: widget.produk.deskripsiProduk),
 
               const SizedBox(height: 8),
 
-              // --- BAGIAN ULASAN PRODUK ---
+              // ----- BAGIAN ULASAN PRODUK -----
               const ReviewsSection(),
 
               const SizedBox(height: 8),
 
-              // --- BAGIAN INFORMASI TOKO ---
+              // ----- BAGIAN INFORMASI TOKO -----
               FutureBuilder<StoreModel?>(
                 future: _storeFuture,
                 builder: (context, snapshot) {
@@ -227,7 +230,7 @@ class _DetailProductScreenState extends State<DetailProductScreen> {
 
               const SizedBox(height: 8),
 
-              // --- BAGIAN LOKASI PENGAMBILAN ---
+              // ----- BAGIAN LOKASI PENGAMBILAN -----
               const PickupLocationSection(),
 
               const SizedBox(height: 8),
@@ -236,63 +239,76 @@ class _DetailProductScreenState extends State<DetailProductScreen> {
         ),
       ),
       bottomNavigationBar: Container(
-        height: 56,
-        color: AppColor.textOnPrimary,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Expanded(
-              child: GestureDetector(
-                onTap: () {},
-                behavior: HitTestBehavior.opaque,
-                child: Center(
-                  child: Icon(Symbols.chat, color: AppColor.primary),
-                ),
-              ),
-            ),
-
-            Container(width: 1, height: 24, color: AppColor.divider),
-
-            Expanded(
-              child: GestureDetector(
-                onTap: () {
-                  // Menambah produk ke keranjang
-                  _cartController.addToCart(CartModel(product: widget.produk));
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Produk ditambahkan ke keranjang'),
-                      duration: Duration(seconds: 1),
-                    ),
-                  );
-                },
-                behavior: HitTestBehavior.opaque,
-                child: Center(
-                  child: Icon(
-                    Symbols.add_shopping_cart,
-                    color: AppColor.primary,
-                  ),
-                ),
-              ),
-            ),
-
-            GestureDetector(
-              onTap: () {},
-              child: Container(
-                width: 200,
-                height: double.infinity,
-                alignment: Alignment.center,
-                color: AppColor.primary,
-                child: const Text(
-                  "Sewa",
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ),
+        height: 76,
+        decoration: BoxDecoration(
+          color: AppColor.surface,
+          boxShadow: [
+            BoxShadow(
+              color: AppColor.shadowMedium,
+              blurRadius: 10,
+              offset: Offset(0, -4),
             ),
           ],
+        ),
+        child: SafeArea(
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Expanded(
+                child: GestureDetector(
+                  onTap: () {},
+                  behavior: HitTestBehavior.opaque,
+                  child: Center(
+                    child: Icon(Symbols.chat, color: AppColor.primary),
+                  ),
+                ),
+              ),
+
+              Container(width: 1, height: 24, color: AppColor.divider),
+
+              Expanded(
+                child: GestureDetector(
+                  onTap: () {
+                    // Menambah produk ke keranjang
+                    _cartController.addToCart(
+                      CartModel(product: widget.produk),
+                    );
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Produk ditambahkan ke keranjang'),
+                        duration: Duration(seconds: 1),
+                      ),
+                    );
+                  },
+                  behavior: HitTestBehavior.opaque,
+                  child: Center(
+                    child: Icon(
+                      Symbols.add_shopping_cart,
+                      color: AppColor.primary,
+                    ),
+                  ),
+                ),
+              ),
+
+              GestureDetector(
+                onTap: () {},
+                child: Container(
+                  width: 200,
+                  height: double.infinity,
+                  alignment: Alignment.center,
+                  color: AppColor.primary,
+                  child: const Text(
+                    "Sewa",
+                    style: TextStyle(
+                      color: AppColor.surface,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -310,7 +326,7 @@ class ProductInfoSection extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       width: double.infinity,
-      decoration: const BoxDecoration(color: Colors.white),
+      decoration: const BoxDecoration(color: AppColor.surface),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -364,7 +380,7 @@ class ReviewsSection extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      decoration: const BoxDecoration(color: Colors.white),
+      decoration: const BoxDecoration(color: AppColor.surface),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -442,7 +458,7 @@ class ReviewsSection extends StatelessWidget {
                   aspectRatio: 1,
                   child: Container(
                     decoration: BoxDecoration(
-                      color: AppColor.textHint,
+                      color: AppColor.border,
                       borderRadius: BorderRadius.circular(8),
                     ),
                   ),
@@ -454,7 +470,7 @@ class ReviewsSection extends StatelessWidget {
                   aspectRatio: 1,
                   child: Container(
                     decoration: BoxDecoration(
-                      color: AppColor.textHint,
+                      color: AppColor.border,
                       borderRadius: BorderRadius.circular(8),
                     ),
                   ),
@@ -466,7 +482,7 @@ class ReviewsSection extends StatelessWidget {
                   aspectRatio: 1,
                   child: Container(
                     decoration: BoxDecoration(
-                      color: AppColor.textHint,
+                      color: AppColor.border,
                       borderRadius: BorderRadius.circular(8),
                     ),
                   ),
@@ -490,7 +506,7 @@ class StoreInfoSection extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      decoration: const BoxDecoration(color: Colors.white),
+      decoration: const BoxDecoration(color: AppColor.surface),
       child: Column(
         children: [
           Row(
@@ -640,7 +656,7 @@ class PickupLocationSection extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      decoration: const BoxDecoration(color: Colors.white),
+      decoration: const BoxDecoration(color: AppColor.surface),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -701,7 +717,7 @@ class DescriptionSection extends StatelessWidget {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      decoration: const BoxDecoration(color: Colors.white),
+      decoration: const BoxDecoration(color: AppColor.surface),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
