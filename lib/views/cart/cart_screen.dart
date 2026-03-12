@@ -545,7 +545,10 @@ class CartItemCard extends StatelessWidget {
                         onPressed: () {
                           Navigator.of(context).pop();
                         },
-                        child: const Text("Batal"),
+                        child: const Text(
+                          "Batal",
+                          style: TextStyle(color: AppColor.textSecondary),
+                        ),
                       ),
                       TextButton(
                         onPressed: () {

@@ -159,6 +159,7 @@ class _SellerProductScreenState extends State<SellerProductScreen> {
                             final confirm = await showDialog<bool>(
                               context: context,
                               builder: (context) => AlertDialog(
+                                backgroundColor: AppColor.backgroundLight,
                                 title: const Text("Konfirmasi Hapus"),
                                 content: const Text(
                                   "Apakah kamu yakin ingin menghapus produk ini?",
@@ -167,7 +168,12 @@ class _SellerProductScreenState extends State<SellerProductScreen> {
                                   TextButton(
                                     onPressed: () =>
                                         Navigator.pop(context, false),
-                                    child: const Text("Batal"),
+                                    child: const Text(
+                                      "Batal",
+                                      style: TextStyle(
+                                        color: AppColor.textSecondary,
+                                      ),
+                                    ),
                                   ),
                                   TextButton(
                                     onPressed: () =>

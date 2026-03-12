@@ -283,6 +283,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         return Image.asset(
                           bannerImages[index],
                           fit: BoxFit.cover,
+                          gaplessPlayback: true,
                         );
                       },
                     ),
