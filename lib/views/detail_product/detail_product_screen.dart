@@ -26,21 +26,29 @@ class DetailProductScreen extends StatefulWidget {
 
 class _DetailProductScreenState extends State<DetailProductScreen> {
   late PageController _pageController;
-
   int _currentImageIndex = 0;
 
   final StoreController _storeController = StoreController();
-
-  // Menampung data yang akan datang dari proses asynchronous, yaitu data toko yang diambil dari database.
-  late Future<StoreModel?> _storeFuture;
-
   final CartController _cartController = CartController();
+
+  StoreModel? _store;
 
   @override
   void initState() {
     super.initState();
     _pageController = PageController();
-    _storeFuture = _storeController.getStoreById(widget.produk.storeId);
+    _loadStore();
+  }
+
+  void _loadStore() async {
+    try {
+      final store = await _storeController.getStoreById(widget.produk.storeId);
+      setState(() {
+        _store = store;
+      });
+    } catch (e) {
+      setState(() {});
+    }
   }
 
   @override
@@ -51,267 +59,263 @@ class _DetailProductScreenState extends State<DetailProductScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColor.backgroundLight,
-      appBar: AppBar(
-        toolbarHeight: 58,
-        backgroundColor: AppColor.primary,
-        foregroundColor: AppColor.textOnPrimary,
-        titleSpacing: 0,
-        title: Container(
-          padding: const EdgeInsets.only(right: 8),
-          child: Row(
-            children: [
-              Expanded(
-                child: Container(
-                  height: 42,
-                  decoration: BoxDecoration(
-                    color: AppColor.textOnPrimary,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: TextField(
-                    cursorColor: AppColor.textSecondary,
-                    textAlignVertical: TextAlignVertical.center,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      color: AppColor.textPrimary,
-                    ),
-                    decoration: const InputDecoration(
-                      isDense: true,
-                      hintText: "Search",
-                      hintStyle: TextStyle(
-                        color: AppColor.textSecondary,
-                        fontSize: 14,
-                      ),
-                      border: InputBorder.none,
-                      contentPadding: EdgeInsets.symmetric(vertical: 10),
-                      prefixIcon: Icon(
-                        Symbols.search,
-                        weight: 600,
-                        color: AppColor.textSecondary,
-                        size: 20,
-                      ),
-                      prefixIconConstraints: BoxConstraints(
-                        minWidth: 42,
-                        minHeight: 42,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-              IconButton(
-                onPressed: () {},
-                icon: Icon(
-                  Symbols.forward,
-                  color: AppColor.textOnPrimary,
-                  size: 24,
-                  weight: 600,
-                ),
-              ),
-              IconButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => const CartScreen()),
-                  );
-                },
-                icon: Icon(
-                  Symbols.shopping_cart,
-                  color: AppColor.textOnPrimary,
-                  size: 24,
-                  weight: 600,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          child: Column(
-            children: [
-              // ----- BAGIAN GAMBAR PRODUK -----
-              AspectRatio(
-                aspectRatio: 1,
-                child: Stack(
+    return _store == null
+        ? const Center(
+            child: CircularProgressIndicator(color: AppColor.primary),
+          )
+        : Scaffold(
+            backgroundColor: AppColor.backgroundLight,
+            appBar: AppBar(
+              toolbarHeight: 58,
+              backgroundColor: AppColor.primary,
+              foregroundColor: AppColor.textOnPrimary,
+              titleSpacing: 0,
+              title: Container(
+                padding: const EdgeInsets.only(right: 8),
+                child: Row(
                   children: [
-                    PageView.builder(
-                      controller: _pageController,
-                      itemCount: widget.produk.images.length,
-                      onPageChanged: (index) {
-                        setState(() {
-                          _currentImageIndex = index;
-                        });
-                      },
-                      itemBuilder: (context, index) {
-                        return Container(
-                          decoration: BoxDecoration(
-                            image: widget.produk.images.isNotEmpty
-                                ? DecorationImage(
-                                    image: FileImage(
-                                      File(widget.produk.images[index]),
-                                    ),
-                                    fit: BoxFit.cover,
-                                  )
-                                : null,
-                            color: widget.produk.images.isEmpty
-                                ? AppColor.border
-                                : null,
+                    Expanded(
+                      child: Container(
+                        height: 42,
+                        decoration: BoxDecoration(
+                          color: AppColor.textOnPrimary,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: TextField(
+                          cursorColor: AppColor.textSecondary,
+                          textAlignVertical: TextAlignVertical.center,
+                          style: const TextStyle(
+                            fontSize: 14,
+                            color: AppColor.textPrimary,
                           ),
-                          child: widget.produk.images.isEmpty
-                              ? const Icon(
-                                  Icons.image,
-                                  color: AppColor.textHint,
-                                )
-                              : null,
-                        );
-                      },
-                    ),
-                    if (widget.produk.images.length > 1)
-                      Positioned(
-                        bottom: 8,
-                        left: 0,
-                        right: 0,
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: List.generate(
-                            widget.produk.images.length,
-                            (index) => AnimatedContainer(
-                              duration: const Duration(milliseconds: 300),
-                              margin: const EdgeInsets.symmetric(horizontal: 4),
-                              width: _currentImageIndex == index ? 24 : 8,
-                              height: 8,
-                              decoration: BoxDecoration(
-                                color: _currentImageIndex == index
-                                    ? AppColor.primary
-                                    : AppColor.surface.withAlpha(150),
-                                borderRadius: BorderRadius.circular(4),
-                              ),
+                          decoration: const InputDecoration(
+                            isDense: true,
+                            hintText: "Search",
+                            hintStyle: TextStyle(
+                              color: AppColor.textSecondary,
+                              fontSize: 14,
+                            ),
+                            border: InputBorder.none,
+                            contentPadding: EdgeInsets.symmetric(vertical: 10),
+                            prefixIcon: Icon(
+                              Symbols.search,
+                              weight: 600,
+                              color: AppColor.textSecondary,
+                              size: 20,
+                            ),
+                            prefixIconConstraints: BoxConstraints(
+                              minWidth: 42,
+                              minHeight: 42,
                             ),
                           ),
                         ),
                       ),
+                    ),
+                    const SizedBox(width: 8),
+                    IconButton(
+                      onPressed: () {},
+                      icon: Icon(
+                        Symbols.forward,
+                        color: AppColor.textOnPrimary,
+                        size: 24,
+                        weight: 600,
+                      ),
+                    ),
+                    IconButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const CartScreen(),
+                          ),
+                        );
+                      },
+                      icon: Icon(
+                        Symbols.shopping_cart,
+                        color: AppColor.textOnPrimary,
+                        size: 24,
+                        weight: 600,
+                      ),
+                    ),
                   ],
                 ),
               ),
-
-              // ----- BAGIAN INFORMASI PRODUK (Harga dan Nama) -----
-              ProductInfoSection(produk: widget.produk),
-
-              const SizedBox(height: 8),
-
-              // ----- BAGIAN DESKRIPSI PRODUK -----
-              DescriptionSection(description: widget.produk.deskripsiProduk),
-
-              const SizedBox(height: 8),
-
-              // ----- BAGIAN ULASAN PRODUK -----
-              const ReviewsSection(),
-
-              const SizedBox(height: 8),
-
-              // ----- BAGIAN INFORMASI TOKO -----
-              FutureBuilder<StoreModel?>(
-                future: _storeFuture,
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(child: CircularProgressIndicator());
-                  } else if (snapshot.hasError) {
-                    return Center(child: Text("Error: ${snapshot.error}"));
-                  } else if (snapshot.hasData && snapshot.data != null) {
-                    final store = snapshot.data!;
-                    return StoreInfoSection(store: store);
-                  } else {
-                    return const Center(child: Text("Toko tidak ditemukan"));
-                  }
-                },
-              ),
-
-              const SizedBox(height: 8),
-
-              // ----- BAGIAN LOKASI PENGAMBILAN -----
-              const PickupLocationSection(),
-
-              const SizedBox(height: 8),
-            ],
-          ),
-        ),
-      ),
-      bottomNavigationBar: Container(
-        height: 76,
-        decoration: BoxDecoration(
-          color: AppColor.surface,
-          boxShadow: [
-            BoxShadow(
-              color: AppColor.shadowMedium,
-              blurRadius: 10,
-              offset: Offset(0, -4),
             ),
-          ],
-        ),
-        child: SafeArea(
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Expanded(
-                child: GestureDetector(
-                  onTap: () {},
-                  behavior: HitTestBehavior.opaque,
-                  child: Center(
-                    child: Icon(Symbols.chat, color: AppColor.primary),
-                  ),
-                ),
-              ),
-
-              Container(width: 1, height: 24, color: AppColor.divider),
-
-              Expanded(
-                child: GestureDetector(
-                  onTap: () {
-                    // Menambah produk ke keranjang
-                    _cartController.addToCart(
-                      CartModel(product: widget.produk),
-                    );
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Produk ditambahkan ke keranjang'),
-                        duration: Duration(seconds: 1),
+            body: SafeArea(
+              child: SingleChildScrollView(
+                child: Column(
+                  children: [
+                    // ----- BAGIAN GAMBAR PRODUK -----
+                    AspectRatio(
+                      aspectRatio: 1,
+                      child: Stack(
+                        children: [
+                          PageView.builder(
+                            controller: _pageController,
+                            itemCount: widget.produk.images.length,
+                            onPageChanged: (index) {
+                              setState(() {
+                                _currentImageIndex = index;
+                              });
+                            },
+                            itemBuilder: (context, index) {
+                              return Container(
+                                decoration: BoxDecoration(
+                                  image: widget.produk.images.isNotEmpty
+                                      ? DecorationImage(
+                                          image: FileImage(
+                                            File(widget.produk.images[index]),
+                                          ),
+                                          fit: BoxFit.cover,
+                                        )
+                                      : null,
+                                  color: widget.produk.images.isEmpty
+                                      ? AppColor.border
+                                      : null,
+                                ),
+                                child: widget.produk.images.isEmpty
+                                    ? const Icon(
+                                        Icons.image,
+                                        color: AppColor.textHint,
+                                      )
+                                    : null,
+                              );
+                            },
+                          ),
+                          if (widget.produk.images.length > 1)
+                            Positioned(
+                              bottom: 8,
+                              left: 0,
+                              right: 0,
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: List.generate(
+                                  widget.produk.images.length,
+                                  (index) => AnimatedContainer(
+                                    duration: const Duration(milliseconds: 300),
+                                    margin: const EdgeInsets.symmetric(
+                                      horizontal: 4,
+                                    ),
+                                    width: _currentImageIndex == index ? 24 : 8,
+                                    height: 8,
+                                    decoration: BoxDecoration(
+                                      color: _currentImageIndex == index
+                                          ? AppColor.primary
+                                          : AppColor.surface.withAlpha(150),
+                                      borderRadius: BorderRadius.circular(4),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                        ],
                       ),
-                    );
-                  },
-                  behavior: HitTestBehavior.opaque,
-                  child: Center(
-                    child: Icon(
-                      Symbols.add_shopping_cart,
-                      color: AppColor.primary,
                     ),
-                  ),
-                ),
-              ),
 
-              GestureDetector(
-                onTap: () {},
-                child: Container(
-                  width: 200,
-                  height: double.infinity,
-                  alignment: Alignment.center,
-                  color: AppColor.primary,
-                  child: const Text(
-                    "Sewa",
-                    style: TextStyle(
-                      color: AppColor.surface,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
+                    // ----- BAGIAN INFORMASI PRODUK (Harga dan Nama) -----
+                    ProductInfoSection(produk: widget.produk),
+
+                    const SizedBox(height: 8),
+
+                    // ----- BAGIAN DESKRIPSI PRODUK -----
+                    DescriptionSection(
+                      description: widget.produk.deskripsiProduk,
                     ),
-                  ),
+
+                    const SizedBox(height: 8),
+
+                    // ----- BAGIAN ULASAN PRODUK -----
+                    const ReviewsSection(),
+
+                    const SizedBox(height: 8),
+
+                    // ----- BAGIAN INFORMASI TOKO -----
+                    StoreInfoSection(store: _store!),
+
+                    const SizedBox(height: 8),
+
+                    // ----- BAGIAN LOKASI PENGAMBILAN -----
+                    const PickupLocationSection(),
+
+                    const SizedBox(height: 8),
+                  ],
                 ),
               ),
-            ],
-          ),
-        ),
-      ),
-    );
+            ),
+            bottomNavigationBar: Container(
+              height: 76,
+              decoration: BoxDecoration(
+                color: AppColor.surface,
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColor.shadowMedium,
+                    blurRadius: 10,
+                    offset: Offset(0, -4),
+                  ),
+                ],
+              ),
+              child: SafeArea(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () {},
+                        behavior: HitTestBehavior.opaque,
+                        child: Center(
+                          child: Icon(Symbols.chat, color: AppColor.primary),
+                        ),
+                      ),
+                    ),
+
+                    Container(width: 1, height: 24, color: AppColor.divider),
+
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () {
+                          // Menambah produk ke keranjang
+                          _cartController.addToCart(
+                            CartModel(product: widget.produk),
+                          );
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Produk ditambahkan ke keranjang'),
+                              duration: Duration(seconds: 1),
+                            ),
+                          );
+                        },
+                        behavior: HitTestBehavior.opaque,
+                        child: Center(
+                          child: Icon(
+                            Symbols.add_shopping_cart,
+                            color: AppColor.primary,
+                          ),
+                        ),
+                      ),
+                    ),
+
+                    GestureDetector(
+                      onTap: () {},
+                      child: Container(
+                        width: 200,
+                        height: double.infinity,
+                        alignment: Alignment.center,
+                        color: AppColor.primary,
+                        child: const Text(
+                          "Sewa",
+                          style: TextStyle(
+                            color: AppColor.surface,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
   }
 }
 

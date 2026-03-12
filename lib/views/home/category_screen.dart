@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:rentora_app/controllers/product_controller.dart';
+import 'package:rentora_app/controllers/store_controller.dart';
 import 'package:rentora_app/core/constants/app_color.dart';
 import 'package:rentora_app/models/product_model.dart';
 import 'package:rentora_app/views/detail_product/detail_product_screen.dart';
@@ -22,11 +23,13 @@ class CategoryScreen extends StatefulWidget {
 }
 
 class _CategoryScreenState extends State<CategoryScreen> {
-  List<ProductModel> productList = [];
+  List<ProductModel> produkList = [];
 
   bool isLoading = true;
 
   final ProductController _produkController = ProductController();
+
+  Map<int, String> storeMap = {};
 
   @override
   void initState() {
@@ -36,14 +39,32 @@ class _CategoryScreenState extends State<CategoryScreen> {
 
   // Mengambil data produk dari controller berdasarkan kategori
   Future<void> _loadProducts() async {
+    setState(() {
+      isLoading = true;
+    });
+
+    // Ambil semua produk berdasarkan kategori
     final data = await _produkController.getProductByKategori(
       widget.categoryValue,
     );
 
+    final storeController = StoreController();
+    Map<int, String> tempStoreMap = {};
+
+    // Ambil lokasi store untuk semua produk
+    final storeIds = data.map((p) => p.storeId).toSet();
+    for (var id in storeIds) {
+      final stores = await storeController.getStoresByUser(id);
+      tempStoreMap[id] =
+          (stores.isNotEmpty ? stores.first.location?.toUpperCase() : null) ??
+          "LOKASI TIDAK ADA";
+    }
+
     if (!mounted) return;
 
     setState(() {
-      productList = data;
+      produkList = data;
+      storeMap = tempStoreMap;
       isLoading = false;
     });
   }
@@ -139,7 +160,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
                 ),
                 const SizedBox(height: 8),
                 Expanded(
-                  child: productList.isEmpty
+                  child: produkList.isEmpty
                       ? Container(
                           width: double.infinity,
                           decoration: const BoxDecoration(
@@ -188,31 +209,31 @@ class _CategoryScreenState extends State<CategoryScreen> {
                                     return Wrap(
                                       spacing: crossSpacing,
                                       runSpacing: 8.0,
-                                      children: productList
-                                          .map(
-                                            (produk) => SizedBox(
-                                              width: itemWidth,
-                                              child: GestureDetector(
-                                                onTap: () {
-                                                  Navigator.push(
-                                                    context,
-                                                    MaterialPageRoute(
-                                                      builder: (context) =>
-                                                          DetailProductScreen(
-                                                            produk: produk,
-                                                            storeId:
-                                                                produk.storeId,
-                                                          ),
-                                                    ),
-                                                  );
-                                                },
-                                                child: ProductCard(
-                                                  produk: produk,
+                                      children: produkList.map((produk) {
+                                        final location =
+                                            storeMap[produk.storeId] ?? "...";
+                                        return SizedBox(
+                                          width: itemWidth,
+                                          child: GestureDetector(
+                                            onTap: () {
+                                              Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                  builder: (context) =>
+                                                      DetailProductScreen(
+                                                        produk: produk,
+                                                        storeId: produk.storeId,
+                                                      ),
                                                 ),
-                                              ),
+                                              );
+                                            },
+                                            child: ProductCard(
+                                              produk: produk,
+                                              location: location,
                                             ),
-                                          )
-                                          .toList(),
+                                          ),
+                                        );
+                                      }).toList(),
                                     );
                                   },
                                 ),

@@ -1,13 +1,12 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:rentora_app/controllers/product_controller.dart';
 import 'package:rentora_app/controllers/store_controller.dart';
 import 'package:rentora_app/core/constants/app_color.dart';
+import 'package:rentora_app/core/utils/app_formatters.dart';
 import 'package:rentora_app/models/product_model.dart';
-import 'package:rentora_app/models/store_model.dart';
 import 'package:rentora_app/views/cart/cart_screen.dart';
 import 'package:rentora_app/views/detail_product/detail_product_screen.dart';
 import 'package:rentora_app/views/home/category_screen.dart';
@@ -27,6 +26,8 @@ class _HomeScreenState extends State<HomeScreen> {
   final ProductController _produkController = ProductController();
   List<ProductModel> produkList = [];
   bool isLoading = true;
+
+  Map<int, String> storeMap = {};
 
   // Daftar gambar untuk banner.
   final List<String> bannerImages = [
@@ -93,9 +94,7 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     _pageController = PageController(initialPage: 0);
-    // Auto-play banner
     _startAutoPlay();
-    // Memuat data produk
     _loadProduk();
   }
 
@@ -116,20 +115,39 @@ class _HomeScreenState extends State<HomeScreen> {
     super.dispose();
   }
 
-  // Memuat data semua produk.
+  // Memuat data semua produk
   Future<void> _loadProduk() async {
-    final data = await _produkController.getAllProduct();
+    setState(() {
+      isLoading = true;
+    });
+
+    final products = await _produkController.getAllProduct();
+    final storeController = StoreController();
+
+    // Ambil semua store unik
+    final storeIds = products.map((p) => p.storeId).toSet();
+
+    Map<int, String> tempStoreMap = {};
+
+    for (var id in storeIds) {
+      final stores = await storeController.getStoresByUser(id);
+      tempStoreMap[id] =
+          (stores.isNotEmpty ? stores.first.location?.toUpperCase() : null) ??
+          "LOKASI TIDAK ADA";
+    }
+
     if (!mounted) return;
 
     setState(() {
-      produkList = data;
+      produkList = products;
+      storeMap = tempStoreMap;
       isLoading = false;
     });
   }
 
   // Memulai timer yang mengganti halaman banner
   void _startAutoPlay() {
-    _timer = Timer.periodic(const Duration(seconds: 3), (Timer timer) {
+    _timer = Timer.periodic(const Duration(seconds: 3), (timer) {
       if (_currentBannerIndex < bannerImages.length - 1) {
         _currentBannerIndex++;
       } else {
@@ -231,7 +249,9 @@ class _HomeScreenState extends State<HomeScreen> {
               "Kategori",
               style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
             ),
+
             const SizedBox(height: 12),
+
             Builder(
               builder: (context) {
                 final screenWidth = MediaQuery.of(context).size.width;
@@ -324,9 +344,13 @@ class _HomeScreenState extends State<HomeScreen> {
               "Rekomendasi Produk",
               style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
             ),
+
             const SizedBox(height: 12),
+
             isLoading
-                ? const Center(child: CircularProgressIndicator())
+                ? const Center(
+                    child: CircularProgressIndicator(color: AppColor.primary),
+                  )
                 : Builder(
                     builder: (context) {
                       final screenWidth = MediaQuery.of(context).size.width;
@@ -339,6 +363,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         spacing: crossSpacing,
                         runSpacing: 8.0,
                         children: produkList.map((produk) {
+                          final location = storeMap[produk.storeId] ?? "...";
                           return SizedBox(
                             width: itemWidth,
                             child: GestureDetector(
@@ -353,7 +378,10 @@ class _HomeScreenState extends State<HomeScreen> {
                                   ),
                                 );
                               },
-                              child: ProductCard(produk: produk),
+                              child: ProductCard(
+                                produk: produk,
+                                location: location,
+                              ),
                             ),
                           );
                         }).toList(),
@@ -369,18 +397,12 @@ class _HomeScreenState extends State<HomeScreen> {
 
 class ProductCard extends StatelessWidget {
   final ProductModel produk;
+  final String location;
 
-  const ProductCard({super.key, required this.produk});
-
-  String _formatRupiah(int number) {
-    final value = NumberFormat("#,###", "id_ID").format(number);
-    return "Rp $value";
-  }
+  const ProductCard({super.key, required this.produk, required this.location});
 
   @override
   Widget build(BuildContext context) {
-    final storeController = StoreController();
-
     return Container(
       decoration: BoxDecoration(
         color: AppColor.surface,
@@ -435,7 +457,15 @@ class ProductCard extends StatelessWidget {
                 Row(
                   children: [
                     Text(
-                      _formatRupiah(produk.hargaPerHari),
+                      "Rp",
+                      style: TextStyle(
+                        color: AppColor.secondary,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    Text(
+                      AppFormatters.formatRupiah(produk.hargaPerHari),
                       style: TextStyle(
                         color: AppColor.secondary,
                         fontWeight: FontWeight.w700,
@@ -443,54 +473,25 @@ class ProductCard extends StatelessWidget {
                       ),
                     ),
                     Text(
-                      " / hari",
+                      "/hari",
                       style: TextStyle(color: AppColor.textHint, fontSize: 12),
                     ),
                   ],
                 ),
                 const SizedBox(height: 4),
-                // Menangani data yang akan datang (Future)
-                FutureBuilder<List<StoreModel>>(
-                  // `future` adalah proses yang kita tunggu.
-                  future: storeController.getStoresByUser(produk.storeId),
-                  // `builder` akan membangun UI berdasarkan status dari `future`.
-                  builder: (context, snapshot) {
-                    // `snapshot` berisi informasi tentang status Future (loading, error, done).
-                    String locationText = "...";
-
-                    if (snapshot.connectionState == ConnectionState.done &&
-                        snapshot.hasData &&
-                        snapshot.data!.isNotEmpty) {
-                      final store = snapshot.data!.first;
-                      locationText =
-                          store.location?.toUpperCase() ?? "LOKASI TIDAK ADA";
-                    }
-
-                    if (snapshot.connectionState == ConnectionState.done &&
-                        (!snapshot.hasData ||
-                            snapshot.data!.isEmpty ||
-                            snapshot.hasError)) {
-                      locationText = "LOKASI TIDAK ADA";
-                    }
-
-                    return Row(
-                      children: [
-                        Icon(
-                          Symbols.location_pin,
-                          color: AppColor.textHint,
-                          size: 12,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          locationText,
-                          style: TextStyle(
-                            color: AppColor.textHint,
-                            fontSize: 10,
-                          ),
-                        ),
-                      ],
-                    );
-                  },
+                Row(
+                  children: [
+                    Icon(
+                      Symbols.location_pin,
+                      color: AppColor.textHint,
+                      size: 12,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      location,
+                      style: TextStyle(color: AppColor.textHint, fontSize: 10),
+                    ),
+                  ],
                 ),
               ],
             ),

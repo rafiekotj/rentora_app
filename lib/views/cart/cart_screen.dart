@@ -20,18 +20,19 @@ class _CartScreenState extends State<CartScreen> {
   final CartController _cartController = CartController();
   final StoreController _storeController = StoreController();
 
-  // Map untuk menyimpan data toko yang sudah dimuat
   final Map<int, StoreModel?> _stores = {};
-
-  // Map untuk menyimpan jumlah hari sewa untuk setiap toko
   final Map<int, int> _rentalDays = {};
 
   @override
   void initState() {
     super.initState();
-    _cartController.loadCartFromDB();
-    // Menambahkan listener untuk mendeteksi perubahan pada item keranjang setiap kali ada perubahan
     _cartController.cartItemsNotifier.addListener(_onCartItemsChanged);
+    _loadCart();
+  }
+
+  void _loadCart() async {
+    await _cartController.loadCartFromDB();
+    setState(() {});
   }
 
   @override
@@ -40,33 +41,36 @@ class _CartScreenState extends State<CartScreen> {
     super.dispose();
   }
 
-  // Fungsi yang dipanggil setiap ada perubahan pada data keranjang
+  // Dipanggil setiap ada perubahan pada data keranjang
   void _onCartItemsChanged() {
     final cartItems = _cartController.cartItemsNotifier.value;
-    // Memperbarui jumlah hari sewa berdasarkan data keranjang terbaru
     _initializeRentalDays(cartItems);
-    // Memuat data toko untuk item yang ada di keranjang
     _loadStoresForCartItems(cartItems);
   }
 
-  // Menginisialisasi jumlah hari sewa
+  // Menginisialisasi jumlah hari sewa untuk setiap toko
   void _initializeRentalDays(List<CartModel> cartItems) {
-    final groupedByStore = _groupCartItemsByStore(cartItems);
-    final currentStoreIds = groupedByStore.keys.toSet();
+    Map<int, List<CartModel>> groupedByStore = _groupCartItemsByStore(
+      cartItems,
+    );
+
+    Set<int> currentStoreIds = groupedByStore.keys.toSet();
 
     bool needsSetState = false;
 
-    // Menghapus data hari sewa untuk toko yang sudah tidak ada di keranjang
-    _rentalDays.removeWhere((storeId, _) {
-      final shouldRemove = !currentStoreIds.contains(storeId);
-      if (shouldRemove) needsSetState = true;
-      return shouldRemove;
-    });
+    for (int storeId in _rentalDays.keys.toList()) {
+      if (!currentStoreIds.contains(storeId)) {
+        _rentalDays.remove(storeId);
+        needsSetState = true;
+      }
+    }
 
-    // Menambahkan data hari sewa untuk toko yang baru ditambahkan ke keranjang
     for (var entry in groupedByStore.entries) {
-      if (!_rentalDays.containsKey(entry.key) && entry.value.isNotEmpty) {
-        _rentalDays[entry.key] = entry.value.first.rentalDays;
+      int storeId = entry.key;
+      List<CartModel> items = entry.value;
+
+      if (!_rentalDays.containsKey(storeId) && items.isNotEmpty) {
+        _rentalDays[storeId] = items.first.rentalDays;
         needsSetState = true;
       }
     }
@@ -78,20 +82,23 @@ class _CartScreenState extends State<CartScreen> {
 
   // Memuat data detail toko untuk setiap toko yang ada di keranjang
   void _loadStoresForCartItems(List<CartModel> cartItems) async {
-    final groupedByStore = _groupCartItemsByStore(cartItems);
+    Map<int, List<CartModel>> groupedByStore = _groupCartItemsByStore(
+      cartItems,
+    );
+
     bool needsSetState = false;
 
-    // Menghapus data toko jika toko tersebut tidak lagi ada di keranjang
-    _stores.removeWhere((storeId, _) {
-      final shouldRemove = !groupedByStore.keys.toSet().contains(storeId);
-      if (shouldRemove) needsSetState = true;
-      return shouldRemove;
-    });
+    for (int storeId in _stores.keys.toList()) {
+      if (!groupedByStore.containsKey(storeId)) {
+        _stores.remove(storeId);
+        needsSetState = true;
+      }
+    }
 
-    // Memuat data untuk toko yang belum ada di keranjang
-    for (var storeId in groupedByStore.keys) {
-      if (_stores[storeId] == null) {
-        final store = await _storeController.getStoreByUserId(storeId);
+    for (int storeId in groupedByStore.keys) {
+      if (!_stores.containsKey(storeId)) {
+        StoreModel? store = await _storeController.getStoreByUserId(storeId);
+
         if (mounted) {
           _stores[storeId] = store;
           needsSetState = true;
@@ -108,22 +115,27 @@ class _CartScreenState extends State<CartScreen> {
   void _incrementDays(int userId, List<CartModel> cartItems) {
     if (cartItems.isEmpty) return;
 
-    // Menentukan batas maksimal hari pinjam dari semua item di toko tersebut.
-    final maxDays = cartItems
-        .map((item) => item.product.maxHariPinjam)
-        .reduce((a, b) => a < b ? a : b);
+    int maxDays = cartItems.first.product.maxHariPinjam;
+
+    for (CartModel item in cartItems) {
+      if (item.product.maxHariPinjam < maxDays) {
+        maxDays = item.product.maxHariPinjam;
+      }
+    }
 
     int currentRentalDays = _rentalDays[userId] ?? 1;
 
     if (currentRentalDays < maxDays) {
+      int newDays = currentRentalDays + 1;
+
       setState(() {
-        _rentalDays[userId] = currentRentalDays + 1;
+        _rentalDays[userId] = newDays;
       });
-      for (var item in cartItems) {
-        _cartController.updateRentalDays(item, currentRentalDays + 1);
+
+      for (CartModel item in cartItems) {
+        _cartController.updateRentalDays(item, newDays);
       }
     } else {
-      // Menampilkan peringatan jika sudah mencapai batas maksimal
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
@@ -138,40 +150,61 @@ class _CartScreenState extends State<CartScreen> {
   // Mengurangi jumlah hari sewa.
   void _decrementDays(int userId, List<CartModel> cartItems) {
     int currentRentalDays = _rentalDays[userId] ?? 1;
+
     if (currentRentalDays > 1) {
+      int newDays = currentRentalDays - 1;
+
       setState(() {
-        _rentalDays[userId] = currentRentalDays - 1;
+        _rentalDays[userId] = newDays;
       });
-      for (var item in cartItems) {
-        _cartController.updateRentalDays(item, currentRentalDays - 1);
+
+      for (CartModel item in cartItems) {
+        _cartController.updateRentalDays(item, newDays);
       }
     }
   }
 
   // Menambah kuantitas satu item
   void _incrementQuantity(CartModel cartItem) {
-    if (cartItem.quantity < cartItem.product.stok) {
-      _cartController.updateCartQuantity(cartItem, cartItem.quantity + 1);
+    int currentQty = cartItem.quantity;
+    int maxStock = cartItem.product.stok;
+
+    if (currentQty < maxStock) {
+      int newQty = currentQty + 1;
+      _cartController.updateCartQuantity(cartItem, newQty);
+
+      setState(() {});
     }
   }
 
   // Mengurangi kuantitas satu item
   void _decrementQuantity(CartModel cartItem) {
-    if (cartItem.quantity > 1) {
-      _cartController.updateCartQuantity(cartItem, cartItem.quantity - 1);
+    int currentQty = cartItem.quantity;
+
+    if (currentQty > 1) {
+      int newQty = currentQty - 1;
+      _cartController.updateCartQuantity(cartItem, newQty);
+
+      setState(() {});
     }
   }
 
   // Mengelompokkan item keranjang berdasarkan ID toko
   Map<int, List<CartModel>> _groupCartItemsByStore(List<CartModel> cartItems) {
-    final Map<int, List<CartModel>> groupedItems = {};
-    for (var item in cartItems) {
-      if (groupedItems.containsKey(item.product.storeId)) {
-        groupedItems[item.product.storeId]!.add(item);
-      } else {
-        groupedItems[item.product.storeId] = [item];
+    Map<int, List<CartModel>> groupedItems = {};
+
+    for (CartModel item in cartItems) {
+      int storeId = item.product.storeId;
+
+      // Jika toko belum ada di map, buat list baru
+      if (!groupedItems.containsKey(storeId)) {
+        groupedItems[storeId] = [];
       }
+
+      // Tambahkan item ke list toko tersebut
+      groupedItems[storeId]!.add(item);
     }
+
     return groupedItems;
   }
 
@@ -181,127 +214,134 @@ class _CartScreenState extends State<CartScreen> {
     List<int> selectedProductIds,
   ) {
     int total = 0;
-    groupedItems.forEach((userId, items) {
-      for (var item in items) {
-        if (selectedProductIds.contains(item.product.id)) {
-          total += item.product.hargaPerHari * item.quantity * item.rentalDays;
+
+    for (var entry in groupedItems.entries) {
+      List<CartModel> items = entry.value;
+
+      for (CartModel item in items) {
+        int productId = item.product.id ?? 0;
+
+        if (selectedProductIds.contains(productId)) {
+          int harga = item.product.hargaPerHari;
+          int quantity = item.quantity;
+          int days = item.rentalDays;
+
+          total += harga * quantity * days;
         }
       }
-    });
+    }
+
     return total;
   }
 
   @override
   Widget build(BuildContext context) {
-    // ValueListenableBuilder digunakan untuk secara otomatis membangun ulang UI setiap kali ada perubahan pada `cartItemsNotifier`.
-    return ValueListenableBuilder<List<CartModel>>(
-      valueListenable: _cartController.cartItemsNotifier,
-      builder: (context, cartItems, child) {
-        final groupedByStore = _groupCartItemsByStore(cartItems);
+    // Ambil semua item keranjang dari controller
+    List<CartModel> cartItems = _cartController.cartItemsNotifier.value;
 
-        return Scaffold(
-          backgroundColor: AppColor.backgroundLight,
-          appBar: AppBar(
-            toolbarHeight: 58,
-            backgroundColor: AppColor.primary,
-            foregroundColor: AppColor.textOnPrimary,
-            title: const Text(
-              "Keranjang",
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
-            ),
-            actions: [
-              IconButton(
-                onPressed: () {},
-                icon: const Icon(Symbols.chat, weight: 600),
+    // Kelompokkan item berdasarkan toko
+    Map<int, List<CartModel>> groupedByStore = _groupCartItemsByStore(
+      cartItems,
+    );
+
+    return Scaffold(
+      backgroundColor: AppColor.backgroundLight,
+      appBar: AppBar(
+        toolbarHeight: 58,
+        backgroundColor: AppColor.primary,
+        foregroundColor: AppColor.textOnPrimary,
+        title: const Text(
+          "Keranjang",
+          style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
+        ),
+        actions: [
+          IconButton(
+            onPressed: () {},
+            icon: const Icon(Symbols.chat, weight: 600),
+          ),
+          const SizedBox(width: 8),
+        ],
+      ),
+      body: cartItems.isEmpty
+          ? Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Lottie.asset("assets/animations/EmptyBox.json"),
+                  const Text('Keranjang Anda kosong'),
+                ],
               ),
-              const SizedBox(width: 8),
-            ],
-          ),
-          body: cartItems.isEmpty
-              ? Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Lottie.asset("assets/animations/EmptyBox.json"),
-                      const Text('Keranjang Anda kosong'),
-                    ],
-                  ),
-                )
-              : SingleChildScrollView(
-                  padding: const EdgeInsets.all(8),
-                  child: Column(
-                    // Membuat daftar `StoreCartCard` untuk setiap toko.
-                    children: groupedByStore.entries.map((entry) {
-                      final storeId = entry.key;
-                      final items = entry.value;
-                      final store = _stores[storeId];
-                      final rentalDays =
-                          _rentalDays[storeId] ??
-                          (items.isNotEmpty ? items.first.rentalDays : 1);
+            )
+          : SingleChildScrollView(
+              padding: const EdgeInsets.all(8),
+              child: Column(
+                // Membuat daftar `StoreCartCard` untuk setiap toko.
+                children: groupedByStore.entries.map((entry) {
+                  final storeId = entry.key;
+                  final items = entry.value;
+                  final store = _stores[storeId];
+                  final rentalDays =
+                      _rentalDays[storeId] ??
+                      (items.isNotEmpty ? items.first.rentalDays : 1);
 
-                      return StoreCartCard(
-                        userId: storeId,
-                        cartItems: items,
-                        cartController: _cartController,
-                        store: store,
-                        rentalDays: rentalDays,
-                        onIncrementDays: () => _incrementDays(storeId, items),
-                        onDecrementDays: () => _decrementDays(storeId, items),
-                        onIncrementQuantity: _incrementQuantity,
-                        onDecrementQuantity: _decrementQuantity,
-                      );
-                    }).toList(),
+                  return StoreCartCard(
+                    userId: storeId,
+                    cartItems: items,
+                    cartController: _cartController,
+                    store: store,
+                    rentalDays: rentalDays,
+                    onIncrementDays: () => _incrementDays(storeId, items),
+                    onDecrementDays: () => _decrementDays(storeId, items),
+                    onIncrementQuantity: _incrementQuantity,
+                    onDecrementQuantity: _decrementQuantity,
+                  );
+                }).toList(),
+              ),
+            ),
+      bottomNavigationBar: ValueListenableBuilder(
+        valueListenable: _cartController.selectedProductIds,
+        builder: (context, selectedProductIds, child) {
+          return Container(
+            height: 56,
+            decoration: const BoxDecoration(color: AppColor.surface),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                Text(
+                  "Rp ${AppFormatters.formatRupiah(_calculateTotal(groupedByStore, selectedProductIds).toString())}",
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: AppColor.secondary,
                   ),
                 ),
-          bottomNavigationBar: ValueListenableBuilder(
-            valueListenable: _cartController.selectedProductIds,
-            builder: (context, selectedProductIds, child) {
-              return Container(
-                height: 56,
-                decoration: const BoxDecoration(color: AppColor.surface),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 8,
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    Text(
-                      "Rp ${AppFormatters.formatRupiah(_calculateTotal(groupedByStore, selectedProductIds).toString())}",
-                      style: const TextStyle(
+                const SizedBox(width: 12),
+                GestureDetector(
+                  onTap: () {},
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: AppColor.primary,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    width: 120,
+                    height: double.infinity,
+                    alignment: Alignment.center,
+                    child: const Text(
+                      "Checkout",
+                      style: TextStyle(
+                        color: AppColor.surface,
                         fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: AppColor.secondary,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
-                    const SizedBox(width: 12),
-                    GestureDetector(
-                      onTap: () {},
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: AppColor.primary,
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        width: 120,
-                        height: double.infinity,
-                        alignment: Alignment.center,
-                        child: const Text(
-                          "Checkout",
-                          style: TextStyle(
-                            color: AppColor.surface,
-                            fontSize: 16,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
-              );
-            },
-          ),
-        );
-      },
+              ],
+            ),
+          );
+        },
+      ),
     );
   }
 }

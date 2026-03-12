@@ -69,28 +69,31 @@ class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
     "Kesehatan & Medis",
   ];
 
-  // Memilih gambar dan menyalin ke local storage aplikasi.
+  // Memilih gambar dan menyalin ke local storage aplikasi
   Future<void> _pickImage() async {
     if (_images.length >= 5) return;
+
     final XFile? pickedImage = await _picker.pickImage(
       source: ImageSource.gallery,
     );
-    if (pickedImage != null) {
-      File imageFile = File(pickedImage.path);
-      File savedImage = await _saveImageToLocal(imageFile);
-      setState(() {
-        _images.add(savedImage);
-      });
-    }
+    if (pickedImage == null) return;
+
+    File imageFile = File(pickedImage.path);
+    File savedImage = await _saveImageToLocal(imageFile);
+
+    setState(() {
+      _images.add(savedImage);
+    });
   }
 
+  // Menghapus gambar dari daftar
   void _removeImage(File image) {
     setState(() {
       _images.remove(image);
     });
   }
 
-  // Menyalin file gambar dari galeri ke direktori aplikasi
+  // Menyalin file gambar ke direktori aplikasi
   Future<File> _saveImageToLocal(File image) async {
     final directory = await getApplicationDocumentsDirectory();
     final imageDir = Directory("${directory.path}/produk_images");
@@ -102,23 +105,27 @@ class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
     return savedImage;
   }
 
+  // Memuat data user saat ini dan store yang terkait
   Future<void> _loadCurrentUser() async {
     final email = await PreferenceHandler.getUserEmail();
-    if (email != null) {
-      final user = await _userController.getCurrentUser();
-      if (user != null) {
-        final store = await _storeController.getStoreByUserId(user.id!);
-        if (mounted && store != null) {
-          setState(() {
-            _currentStoreId = store.id;
-          });
-        }
-      }
+    if (email == null) return;
+
+    final user = await _userController.getCurrentUser();
+    if (user == null) return;
+
+    final store = await _storeController.getStoreByUserId(user.id!);
+    if (store == null || !mounted) {
+      return;
     }
+
+    setState(() {
+      _currentStoreId = store.id;
+    });
   }
 
+  // Menyimpan atau mengupdate produk
   Future<void> _simpanProduk() async {
-    // Validasi Input
+    // Validasi input
     if (_images.isEmpty ||
         _namaProdukController.text.isEmpty ||
         _deskripsiProdukController.text.isEmpty ||
@@ -131,7 +138,7 @@ class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
       return;
     }
 
-    // Validasi Toko
+    // Validasi store
     if (_currentStoreId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -146,6 +153,7 @@ class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
     setState(() => _isSaving = true);
 
     try {
+      // Buat objek ProductModel dari input user
       final produk = ProductModel(
         id: widget.produk?.id,
         storeId: _currentStoreId!,
@@ -153,7 +161,6 @@ class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
         namaProduk: _namaProdukController.text,
         deskripsiProduk: _deskripsiProdukController.text,
         kategori: _selectedKategori!,
-        // Konversi input string menjadi integer
         hargaPerHari: int.tryParse(_hargaPerHari!.replaceAll(".", "")) ?? 0,
         dendaPerHari: int.tryParse(_dendaPerHari!.replaceAll(".", "")) ?? 0,
         stok: int.tryParse(_stokController.text) ?? 0,
@@ -161,7 +168,7 @@ class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
         maxHariPinjam: int.tryParse(_hariPinjamController.text) ?? 7,
       );
 
-      // Simpan (Update jika ada ID, Insert jika baru)
+      // Simpan atau update produk
       if (widget.produk != null) {
         await _productController.updateProduct(produk);
         ScaffoldMessenger.of(context).showSnackBar(
@@ -182,9 +189,7 @@ class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
         ),
       );
     } finally {
-      if (mounted) {
-        setState(() => _isSaving = false);
-      }
+      if (mounted) setState(() => _isSaving = false);
     }
   }
 
@@ -207,7 +212,7 @@ class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
     }
   }
 
-  // Menampilkan pilihan kategori
+  // Menampilkan modal untuk memilih kategori produk
   void _showCategoryPicker() {
     showModalBottomSheet(
       context: context,
@@ -230,6 +235,7 @@ class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
                   borderRadius: BorderRadius.circular(4),
                 ),
               ),
+
               const Padding(
                 padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 child: Align(
@@ -244,15 +250,19 @@ class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
                   ),
                 ),
               ),
+
               const Divider(height: 1, color: AppColor.divider),
+
               Flexible(
                 child: ListView.builder(
                   itemCount: _kategoriList.length,
                   itemBuilder: (context, index) {
                     final item = _kategoriList[index];
+                    final isSelected = _selectedKategori == item;
+
                     return ListTile(
                       title: Text(item),
-                      trailing: _selectedKategori == item
+                      trailing: isSelected
                           ? const Icon(Symbols.check, color: AppColor.primary)
                           : null,
                       onTap: () {
@@ -272,7 +282,7 @@ class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
     );
   }
 
-  // Menampilkan input harga
+  // Menampilkan modal untuk mengatur harga sewa
   void _showPricePicker() {
     _hargaController.text = _hargaPerHari ?? "";
     showModalBottomSheet(
@@ -308,15 +318,17 @@ class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
                   ),
                 ),
               ),
-              Text(
+
+              const Text(
                 "Atur Harga Sewa",
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
                   color: AppColor.textPrimary,
                 ),
               ),
               const SizedBox(height: 16),
+
               TextField(
                 controller: _hargaController,
                 keyboardType: TextInputType.number,
@@ -352,7 +364,9 @@ class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
                   ),
                 ),
               ),
+
               const SizedBox(height: 24),
+
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
@@ -384,7 +398,7 @@ class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
     );
   }
 
-  // Menampilkan input denda
+  // Menampilkan modal untuk mengatur denda keterlambatan
   void _showFinePicker() {
     _dendaController.text = _dendaPerHari ?? "";
     showModalBottomSheet(
@@ -420,15 +434,18 @@ class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
                   ),
                 ),
               ),
-              Text(
+
+              const Text(
                 "Atur Denda Keterlambatan",
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
                   color: AppColor.textPrimary,
                 ),
               ),
+
               const SizedBox(height: 16),
+
               TextField(
                 controller: _dendaController,
                 keyboardType: TextInputType.number,
@@ -464,7 +481,9 @@ class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
                   ),
                 ),
               ),
+
               const SizedBox(height: 24),
+
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
@@ -487,6 +506,7 @@ class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
                           _dendaController.text.replaceAll(".", ""),
                         ) ??
                         0;
+
                     if (denda > harga * 0.5) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
@@ -497,9 +517,11 @@ class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
                       );
                       return;
                     }
+
                     setState(() {
                       _dendaPerHari = _dendaController.text.replaceAll(".", "");
                     });
+
                     Navigator.pop(context);
                   },
                   child: const Text(

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:rentora_app/core/constants/app_color.dart';
 import 'package:rentora_app/services/local_storage/preference_handler.dart';
 import 'package:rentora_app/views/splash_screen.dart';
@@ -6,6 +7,11 @@ import 'package:rentora_app/views/splash_screen.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await PreferenceHandler().init();
+
+  SystemChrome.setSystemUIOverlayStyle(
+    SystemUiOverlayStyle(statusBarColor: AppColor.primary),
+  );
+
   runApp(const MyApp());
 }
 
@@ -25,6 +31,7 @@ class MyApp extends StatelessWidget {
         ),
         textSelectionTheme: const TextSelectionThemeData(
           selectionHandleColor: AppColor.secondary,
+          cursorColor: AppColor.primary,
         ),
       ),
       home: const SplashScreen(),
