@@ -65,22 +65,28 @@ class DBHelper {
         await db.execute('''
         CREATE TABLE cart (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
+          user_id INTEGER,
           product_id INTEGER,
           store_id INTEGER,
           quantity INTEGER,
           rental_days INTEGER,
           product_data TEXT,
+          FOREIGN KEY (user_id) REFERENCES user(id),
           FOREIGN KEY (product_id) REFERENCES product(id),
           FOREIGN KEY (store_id) REFERENCES stores(id)
         )
         ''');
       },
-      version: 2,
+      version: 3,
       onUpgrade: (db, oldVersion, newVersion) async {
         if (oldVersion < 2) {
           // add new columns to user table without losing existing data
           await db.execute('ALTER TABLE user ADD COLUMN username TEXT');
           await db.execute('ALTER TABLE user ADD COLUMN image TEXT');
+        }
+
+        if (oldVersion < 3) {
+          await db.execute('ALTER TABLE cart ADD COLUMN user_id INTEGER');
         }
       },
     );
@@ -157,13 +163,12 @@ class DBHelper {
   // ==========================
 
   // Menambahkan item baru ke keranjang
-  static Future<int> insertCart(CartModel cart) async {
+  static Future<int> insertCart(CartModel cart, {required int userId}) async {
     final db = await database();
-    return await db.insert(
-      'cart',
-      cart.toMap(),
-      conflictAlgorithm: ConflictAlgorithm.replace,
-    );
+    return await db.insert('cart', {
+      ...cart.toMap(),
+      'user_id': userId,
+    }, conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
   // Memperbarui item yang ada di keranjang
@@ -184,15 +189,23 @@ class DBHelper {
   }
 
   // Menghapus semua item dari keranjang
-  static Future<int> clearCart() async {
+  static Future<int> clearCart({int? userId}) async {
     final db = await database();
-    return await db.delete('cart');
+    if (userId == null) {
+      return await db.delete('cart');
+    }
+
+    return await db.delete('cart', where: 'user_id = ?', whereArgs: [userId]);
   }
 
   // Mengambil semua item yang ada di keranjang
-  static Future<List<CartModel>> getAllCart() async {
+  static Future<List<CartModel>> getAllCart({required int userId}) async {
     final db = await database();
-    final maps = await db.query('cart');
+    final maps = await db.query(
+      'cart',
+      where: 'user_id = ?',
+      whereArgs: [userId],
+    );
     return maps.map((e) => CartModel.fromMap(e)).toList();
   }
 }

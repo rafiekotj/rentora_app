@@ -97,7 +97,7 @@ class _CartScreenState extends State<CartScreen> {
 
     for (int storeId in groupedByStore.keys) {
       if (!_stores.containsKey(storeId)) {
-        StoreModel? store = await _storeController.getStoreByUserId(storeId);
+        StoreModel? store = await _storeController.getStoreById(storeId);
 
         if (mounted) {
           _stores[storeId] = store;

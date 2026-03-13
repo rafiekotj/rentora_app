@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:rentora_app/models/cart_model.dart';
+import 'package:rentora_app/controllers/user_controller.dart';
 import 'package:rentora_app/services/database/sqflite.dart';
 
 class CartController {
   static final CartController _instance = CartController._internal();
+  final UserController _userController = UserController();
 
   factory CartController() {
     return _instance;
@@ -19,7 +21,15 @@ class CartController {
 
   // Memuat data keranjang dari database
   Future<void> loadCartFromDB() async {
-    final cartList = await DBHelper.getAllCart();
+    final user = await _userController.getCurrentUser();
+    if (user?.id == null) {
+      cartItemsNotifier.value = [];
+      selectedStoreId.value = null;
+      selectedProductIds.value = [];
+      return;
+    }
+
+    final cartList = await DBHelper.getAllCart(userId: user!.id!);
     cartItemsNotifier.value = cartList;
   }
 
@@ -66,6 +76,11 @@ class CartController {
 
   // Menambahkan produk ke keranjang
   Future<void> addToCart(CartModel cartItem) async {
+    final user = await _userController.getCurrentUser();
+    if (user?.id == null) {
+      throw Exception('User belum login');
+    }
+
     final index = cartItemsNotifier.value.indexWhere(
       (element) => element.product.id == cartItem.product.id,
     );
@@ -74,7 +89,7 @@ class CartController {
       cartItemsNotifier.value[index].quantity += cartItem.quantity;
       await DBHelper.updateCart(cartItemsNotifier.value[index]);
     } else {
-      final id = await DBHelper.insertCart(cartItem);
+      final id = await DBHelper.insertCart(cartItem, userId: user!.id!);
       cartItem = CartModel(
         id: id,
         product: cartItem.product,
