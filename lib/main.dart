@@ -9,7 +9,10 @@ void main() async {
   await PreferenceHandler().init();
 
   SystemChrome.setSystemUIOverlayStyle(
-    SystemUiOverlayStyle(statusBarColor: AppColor.primary),
+    SystemUiOverlayStyle(
+      statusBarColor: AppColor.primary,
+      statusBarBrightness: Brightness.dark,
+    ),
   );
 
   runApp(const MyApp());
