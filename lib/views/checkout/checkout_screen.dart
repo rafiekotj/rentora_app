@@ -10,6 +10,8 @@ class CheckoutScreen extends StatefulWidget {
 }
 
 class _CheckoutScreenState extends State<CheckoutScreen> {
+  String selectedMethod = "bank";
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -64,7 +66,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                                 SizedBox(width: 8),
                                 Text(
                                   "Rafie",
-                                  style: TextStyle(fontWeight: FontWeight.w700),
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w700,
+                                  ),
                                 ),
                                 SizedBox(width: 8),
                                 Text(
@@ -83,6 +88,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                                 Expanded(
                                   child: Text(
                                     "Jl. Jalan Ks Tubun II C, RW 01, Slipi, Palmerah, West Jakarta, Special Capital Region of Jakarta, Java, 10260, Indonesia",
+                                    style: TextStyle(fontSize: 12),
                                   ),
                                 ),
                               ],
@@ -238,12 +244,12 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                       children: [
                         const Text(
                           "Lama Peminjaman",
-                          style: TextStyle(fontSize: 14),
+                          style: TextStyle(fontSize: 12),
                         ),
                         SizedBox(
                           child: const Text(
                             "3 hari",
-                            style: TextStyle(fontSize: 14),
+                            style: TextStyle(fontSize: 12),
                           ),
                         ),
                       ],
@@ -257,11 +263,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text("Total 4 Produk", style: TextStyle(fontSize: 14)),
+                        Text("Total 4 Produk", style: TextStyle(fontSize: 12)),
                         Text(
                           "Rp440.000",
                           style: TextStyle(
-                            fontSize: 14,
+                            fontSize: 12,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
@@ -287,7 +293,13 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text("Metode Pembayaran"),
+                      Text(
+                        "Metode Pembayaran",
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                       GestureDetector(
                         onTap: () {},
                         child: Row(
@@ -309,16 +321,159 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                       ),
                     ],
                   ),
+
+                  const SizedBox(height: 8),
+
+                  GestureDetector(
+                    onTap: () => setState(() => selectedMethod = "bank"),
+                    child: Row(
+                      children: [
+                        const Icon(Symbols.export_notes),
+                        const SizedBox(width: 12),
+                        const Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              "Transfer Bank",
+                              style: TextStyle(fontSize: 12),
+                            ),
+                            Text("BCA", style: TextStyle(fontSize: 10)),
+                          ],
+                        ),
+                        const Spacer(),
+                        Radio<String>(
+                          value: "bank",
+                          activeColor: AppColor.primary,
+                          groupValue: selectedMethod,
+                          onChanged: (value) =>
+                              setState(() => selectedMethod = value!),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  GestureDetector(
+                    onTap: () => setState(() => selectedMethod = "debit"),
+                    child: Row(
+                      children: [
+                        const Icon(Symbols.credit_card),
+                        const SizedBox(width: 12),
+                        const Text(
+                          "Kartu Debit",
+                          style: TextStyle(fontSize: 12),
+                        ),
+                        const Spacer(),
+                        Radio<String>(
+                          value: "debit",
+                          activeColor: AppColor.primary,
+                          groupValue: selectedMethod,
+                          onChanged: (value) =>
+                              setState(() => selectedMethod = value!),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  GestureDetector(
+                    onTap: () => setState(() => selectedMethod = "qris"),
+                    child: Row(
+                      children: [
+                        const Icon(Symbols.qr_code),
+                        const SizedBox(width: 12),
+                        const Text("QRIS", style: TextStyle(fontSize: 12)),
+                        const Spacer(),
+                        Radio<String>(
+                          value: "qris",
+                          activeColor: AppColor.primary,
+                          groupValue: selectedMethod,
+                          onChanged: (value) =>
+                              setState(() => selectedMethod = value!),
+                        ),
+                      ],
+                    ),
+                  ),
                 ],
               ),
             ),
+            const SizedBox(height: 8),
 
             // ----- PAYMENT SUMMARY -----
-
-            // ----- CHECKOUT BUTTON -----
+            Container(
+              width: double.infinity,
+              decoration: BoxDecoration(
+                color: AppColor.surface,
+                borderRadius: BorderRadius.circular(4),
+              ),
+              child: Column(
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Text(
+                          "Rincian Pembayaran",
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(8, 0, 8, 4),
+                        child: Column(
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  "Subtotal Penyewaan",
+                                  style: TextStyle(fontSize: 12),
+                                ),
+                                Text(
+                                  "Rp440.000",
+                                  style: TextStyle(fontSize: 12),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 4),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  "Biaya Layanan",
+                                  style: TextStyle(fontSize: 12),
+                                ),
+                                Text("Rp1.000", style: TextStyle(fontSize: 12)),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const Divider(height: 8),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(8, 4, 8, 8),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          "Total Pembayaran",
+                          style: TextStyle(fontSize: 12),
+                        ),
+                        Text("Rp441.000", style: TextStyle(fontSize: 12)),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ],
         ),
       ),
+      // ----- CHECKOUT BUTTON -----
+      bottomNavigationBar: Container(),
     );
   }
 }
