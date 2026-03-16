@@ -18,7 +18,48 @@ class CheckoutScreen extends StatefulWidget {
 
 class _CheckoutScreenState extends State<CheckoutScreen> {
   String selectedMethod = "bank";
+  String selectedBankCode = 'bca';
+  String selectedBankLabel = 'BCA';
   static const int _serviceFee = 1000;
+
+  bool _isBankMethodCode(String methodCode) {
+    return methodCode == 'bca' ||
+        methodCode == 'mandiri' ||
+        methodCode == 'bni' ||
+        methodCode == 'bri';
+  }
+
+  String _bankLabelFromCode(String methodCode) {
+    switch (methodCode) {
+      case 'mandiri':
+        return 'Mandiri';
+      case 'bca':
+        return 'BCA';
+      case 'bni':
+        return 'BNI';
+      case 'bri':
+        return 'BRI';
+      default:
+        return methodCode;
+    }
+  }
+
+  void _applyPaymentSelection(String methodCode) {
+    if (_isBankMethodCode(methodCode)) {
+      setState(() {
+        selectedMethod = 'bank';
+        selectedBankCode = methodCode;
+        selectedBankLabel = _bankLabelFromCode(methodCode);
+      });
+      return;
+    }
+
+    if (methodCode == 'qris' || methodCode == 'cod') {
+      setState(() {
+        selectedMethod = methodCode;
+      });
+    }
+  }
 
   int get _subtotal {
     int total = 0;
@@ -293,13 +334,22 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                         ),
                       ),
                       GestureDetector(
-                        onTap: () {
-                          Navigator.push(
+                        onTap: () async {
+                          final currentMethod = selectedMethod == 'bank'
+                              ? selectedBankCode
+                              : selectedMethod;
+
+                          final selected = await Navigator.push<String>(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => const PaymentMethodScreen(),
+                              builder: (context) => PaymentMethodScreen(
+                                initialSelectedMethod: currentMethod,
+                              ),
                             ),
                           );
+
+                          if (selected == null) return;
+                          _applyPaymentSelection(selected);
                         },
                         child: Row(
                           children: [
@@ -329,14 +379,17 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                       children: [
                         const Icon(Symbols.export_notes),
                         const SizedBox(width: 12),
-                        const Column(
+                        Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
                               "Transfer Bank",
                               style: TextStyle(fontSize: 12),
                             ),
-                            Text("BCA", style: TextStyle(fontSize: 10)),
+                            Text(
+                              selectedBankLabel,
+                              style: TextStyle(fontSize: 10),
+                            ),
                           ],
                         ),
                         const Spacer(),
@@ -376,7 +429,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     onTap: () => setState(() => selectedMethod = "qris"),
                     child: Row(
                       children: [
-                        const Icon(Symbols.qr_code),
+                        const Icon(Symbols.qr_code_2),
                         const SizedBox(width: 12),
                         const Text("QRIS", style: TextStyle(fontSize: 12)),
                         const Spacer(),

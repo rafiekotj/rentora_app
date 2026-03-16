@@ -1,16 +1,35 @@
 import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:rentora_app/core/constants/app_color.dart';
+import 'package:rentora_app/widgets/custom_button.dart';
 
 class PaymentMethodScreen extends StatefulWidget {
-  const PaymentMethodScreen({super.key});
+  final String initialSelectedMethod;
+
+  const PaymentMethodScreen({super.key, required this.initialSelectedMethod});
 
   @override
   State<PaymentMethodScreen> createState() => _PaymentMethodScreenState();
 }
 
 class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
-  String selectedMethod = 'bca';
+  late String selectedMethod;
+
+  @override
+  void initState() {
+    super.initState();
+    selectedMethod = widget.initialSelectedMethod;
+  }
+
+  void _selectAndClose(String method) {
+    setState(() {
+      selectedMethod = method;
+    });
+  }
+
+  void _confirmSelection() {
+    Navigator.pop(context, selectedMethod);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -49,7 +68,7 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
                   ),
                   children: [
                     GestureDetector(
-                      onTap: () => setState(() => selectedMethod = 'bca'),
+                      onTap: () => _selectAndClose('bca'),
                       child: Padding(
                         padding: const EdgeInsets.only(left: 12),
                         child: Row(
@@ -64,7 +83,7 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
                               groupValue: selectedMethod,
                               onChanged: (value) {
                                 if (value == null) return;
-                                setState(() => selectedMethod = value);
+                                _selectAndClose(value);
                               },
                             ),
                           ],
@@ -73,7 +92,7 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
                     ),
 
                     GestureDetector(
-                      onTap: () => setState(() => selectedMethod = 'mandiri'),
+                      onTap: () => _selectAndClose('mandiri'),
                       child: Padding(
                         padding: const EdgeInsets.only(left: 12),
                         child: Row(
@@ -88,7 +107,7 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
                               groupValue: selectedMethod,
                               onChanged: (value) {
                                 if (value == null) return;
-                                setState(() => selectedMethod = value);
+                                _selectAndClose(value);
                               },
                             ),
                           ],
@@ -97,7 +116,7 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
                     ),
 
                     GestureDetector(
-                      onTap: () => setState(() => selectedMethod = 'bni'),
+                      onTap: () => _selectAndClose('bni'),
                       child: Padding(
                         padding: const EdgeInsets.only(left: 12),
                         child: Row(
@@ -112,7 +131,7 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
                               groupValue: selectedMethod,
                               onChanged: (value) {
                                 if (value == null) return;
-                                setState(() => selectedMethod = value);
+                                _selectAndClose(value);
                               },
                             ),
                           ],
@@ -121,7 +140,7 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
                     ),
 
                     GestureDetector(
-                      onTap: () => setState(() => selectedMethod = 'bri'),
+                      onTap: () => _selectAndClose('bri'),
                       child: Padding(
                         padding: const EdgeInsets.only(left: 12),
                         child: Row(
@@ -136,7 +155,7 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
                               groupValue: selectedMethod,
                               onChanged: (value) {
                                 if (value == null) return;
-                                setState(() => selectedMethod = value);
+                                _selectAndClose(value);
                               },
                             ),
                           ],
@@ -155,7 +174,7 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: GestureDetector(
-                  onTap: () => setState(() => selectedMethod = 'qris'),
+                  onTap: () => _selectAndClose('qris'),
                   child: Padding(
                     padding: const EdgeInsets.only(left: 12),
                     child: Row(
@@ -170,7 +189,7 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
                           groupValue: selectedMethod,
                           onChanged: (value) {
                             if (value == null) return;
-                            setState(() => selectedMethod = value);
+                            _selectAndClose(value);
                           },
                         ),
                       ],
@@ -187,7 +206,7 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: GestureDetector(
-                  onTap: () => setState(() => selectedMethod = 'cod'),
+                  onTap: () => _selectAndClose('cod'),
                   child: Padding(
                     padding: const EdgeInsets.only(left: 12),
                     child: Row(
@@ -202,7 +221,7 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
                           groupValue: selectedMethod,
                           onChanged: (value) {
                             if (value == null) return;
-                            setState(() => selectedMethod = value);
+                            _selectAndClose(value);
                           },
                         ),
                       ],
@@ -211,6 +230,19 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
                 ),
               ),
             ],
+          ),
+        ),
+      ),
+      bottomNavigationBar: Container(
+        color: AppColor.surface,
+        padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
+        child: SafeArea(
+          top: false,
+          child: CustomButton(
+            text: 'Konfirmasi',
+            onPressed: _confirmSelection,
+            backgroundColor: AppColor.primary,
+            textColor: AppColor.surface,
           ),
         ),
       ),

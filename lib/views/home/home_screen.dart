@@ -8,6 +8,7 @@ import 'package:rentora_app/core/constants/app_color.dart';
 import 'package:rentora_app/core/utils/app_formatters.dart';
 import 'package:rentora_app/models/product_model.dart';
 import 'package:rentora_app/views/cart/cart_screen.dart';
+import 'package:rentora_app/views/checkout/payment_success_screen.dart';
 import 'package:rentora_app/views/detail_product/detail_product_screen.dart';
 import 'package:rentora_app/views/home/category_screen.dart';
 
@@ -214,7 +215,14 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               const SizedBox(width: 8),
               IconButton(
-                onPressed: () {},
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const PaymentSuccessScreen(),
+                    ),
+                  );
+                },
                 icon: Icon(
                   Symbols.chat,
                   color: AppColor.textOnPrimary,

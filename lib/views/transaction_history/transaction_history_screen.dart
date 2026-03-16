@@ -21,6 +21,16 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
     'Dibatalkan',
   ];
 
+  bool _showContactSellerButton(String status) {
+    return status == 'Belum Bayar' ||
+        status == 'Diproses' ||
+        status == 'Sedang Disewa';
+  }
+
+  bool _showRateButton(String status) {
+    return status == 'Selesai';
+  }
+
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
@@ -135,18 +145,33 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
 
                               const SizedBox(height: 8),
 
-                              Align(
-                                alignment: Alignment.bottomRight,
-                                child: CustomButton(
-                                  width: 88,
-                                  height: 36,
-                                  isOutlined: true,
-                                  text: "Beri Nilai",
-                                  borderColor: AppColor.primary,
-                                  textColor: AppColor.primary,
-                                  onPressed: () {},
+                              if (_showContactSellerButton(status))
+                                Align(
+                                  alignment: Alignment.bottomRight,
+                                  child: CustomButton(
+                                    width: 126,
+                                    height: 36,
+                                    isOutlined: true,
+                                    text: "Hubungi Penjual",
+                                    borderColor: AppColor.textHint,
+                                    textColor: AppColor.textHint,
+                                    onPressed: () {},
+                                  ),
                                 ),
-                              ),
+
+                              if (_showRateButton(status))
+                                Align(
+                                  alignment: Alignment.bottomRight,
+                                  child: CustomButton(
+                                    width: 88,
+                                    height: 36,
+                                    isOutlined: true,
+                                    text: "Beri Nilai",
+                                    borderColor: AppColor.primary,
+                                    textColor: AppColor.primary,
+                                    onPressed: () {},
+                                  ),
+                                ),
                             ],
                           ),
                         ),
