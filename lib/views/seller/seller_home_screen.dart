@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:rentora_app/controllers/store_controller.dart';
+import 'package:rentora_app/controllers/transaction_controller.dart';
 import 'package:rentora_app/controllers/user_controller.dart';
 import 'package:rentora_app/core/constants/app_color.dart';
 import 'package:rentora_app/models/store_model.dart';
@@ -19,9 +20,11 @@ class SellerHomeScreen extends StatefulWidget {
 class _SellerHomeScreenState extends State<SellerHomeScreen> {
   final StoreController _storeController = StoreController();
   final UserController _userController = UserController();
+  final TransactionController _transactionController = TransactionController();
 
   StoreModel? _store;
   UserModel? _user;
+  int _pendingShipmentCount = 0;
 
   @override
   void initState() {
@@ -43,8 +46,19 @@ class _SellerHomeScreenState extends State<SellerHomeScreen> {
         _store = store;
       });
 
+      await _loadSellerStats();
       _checkStoreProfile();
     }
+  }
+
+  Future<void> _loadSellerStats() async {
+    final pendingCount = await _transactionController
+        .getPendingShipmentCountForCurrentSeller();
+
+    if (!mounted) return;
+    setState(() {
+      _pendingShipmentCount = pendingCount;
+    });
   }
 
   // Memeriksa apakah profil toko sudah lengkap
@@ -186,10 +200,13 @@ class _SellerHomeScreenState extends State<SellerHomeScreen> {
                         color: AppColor.surface,
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      child: const Row(
+                      child: Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          StatItem(count: 0, label: "Perlu Dikirim"),
+                          StatItem(
+                            count: _pendingShipmentCount,
+                            label: "Perlu Dikirim",
+                          ),
                           StatItem(count: 0, label: "Pembatalan"),
                           StatItem(count: 0, label: "Pengembalian"),
                           StatItem(count: 0, label: "Penilaian Perlu\nDibalas"),

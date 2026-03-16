@@ -1,5 +1,6 @@
 import 'package:rentora_app/models/cart_model.dart';
 import 'package:rentora_app/models/product_model.dart';
+import 'package:rentora_app/models/transaction_model.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import 'package:rentora_app/models/user_model.dart';
@@ -76,8 +77,32 @@ class DBHelper {
           FOREIGN KEY (store_id) REFERENCES stores(id)
         )
         ''');
+
+        // ==========================
+        // TABLE TRANSAKSI
+        // ==========================
+        await db.execute('''
+        CREATE TABLE transactions (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          user_id INTEGER NOT NULL,
+          store_id INTEGER NOT NULL,
+          store_name TEXT,
+          status TEXT,
+          payment_method TEXT,
+          payment_label TEXT,
+          items_data TEXT,
+          total_products INTEGER,
+          rental_days INTEGER,
+          subtotal INTEGER,
+          service_fee INTEGER,
+          total_payment INTEGER,
+          created_at TEXT,
+          FOREIGN KEY (user_id) REFERENCES user(id),
+          FOREIGN KEY (store_id) REFERENCES stores(id)
+        )
+        ''');
       },
-      version: 3,
+      version: 4,
       onUpgrade: (db, oldVersion, newVersion) async {
         if (oldVersion < 2) {
           // add new columns to user table without losing existing data
@@ -87,6 +112,29 @@ class DBHelper {
 
         if (oldVersion < 3) {
           await db.execute('ALTER TABLE cart ADD COLUMN user_id INTEGER');
+        }
+
+        if (oldVersion < 4) {
+          await db.execute('''
+          CREATE TABLE transactions (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            store_id INTEGER NOT NULL,
+            store_name TEXT,
+            status TEXT,
+            payment_method TEXT,
+            payment_label TEXT,
+            items_data TEXT,
+            total_products INTEGER,
+            rental_days INTEGER,
+            subtotal INTEGER,
+            service_fee INTEGER,
+            total_payment INTEGER,
+            created_at TEXT,
+            FOREIGN KEY (user_id) REFERENCES user(id),
+            FOREIGN KEY (store_id) REFERENCES stores(id)
+          )
+          ''');
         }
       },
     );
@@ -158,6 +206,46 @@ class DBHelper {
     await db.delete('product', where: 'id = ?', whereArgs: [id]);
   }
 
+  // Mengambil satu produk berdasarkan ID
+  static Future<ProductModel?> getProductById(int productId) async {
+    final db = await database();
+    final result = await db.query(
+      'product',
+      where: 'id = ?',
+      whereArgs: [productId],
+      limit: 1,
+    );
+
+    if (result.isEmpty) return null;
+    return ProductModel.fromMap(result.first);
+  }
+
+  // Mengurangi stok produk sesuai jumlah checkout.
+  static Future<void> reduceProductStock({
+    required int productId,
+    required int quantity,
+  }) async {
+    final db = await database();
+
+    final product = await getProductById(productId);
+    if (product == null) {
+      throw Exception('Produk tidak ditemukan');
+    }
+
+    if (product.stok < quantity) {
+      throw Exception(
+        'Stok ${product.namaProduk} tidak mencukupi (sisa ${product.stok})',
+      );
+    }
+
+    await db.update(
+      'product',
+      {'stok': product.stok - quantity},
+      where: 'id = ?',
+      whereArgs: [productId],
+    );
+  }
+
   // ==========================
   // FUNGSI UNTUK KERANJANG (CART)
   // ==========================
@@ -207,5 +295,78 @@ class DBHelper {
       whereArgs: [userId],
     );
     return maps.map((e) => CartModel.fromMap(e)).toList();
+  }
+
+  // ==========================
+  // FUNGSI UNTUK TRANSAKSI
+  // ==========================
+
+  static Future<int> insertTransaction(TransactionModel transaction) async {
+    final db = await database();
+    return db.insert(
+      'transactions',
+      transaction.toMap(),
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+  }
+
+  static Future<List<TransactionModel>> getTransactionsByUser({
+    required int userId,
+  }) async {
+    final db = await database();
+    final maps = await db.query(
+      'transactions',
+      where: 'user_id = ?',
+      whereArgs: [userId],
+      orderBy: 'id DESC',
+    );
+
+    return maps.map((e) => TransactionModel.fromMap(e)).toList();
+  }
+
+  static Future<List<TransactionModel>> getTransactionsByStore({
+    required int storeId,
+    List<String>? statuses,
+  }) async {
+    final db = await database();
+
+    String where = 'store_id = ?';
+    final whereArgs = <Object>[storeId];
+
+    if (statuses != null && statuses.isNotEmpty) {
+      final placeholders = List.filled(statuses.length, '?').join(', ');
+      where += ' AND status IN ($placeholders)';
+      whereArgs.addAll(statuses);
+    }
+
+    final maps = await db.query(
+      'transactions',
+      where: where,
+      whereArgs: whereArgs,
+      orderBy: 'id DESC',
+    );
+
+    return maps.map((e) => TransactionModel.fromMap(e)).toList();
+  }
+
+  // Menghitung total item transaksi yang perlu dikirim untuk toko tertentu.
+  static Future<int> getPendingShipmentItemsCountByStore({
+    required int storeId,
+  }) async {
+    final db = await database();
+    final result = await db.rawQuery(
+      '''
+      SELECT COALESCE(SUM(total_products), 0) AS total
+      FROM transactions
+      WHERE store_id = ?
+        AND status IN ('Belum Bayar', 'Diproses')
+      ''',
+      [storeId],
+    );
+
+    final total = result.first['total'];
+    if (total is int) return total;
+    if (total is num) return total.toInt();
+    return 0;
   }
 }

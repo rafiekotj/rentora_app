@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/symbols.dart';
+import 'package:rentora_app/controllers/transaction_controller.dart';
 import 'package:rentora_app/core/constants/app_color.dart';
+import 'package:rentora_app/core/utils/app_formatters.dart';
+import 'package:rentora_app/models/transaction_model.dart';
 import 'package:rentora_app/widgets/custom_button.dart';
+import 'dart:io';
 
 class TransactionHistoryScreen extends StatefulWidget {
   const TransactionHistoryScreen({super.key});
@@ -12,6 +16,8 @@ class TransactionHistoryScreen extends StatefulWidget {
 }
 
 class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
+  final TransactionController _transactionController = TransactionController();
+
   static const List<String> _tabTitles = [
     'Semua',
     'Belum Bayar',
@@ -21,6 +27,40 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
     'Dibatalkan',
   ];
 
+  bool _isLoading = true;
+  List<TransactionModel> _transactions = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadTransactions();
+  }
+
+  Future<void> _loadTransactions() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final data = await _transactionController.getCurrentUserTransactions();
+      if (!mounted) return;
+      setState(() {
+        _transactions = data;
+      });
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  List<TransactionModel> _transactionsByStatus(String status) {
+    if (status == 'Semua') return _transactions;
+    return _transactions.where((t) => t.status == status).toList();
+  }
+
   bool _showContactSellerButton(String status) {
     return status == 'Belum Bayar' ||
         status == 'Diproses' ||
@@ -29,6 +69,150 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
 
   bool _showRateButton(String status) {
     return status == 'Selesai';
+  }
+
+  Widget _buildTransactionCard(TransactionModel transaction) {
+    final item = transaction.items.first;
+    final imagePath = item.product.images.isNotEmpty
+        ? item.product.images.first
+        : null;
+
+    return Container(
+      padding: const EdgeInsets.all(8),
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: AppColor.surface,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [Text(transaction.storeName), Text(transaction.status)],
+          ),
+
+          const SizedBox(height: 8),
+
+          Row(
+            children: [
+              Container(
+                width: 80,
+                height: 80,
+                decoration: BoxDecoration(
+                  color: AppColor.border,
+                  image: imagePath != null
+                      ? DecorationImage(
+                          image: FileImage(File(imagePath)),
+                          fit: BoxFit.cover,
+                        )
+                      : null,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: SizedBox(
+                  height: 80,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(item.product.namaProduk),
+                          Align(
+                            alignment: Alignment.bottomRight,
+                            child: Text('x${item.quantity}'),
+                          ),
+                        ],
+                      ),
+                      const Spacer(),
+                      Align(
+                        alignment: Alignment.bottomRight,
+                        child: Text(
+                          'Rp${AppFormatters.formatRupiah(item.product.hargaPerHari)}',
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 8),
+
+          Align(
+            alignment: Alignment.bottomRight,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text('Pinjam ${transaction.rentalDays} hari: '),
+                Text(
+                  'Rp${AppFormatters.formatRupiah(transaction.totalPayment)}',
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 8),
+
+          if (_showContactSellerButton(transaction.status))
+            Align(
+              alignment: Alignment.bottomRight,
+              child: CustomButton(
+                width: 126,
+                height: 36,
+                isOutlined: true,
+                text: 'Hubungi Penjual',
+                borderColor: AppColor.textHint,
+                textColor: AppColor.textHint,
+                onPressed: () {},
+              ),
+            ),
+
+          if (_showRateButton(transaction.status))
+            Align(
+              alignment: Alignment.bottomRight,
+              child: CustomButton(
+                width: 88,
+                height: 36,
+                isOutlined: true,
+                text: 'Beri Nilai',
+                borderColor: AppColor.primary,
+                textColor: AppColor.primary,
+                onPressed: () {},
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTabContent(String status) {
+    if (_isLoading) {
+      return const Center(
+        child: CircularProgressIndicator(color: AppColor.primary),
+      );
+    }
+
+    final filtered = _transactionsByStatus(status);
+    if (filtered.isEmpty) {
+      return const Center(child: Text('Belum ada transaksi'));
+    }
+
+    return RefreshIndicator(
+      onRefresh: _loadTransactions,
+      child: ListView.separated(
+        padding: const EdgeInsets.all(8),
+        itemBuilder: (context, index) {
+          return _buildTransactionCard(filtered[index]);
+        },
+        separatorBuilder: (_, _) => const SizedBox(height: 8),
+        itemCount: filtered.length,
+      ),
+    );
   }
 
   @override
@@ -58,130 +242,7 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
             tabs: _tabTitles.map((title) => Tab(text: title)).toList(),
           ),
         ),
-        body: TabBarView(
-          children: _tabTitles
-              .map(
-                (status) => SingleChildScrollView(
-                  child: Padding(
-                    padding: const EdgeInsets.all(8),
-                    child: Column(
-                      children: [
-                        Container(
-                          padding: EdgeInsets.all(8),
-                          width: double.infinity,
-                          decoration: BoxDecoration(
-                            color: AppColor.surface,
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [Text("Nama Toko"), Text(status)],
-                              ),
-
-                              const SizedBox(height: 8),
-
-                              Row(
-                                children: [
-                                  Container(
-                                    width: 80,
-                                    height: 80,
-                                    decoration: BoxDecoration(
-                                      color: AppColor.border,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Expanded(
-                                    child: SizedBox(
-                                      height: 80,
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              Text("Nama Produk"),
-                                              Align(
-                                                alignment:
-                                                    Alignment.bottomRight,
-                                                child: Text("x2"),
-                                              ),
-                                            ],
-                                          ),
-                                          const Spacer(),
-                                          Align(
-                                            alignment: Alignment.bottomRight,
-                                            child: Text("Rp100.000"),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-
-                              const SizedBox(height: 8),
-
-                              Align(
-                                alignment: Alignment.bottomRight,
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Text("Pinjam 2 hari: "),
-                                    Text(
-                                      "Rp100.000",
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-
-                              const SizedBox(height: 8),
-
-                              if (_showContactSellerButton(status))
-                                Align(
-                                  alignment: Alignment.bottomRight,
-                                  child: CustomButton(
-                                    width: 126,
-                                    height: 36,
-                                    isOutlined: true,
-                                    text: "Hubungi Penjual",
-                                    borderColor: AppColor.textHint,
-                                    textColor: AppColor.textHint,
-                                    onPressed: () {},
-                                  ),
-                                ),
-
-                              if (_showRateButton(status))
-                                Align(
-                                  alignment: Alignment.bottomRight,
-                                  child: CustomButton(
-                                    width: 88,
-                                    height: 36,
-                                    isOutlined: true,
-                                    text: "Beri Nilai",
-                                    borderColor: AppColor.primary,
-                                    textColor: AppColor.primary,
-                                    onPressed: () {},
-                                  ),
-                                ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              )
-              .toList(),
-        ),
+        body: TabBarView(children: _tabTitles.map(_buildTabContent).toList()),
       ),
     );
   }

@@ -2,10 +2,13 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/symbols.dart';
+import 'package:rentora_app/controllers/cart_controller.dart';
+import 'package:rentora_app/controllers/transaction_controller.dart';
 import 'package:rentora_app/core/constants/app_color.dart';
 import 'package:rentora_app/core/utils/app_formatters.dart';
 import 'package:rentora_app/models/cart_model.dart';
 import 'package:rentora_app/views/checkout/payment_method_screen.dart';
+import 'package:rentora_app/views/checkout/payment_success_screen.dart';
 
 class CheckoutScreen extends StatefulWidget {
   final List<CartModel> cartItems;
@@ -17,9 +20,13 @@ class CheckoutScreen extends StatefulWidget {
 }
 
 class _CheckoutScreenState extends State<CheckoutScreen> {
+  final TransactionController _transactionController = TransactionController();
+  final CartController _cartController = CartController();
+
   String selectedMethod = "bank";
   String selectedBankCode = 'bca';
   String selectedBankLabel = 'BCA';
+  bool _isPaying = false;
   static const int _serviceFee = 1000;
 
   bool _isBankMethodCode(String methodCode) {
@@ -83,6 +90,71 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   }
 
   int get _totalPayment => _subtotal + _serviceFee;
+
+  String get _effectivePaymentMethod {
+    return selectedMethod == 'bank' ? selectedBankCode : selectedMethod;
+  }
+
+  String get _effectivePaymentLabel {
+    switch (_effectivePaymentMethod) {
+      case 'bca':
+        return 'Transfer Bank - BCA';
+      case 'mandiri':
+        return 'Transfer Bank - Mandiri';
+      case 'bni':
+        return 'Transfer Bank - BNI';
+      case 'bri':
+        return 'Transfer Bank - BRI';
+      case 'qris':
+        return 'QRIS';
+      case 'cod':
+        return 'COD';
+      default:
+        return _effectivePaymentMethod;
+    }
+  }
+
+  Future<void> _processPayment() async {
+    if (_isPaying) return;
+
+    setState(() {
+      _isPaying = true;
+    });
+
+    try {
+      await _transactionController.createTransaction(
+        cartItems: widget.cartItems,
+        paymentMethod: _effectivePaymentMethod,
+        paymentLabel: _effectivePaymentLabel,
+        serviceFee: _serviceFee,
+      );
+
+      for (final item in widget.cartItems) {
+        await _cartController.removeFromCart(item);
+      }
+
+      if (!mounted) return;
+
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const PaymentSuccessScreen()),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(e.toString().replaceFirst('Exception: ', '')),
+          duration: const Duration(seconds: 2),
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isPaying = false;
+        });
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -567,14 +639,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             ),
             const SizedBox(width: 12),
             GestureDetector(
-              onTap: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Proses bayar belum diimplementasikan'),
-                    duration: Duration(seconds: 2),
-                  ),
-                );
-              },
+              onTap: _processPayment,
               child: Container(
                 decoration: BoxDecoration(
                   color: AppColor.primary,
@@ -583,14 +648,23 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 width: 120,
                 height: double.infinity,
                 alignment: Alignment.center,
-                child: const Text(
-                  "Bayar",
-                  style: TextStyle(
-                    color: AppColor.surface,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
+                child: _isPaying
+                    ? const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(
+                          color: AppColor.surface,
+                          strokeWidth: 2,
+                        ),
+                      )
+                    : const Text(
+                        "Bayar",
+                        style: TextStyle(
+                          color: AppColor.surface,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
               ),
             ),
           ],
