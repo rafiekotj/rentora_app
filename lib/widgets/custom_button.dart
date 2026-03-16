@@ -6,8 +6,12 @@ class CustomButton extends StatelessWidget {
   final VoidCallback onPressed;
   final bool isOutlined;
   final String? iconAsset;
+  final double? width;
+  final double height;
   final Color? backgroundColor;
+  final Color? borderColor;
   final Color? textColor;
+  final Color? overlayColor;
   final bool isLoading;
 
   const CustomButton({
@@ -16,22 +20,36 @@ class CustomButton extends StatelessWidget {
     required this.onPressed,
     this.isOutlined = false,
     this.iconAsset,
+    this.width,
+    this.height = 48,
     this.backgroundColor,
+    this.borderColor,
     this.textColor,
+    this.overlayColor,
     this.isLoading = false,
   });
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: double.infinity,
-      height: 48,
+      width: width ?? double.infinity,
+      height: height,
       child: isOutlined
           ? OutlinedButton(
+              clipBehavior: Clip.antiAlias,
               onPressed: isLoading ? null : onPressed,
               style: OutlinedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                side: BorderSide(color: backgroundColor ?? AppColor.textHint),
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                backgroundColor: backgroundColor,
+                overlayColor:
+                    overlayColor ??
+                    (textColor ?? borderColor ?? AppColor.textHint).withAlpha(
+                      20,
+                    ),
+                side: BorderSide(
+                  color: borderColor ?? backgroundColor ?? AppColor.textHint,
+                  strokeAlign: BorderSide.strokeAlignInside,
+                ),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
@@ -69,9 +87,13 @@ class CustomButton extends StatelessWidget {
                     ),
             )
           : ElevatedButton(
+              clipBehavior: Clip.antiAlias,
               onPressed: isLoading ? null : onPressed,
               style: ElevatedButton.styleFrom(
                 backgroundColor: backgroundColor ?? AppColor.secondary,
+                overlayColor:
+                    overlayColor ??
+                    (textColor ?? AppColor.surface).withAlpha(24),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),

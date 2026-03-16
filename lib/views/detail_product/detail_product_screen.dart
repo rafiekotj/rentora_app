@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:rentora_app/controllers/cart_controller.dart';
 import 'package:rentora_app/controllers/store_controller.dart';
+import 'package:rentora_app/controllers/user_controller.dart';
 import 'package:rentora_app/core/constants/app_color.dart';
 import 'package:rentora_app/core/utils/app_formatters.dart';
 import 'package:rentora_app/models/cart_model.dart';
@@ -30,6 +31,7 @@ class _DetailProductScreenState extends State<DetailProductScreen> {
 
   final StoreController _storeController = StoreController();
   final CartController _cartController = CartController();
+  final UserController _userController = UserController();
 
   StoreModel? _store;
 
@@ -272,17 +274,50 @@ class _DetailProductScreenState extends State<DetailProductScreen> {
 
                     Expanded(
                       child: GestureDetector(
-                        onTap: () {
-                          // Menambah produk ke keranjang
-                          _cartController.addToCart(
-                            CartModel(product: widget.produk),
-                          );
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Produk ditambahkan ke keranjang'),
-                              duration: Duration(seconds: 1),
-                            ),
-                          );
+                        onTap: () async {
+                          try {
+                            final currentUser = await _userController
+                                .getCurrentUser();
+
+                            if (currentUser != null &&
+                                _store != null &&
+                                _store!.id == widget.produk.storeId &&
+                                _store!.userId == currentUser.id) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text(
+                                    'Tidak bisa menambahkan produk sendiri ke keranjang',
+                                  ),
+                                  duration: Duration(seconds: 2),
+                                ),
+                              );
+                              return;
+                            }
+
+                            await _cartController.addToCart(
+                              CartModel(product: widget.produk),
+                            );
+
+                            if (!context.mounted) return;
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text(
+                                  'Produk ditambahkan ke keranjang',
+                                ),
+                                duration: Duration(seconds: 1),
+                              ),
+                            );
+                          } catch (e) {
+                            if (!context.mounted) return;
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  e.toString().replaceFirst('Exception: ', ''),
+                                ),
+                                duration: const Duration(seconds: 2),
+                              ),
+                            );
+                          }
                         },
                         behavior: HitTestBehavior.opaque,
                         child: Center(

@@ -219,7 +219,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   Symbols.chat,
                   color: AppColor.textOnPrimary,
                   size: 24,
-                  weight: 600,
+                  weight: 700,
                 ),
               ),
               IconButton(
@@ -233,7 +233,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   Symbols.shopping_cart,
                   color: AppColor.textOnPrimary,
                   size: 24,
-                  weight: 600,
+                  weight: 700,
                 ),
               ),
             ],

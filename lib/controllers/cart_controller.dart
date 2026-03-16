@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:rentora_app/controllers/store_controller.dart';
 import 'package:rentora_app/models/cart_model.dart';
 import 'package:rentora_app/controllers/user_controller.dart';
 import 'package:rentora_app/services/database/sqflite.dart';
@@ -6,6 +7,7 @@ import 'package:rentora_app/services/database/sqflite.dart';
 class CartController {
   static final CartController _instance = CartController._internal();
   final UserController _userController = UserController();
+  final StoreController _storeController = StoreController();
 
   factory CartController() {
     return _instance;
@@ -79,6 +81,11 @@ class CartController {
     final user = await _userController.getCurrentUser();
     if (user?.id == null) {
       throw Exception('User belum login');
+    }
+
+    final store = await _storeController.getStoreById(cartItem.product.storeId);
+    if (store != null && store.userId == user!.id) {
+      throw Exception('Tidak bisa menambahkan produk sendiri ke keranjang');
     }
 
     final index = cartItemsNotifier.value.indexWhere(

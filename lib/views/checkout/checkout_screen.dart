@@ -1,9 +1,16 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:rentora_app/core/constants/app_color.dart';
+import 'package:rentora_app/core/utils/app_formatters.dart';
+import 'package:rentora_app/models/cart_model.dart';
+import 'package:rentora_app/views/checkout/payment_method_screen.dart';
 
 class CheckoutScreen extends StatefulWidget {
-  const CheckoutScreen({super.key});
+  final List<CartModel> cartItems;
+
+  const CheckoutScreen({super.key, required this.cartItems});
 
   @override
   State<CheckoutScreen> createState() => _CheckoutScreenState();
@@ -11,6 +18,30 @@ class CheckoutScreen extends StatefulWidget {
 
 class _CheckoutScreenState extends State<CheckoutScreen> {
   String selectedMethod = "bank";
+  static const int _serviceFee = 1000;
+
+  int get _subtotal {
+    int total = 0;
+    for (final item in widget.cartItems) {
+      total += item.product.hargaPerHari * item.quantity * item.rentalDays;
+    }
+    return total;
+  }
+
+  int get _totalProducts {
+    int total = 0;
+    for (final item in widget.cartItems) {
+      total += item.quantity;
+    }
+    return total;
+  }
+
+  int get _rentalDays {
+    if (widget.cartItems.isEmpty) return 0;
+    return widget.cartItems.first.rentalDays;
+  }
+
+  int get _totalPayment => _subtotal + _serviceFee;
 
   @override
   Widget build(BuildContext context) {
@@ -118,117 +149,75 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Row(
-                          children: [
-                            Container(
-                              height: 80,
-                              width: 80,
-                              decoration: BoxDecoration(
-                                color: AppColor.textHint,
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: SizedBox(
-                                height: 80,
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Text(
-                                      "Kamera Canon",
-                                      style: TextStyle(
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                    ),
-                                    Row(
+                        ...widget.cartItems.map((item) {
+                          final imagePath = item.product.images.isNotEmpty
+                              ? item.product.images.first
+                              : null;
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 8),
+                            child: Row(
+                              children: [
+                                Container(
+                                  height: 80,
+                                  width: 80,
+                                  decoration: BoxDecoration(
+                                    color: AppColor.textHint,
+                                  ),
+                                  child: imagePath != null
+                                      ? Image.file(
+                                          File(imagePath),
+                                          fit: BoxFit.cover,
+                                        )
+                                      : null,
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: SizedBox(
+                                    height: 80,
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       mainAxisAlignment:
                                           MainAxisAlignment.spaceBetween,
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.end,
                                       children: [
                                         Text(
-                                          "Rp60.000",
+                                          item.product.namaProduk,
                                           style: TextStyle(
-                                            color: AppColor.secondary,
                                             fontSize: 14,
-                                            fontWeight: FontWeight.bold,
+                                            fontWeight: FontWeight.w600,
                                           ),
                                         ),
-                                        Text(
-                                          "x2",
-                                          style: TextStyle(
-                                            color: AppColor.textHint,
-                                            fontSize: 12,
-                                          ),
+                                        Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.end,
+                                          children: [
+                                            Text(
+                                              'Rp ${AppFormatters.formatRupiah(item.product.hargaPerHari)}',
+                                              style: TextStyle(
+                                                color: AppColor.secondary,
+                                                fontSize: 14,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                            Text(
+                                              'x${item.quantity}',
+                                              style: TextStyle(
+                                                color: AppColor.textHint,
+                                                fontSize: 12,
+                                              ),
+                                            ),
+                                          ],
                                         ),
                                       ],
                                     ),
-                                  ],
+                                  ),
                                 ),
-                              ),
+                              ],
                             ),
-                          ],
-                        ),
-
-                        const SizedBox(height: 8),
-
-                        Row(
-                          children: [
-                            Container(
-                              height: 80,
-                              width: 80,
-                              decoration: BoxDecoration(
-                                color: AppColor.textHint,
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: SizedBox(
-                                height: 80,
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Text(
-                                      "Kamera Sony",
-                                      style: TextStyle(
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                    ),
-                                    Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.end,
-                                      children: [
-                                        Text(
-                                          "Rp60.000",
-                                          style: TextStyle(
-                                            color: AppColor.secondary,
-                                            fontSize: 14,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                        Text(
-                                          "x2",
-                                          style: TextStyle(
-                                            color: AppColor.textHint,
-                                            fontSize: 12,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
+                          );
+                        }),
 
                         const SizedBox(height: 12),
                       ],
@@ -247,8 +236,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                           style: TextStyle(fontSize: 12),
                         ),
                         SizedBox(
-                          child: const Text(
-                            "3 hari",
+                          child: Text(
+                            '$_rentalDays hari',
                             style: TextStyle(fontSize: 12),
                           ),
                         ),
@@ -263,9 +252,12 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text("Total 4 Produk", style: TextStyle(fontSize: 12)),
                         Text(
-                          "Rp440.000",
+                          'Total $_totalProducts Produk',
+                          style: TextStyle(fontSize: 12),
+                        ),
+                        Text(
+                          'Rp ${AppFormatters.formatRupiah(_subtotal)}',
                           style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
@@ -301,7 +293,14 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                         ),
                       ),
                       GestureDetector(
-                        onTap: () {},
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const PaymentMethodScreen(),
+                            ),
+                          );
+                        },
                         child: Row(
                           children: [
                             Text(
@@ -352,28 +351,27 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     ),
                   ),
 
-                  GestureDetector(
-                    onTap: () => setState(() => selectedMethod = "debit"),
-                    child: Row(
-                      children: [
-                        const Icon(Symbols.credit_card),
-                        const SizedBox(width: 12),
-                        const Text(
-                          "Kartu Debit",
-                          style: TextStyle(fontSize: 12),
-                        ),
-                        const Spacer(),
-                        Radio<String>(
-                          value: "debit",
-                          activeColor: AppColor.primary,
-                          groupValue: selectedMethod,
-                          onChanged: (value) =>
-                              setState(() => selectedMethod = value!),
-                        ),
-                      ],
-                    ),
-                  ),
-
+                  // GestureDetector(
+                  //   onTap: () => setState(() => selectedMethod = "debit"),
+                  //   child: Row(
+                  //     children: [
+                  //       const Icon(Symbols.credit_card),
+                  //       const SizedBox(width: 12),
+                  //       const Text(
+                  //         "Kartu Debit",
+                  //         style: TextStyle(fontSize: 12),
+                  //       ),
+                  //       const Spacer(),
+                  //       Radio<String>(
+                  //         value: "debit",
+                  //         activeColor: AppColor.primary,
+                  //         groupValue: selectedMethod,
+                  //         onChanged: (value) =>
+                  //             setState(() => selectedMethod = value!),
+                  //       ),
+                  //     ],
+                  //   ),
+                  // ),
                   GestureDetector(
                     onTap: () => setState(() => selectedMethod = "qris"),
                     child: Row(
@@ -388,6 +386,27 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                           groupValue: selectedMethod,
                           onChanged: (value) =>
                               setState(() => selectedMethod = value!),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  GestureDetector(
+                    onTap: () => setState(() => selectedMethod = 'cod'),
+                    child: Row(
+                      children: [
+                        const Icon(Symbols.quick_reorder),
+                        const SizedBox(width: 12),
+                        Text('COD', style: TextStyle(fontSize: 12)),
+                        const Spacer(),
+                        Radio<String>(
+                          value: 'cod',
+                          activeColor: AppColor.primary,
+                          groupValue: selectedMethod,
+                          onChanged: (value) {
+                            if (value == null) return;
+                            setState(() => selectedMethod = value);
+                          },
                         ),
                       ],
                     ),
@@ -431,7 +450,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                                   style: TextStyle(fontSize: 12),
                                 ),
                                 Text(
-                                  "Rp440.000",
+                                  'Rp ${AppFormatters.formatRupiah(_subtotal)}',
                                   style: TextStyle(fontSize: 12),
                                 ),
                               ],
@@ -444,7 +463,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                                   "Biaya Layanan",
                                   style: TextStyle(fontSize: 12),
                                 ),
-                                Text("Rp1.000", style: TextStyle(fontSize: 12)),
+                                Text(
+                                  'Rp ${AppFormatters.formatRupiah(_serviceFee)}',
+                                  style: TextStyle(fontSize: 12),
+                                ),
                               ],
                             ),
                           ],
@@ -452,7 +474,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                       ),
                     ],
                   ),
-                  const Divider(height: 8),
+                  const Divider(height: 8, color: AppColor.divider),
                   Padding(
                     padding: const EdgeInsets.fromLTRB(8, 4, 8, 8),
                     child: Row(
@@ -462,7 +484,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                           "Total Pembayaran",
                           style: TextStyle(fontSize: 12),
                         ),
-                        Text("Rp441.000", style: TextStyle(fontSize: 12)),
+                        Text(
+                          'Rp ${AppFormatters.formatRupiah(_totalPayment)}',
+                          style: TextStyle(fontSize: 12),
+                        ),
                       ],
                     ),
                   ),
@@ -472,8 +497,52 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           ],
         ),
       ),
-      // ----- CHECKOUT BUTTON -----
-      bottomNavigationBar: Container(),
+      bottomNavigationBar: Container(
+        height: 56,
+        decoration: const BoxDecoration(color: AppColor.surface),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            Text(
+              'Rp ${AppFormatters.formatRupiah(_totalPayment)}',
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: AppColor.secondary,
+              ),
+            ),
+            const SizedBox(width: 12),
+            GestureDetector(
+              onTap: () {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Proses bayar belum diimplementasikan'),
+                    duration: Duration(seconds: 2),
+                  ),
+                );
+              },
+              child: Container(
+                decoration: BoxDecoration(
+                  color: AppColor.primary,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                width: 120,
+                height: double.infinity,
+                alignment: Alignment.center,
+                child: const Text(
+                  "Bayar",
+                  style: TextStyle(
+                    color: AppColor.surface,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

@@ -235,6 +235,18 @@ class _CartScreenState extends State<CartScreen> {
     return total;
   }
 
+  // Mengambil item keranjang yang dipilih user untuk dibawa ke halaman checkout.
+  List<CartModel> _getSelectedCartItems(
+    List<CartModel> cartItems,
+    List<int> selectedProductIds,
+  ) {
+    return cartItems.where((item) {
+      final productId = item.product.id;
+      if (productId == null) return false;
+      return selectedProductIds.contains(productId);
+    }).toList();
+  }
+
   @override
   Widget build(BuildContext context) {
     // Ambil semua item keranjang dari controller
@@ -258,7 +270,7 @@ class _CartScreenState extends State<CartScreen> {
         actions: [
           IconButton(
             onPressed: () {},
-            icon: const Icon(Symbols.chat, weight: 600),
+            icon: const Icon(Symbols.chat, weight: 700),
           ),
           const SizedBox(width: 8),
         ],
@@ -302,6 +314,14 @@ class _CartScreenState extends State<CartScreen> {
       bottomNavigationBar: ValueListenableBuilder(
         valueListenable: _cartController.selectedProductIds,
         builder: (context, selectedProductIds, child) {
+          final totalPrice = _calculateTotal(
+            groupedByStore,
+            selectedProductIds,
+          );
+          final totalLabel = selectedProductIds.isEmpty
+              ? 'Rp-'
+              : 'Rp ${AppFormatters.formatRupiah(totalPrice.toString())}';
+
           return Container(
             height: 56,
             decoration: const BoxDecoration(color: AppColor.surface),
@@ -310,7 +330,7 @@ class _CartScreenState extends State<CartScreen> {
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 Text(
-                  "Rp ${AppFormatters.formatRupiah(_calculateTotal(groupedByStore, selectedProductIds).toString())}",
+                  totalLabel,
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
@@ -320,10 +340,28 @@ class _CartScreenState extends State<CartScreen> {
                 const SizedBox(width: 12),
                 GestureDetector(
                   onTap: () {
+                    final selectedItems = _getSelectedCartItems(
+                      cartItems,
+                      selectedProductIds,
+                    );
+
+                    if (selectedItems.isEmpty) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text(
+                            'Pilih minimal 1 produk untuk checkout',
+                          ),
+                          duration: Duration(seconds: 2),
+                        ),
+                      );
+                      return;
+                    }
+
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => const CheckoutScreen(),
+                        builder: (context) =>
+                            CheckoutScreen(cartItems: selectedItems),
                       ),
                     );
                   },
@@ -402,28 +440,19 @@ class StoreCartCard extends StatelessWidget {
                     activeColor: AppColor.primary,
                     onChanged: (value) {
                       if (value == true) {
-                        // Select store dan semua produk
+                        // Select store dan semua produk di dalam store ini.
                         cartController.selectStore(userId);
-                        for (CartModel item in cartItems) {
-                          if (item.product.id != null &&
-                              !cartController.selectedProductIds.value.contains(
-                                item.product.id,
-                              )) {
-                            cartController.selectProduct(item.product.id!);
-                          }
-                        }
                       } else {
-                        // Unselect semua produk di store ini
-                        final selectedIds =
-                            cartController.selectedProductIds.value;
+                        // Unselect semua produk di store ini tanpa reselect kembali.
+                        final selectedIds = List<int>.from(
+                          cartController.selectedProductIds.value,
+                        );
                         for (CartModel item in cartItems) {
                           if (item.product.id != null &&
                               selectedIds.contains(item.product.id)) {
                             cartController.selectProduct(item.product.id!);
                           }
                         }
-                        // Toggle store (akan otomatis deselect)
-                        cartController.selectStore(userId);
                       }
                     },
                   ),
