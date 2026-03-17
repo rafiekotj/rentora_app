@@ -19,18 +19,16 @@ class _SplashScreenState extends State<SplashScreen> {
     autoLogin();
   }
 
-  void autoLogin() async {
-    await Future.delayed(Duration(seconds: 2));
-    bool? data = await PreferenceHandler.getIsLogin();
-    if (data == null) {
-      print("Belum Login");
-    } else {
-      print("Sudah Login");
-    }
+  Future<void> autoLogin() async {
+    await Future.delayed(const Duration(seconds: 2));
+    final bool? data = await PreferenceHandler.getIsLogin();
+
+    if (!mounted) return;
+
     if (data == true) {
-      context.pushAndRemoveAll(BottomNavbar());
+      context.pushAndRemoveAll(const BottomNavbar());
     } else {
-      context.pushAndRemoveAll(BoardingScreen());
+      context.pushAndRemoveAll(const BoardingScreen());
     }
   }
 
