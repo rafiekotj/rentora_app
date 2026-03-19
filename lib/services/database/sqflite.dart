@@ -1,3 +1,7 @@
+import 'dart:convert';
+import 'dart:io';
+import 'package:flutter/services.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:rentora_app/models/cart_model.dart';
 import 'package:rentora_app/models/product_model.dart';
 import 'package:rentora_app/models/transaction_model.dart';
@@ -101,6 +105,9 @@ class DBHelper {
           FOREIGN KEY (store_id) REFERENCES stores(id)
         )
         ''');
+
+        // DATA DUMMY
+        await _seedInitialData(db);
       },
       version: 4,
       onUpgrade: (db, oldVersion, newVersion) async {
@@ -138,6 +145,91 @@ class DBHelper {
         }
       },
     );
+  }
+
+  // ===============================
+  // FUNGSI UNTUK DATA DUMMY
+  // ===============================
+  static Future<void> _seedInitialData(Database db) async {
+    final productCount = Sqflite.firstIntValue(
+      await db.rawQuery('SELECT COUNT(*) FROM product'),
+    );
+
+    if ((productCount ?? 0) > 0) {
+      return;
+    }
+
+    final dummyUserId = await db.insert('user', {
+      'email': 'dummy.store@rentora.app',
+      'password': 'dummy123',
+      'phone': '-',
+      'username': 'Rentora Demo Store',
+      'image': null,
+    });
+
+    final dummyStoreId = await db.insert('stores', {
+      'userId': dummyUserId,
+      'name': 'Demo Rental Store',
+      'image': null,
+      'location': 'Jakarta Selatan',
+    });
+
+    final jsonString = await rootBundle.loadString(
+      'assets/data/dummy_products.json',
+    );
+    final products = jsonDecode(jsonString) as List<dynamic>;
+
+    final appDocDir = await getApplicationDocumentsDirectory();
+    final dummyImageDir = Directory(join(appDocDir.path, 'dummy_products'));
+    if (!await dummyImageDir.exists()) {
+      await dummyImageDir.create(recursive: true);
+    }
+
+    for (var i = 0; i < products.length; i++) {
+      final item = products[i] as Map<String, dynamic>;
+
+      final imageAsset = item['imageAsset'] as String?;
+      final imagePath = imageAsset == null
+          ? null
+          : await _copyAssetImageToLocal(
+              assetPath: imageAsset,
+              outputDir: dummyImageDir.path,
+              fileName: 'dummy_product_$i.jpg',
+            );
+
+      await db.insert('product', {
+        'storeId': dummyStoreId,
+        'images': jsonEncode(imagePath != null ? [imagePath] : <String>[]),
+        'namaProduk': item['namaProduk'],
+        'deskripsiProduk': item['deskripsiProduk'],
+        'kategori': item['kategori'],
+        'hargaPerHari': item['hargaPerHari'],
+        'dendaPerHari': item['dendaPerHari'],
+        'stok': item['stok'],
+        'minJumlahPinjam': item['minJumlahPinjam'],
+        'maxHariPinjam': item['maxHariPinjam'],
+      });
+    }
+  }
+
+  // DATA DUMMY IMAGE
+  static Future<String?> _copyAssetImageToLocal({
+    required String assetPath,
+    required String outputDir,
+    required String fileName,
+  }) async {
+    try {
+      final byteData = await rootBundle.load(assetPath);
+      final bytes = byteData.buffer.asUint8List(
+        byteData.offsetInBytes,
+        byteData.lengthInBytes,
+      );
+      final file = File(join(outputDir, fileName));
+      await file.writeAsBytes(bytes, flush: true);
+      return file.path;
+    } catch (_) {
+      return null;
+    }
   }
 
   // ===============================
