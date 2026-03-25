@@ -47,19 +47,23 @@ class _BottomNavbarState extends State<BottomNavbar> {
           type: BottomNavigationBarType.fixed,
           items: const <BottomNavigationBarItem>[
             BottomNavigationBarItem(
-              icon: Icon(Symbols.home, fill: 1, weight: 700),
+              icon: Icon(Symbols.home, fill: 0, weight: 600),
+              activeIcon: Icon(Symbols.home, fill: 1, weight: 600),
               label: "Home",
             ),
             BottomNavigationBarItem(
-              icon: Icon(Symbols.notifications, fill: 1, weight: 700),
+              icon: Icon(Symbols.notifications, fill: 0, weight: 600),
+              activeIcon: Icon(Symbols.notifications, fill: 1, weight: 600),
               label: "Notifikasi",
             ),
             BottomNavigationBarItem(
-              icon: Icon(Symbols.article, fill: 1, weight: 700),
+              icon: Icon(Symbols.article, fill: 0, weight: 600),
+              activeIcon: Icon(Symbols.article, fill: 1, weight: 600),
               label: "Transaksi",
             ),
             BottomNavigationBarItem(
-              icon: Icon(Symbols.person, fill: 1, weight: 700),
+              icon: Icon(Symbols.person, fill: 0, weight: 600),
+              activeIcon: Icon(Symbols.person, fill: 1, weight: 600),
               label: "Akun",
             ),
           ],
