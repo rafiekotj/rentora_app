@@ -23,12 +23,14 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int _currentBannerIndex = 0;
   late PageController _pageController;
-  Timer? _timer;
+  Timer? _bannerTimer;
+  Timer? _countdownTimer;
 
   final ProductController _produkController = ProductController();
   final CartController _cartController = CartController();
   List<ProductModel> produkList = [];
   bool isLoading = true;
+  Duration _flashCountdown = const Duration(hours: 6);
 
   Map<int, String> storeMap = {};
 
@@ -98,6 +100,7 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
     _pageController = PageController(initialPage: 0);
     _startAutoPlay();
+    _startFlashCountdown();
     _loadProduk();
   }
 
@@ -113,7 +116,8 @@ class _HomeScreenState extends State<HomeScreen> {
   // Membersihkan controller dan timer
   @override
   void dispose() {
-    _timer?.cancel();
+    _bannerTimer?.cancel();
+    _countdownTimer?.cancel();
     _pageController.dispose();
     super.dispose();
   }
@@ -151,7 +155,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   // Memulai timer yang mengganti halaman banner
   void _startAutoPlay() {
-    _timer = Timer.periodic(const Duration(seconds: 3), (timer) {
+    _bannerTimer = Timer.periodic(const Duration(seconds: 3), (timer) {
       if (_currentBannerIndex < bannerImages.length - 1) {
         _currentBannerIndex++;
       } else {
@@ -168,8 +172,44 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
+  void _startFlashCountdown() {
+    _updateFlashCountdown();
+    _countdownTimer = Timer.periodic(const Duration(seconds: 1), (_) {
+      _updateFlashCountdown();
+    });
+  }
+
+  void _updateFlashCountdown() {
+    if (!mounted) return;
+    setState(() {
+      _flashCountdown = _timeUntilNextReset(DateTime.now());
+    });
+  }
+
+  Duration _timeUntilNextReset(DateTime now) {
+    final int nextBoundaryHour = ((now.hour ~/ 6) + 1) * 6;
+    final DateTime nextReset = nextBoundaryHour < 24
+        ? DateTime(now.year, now.month, now.day, nextBoundaryHour)
+        : DateTime(now.year, now.month, now.day + 1);
+    return nextReset.difference(now);
+  }
+
+  String _formatCountdown(Duration duration) {
+    final int hours = duration.inHours;
+    final int minutes = duration.inMinutes.remainder(60);
+    final int seconds = duration.inSeconds.remainder(60);
+
+    final String h = hours.toString().padLeft(2, '0');
+    final String m = minutes.toString().padLeft(2, '0');
+    final String s = seconds.toString().padLeft(2, '0');
+
+    return '$h:$m:$s';
+  }
+
   @override
   Widget build(BuildContext context) {
+    final String flashCountdownText = _formatCountdown(_flashCountdown);
+
     return Scaffold(
       backgroundColor: AppColor.backgroundLight,
       appBar: AppBar(
@@ -357,17 +397,17 @@ class _HomeScreenState extends State<HomeScreen> {
                       borderRadius: BorderRadius.circular(999),
                     ),
                     child: Row(
-                      children: const [
-                        Icon(
+                      children: [
+                        const Icon(
                           Symbols.bolt,
                           size: 14,
                           weight: 700,
                           color: AppColor.textOnPrimary,
                         ),
-                        SizedBox(width: 4),
+                        const SizedBox(width: 4),
                         Text(
-                          "03:45:22",
-                          style: TextStyle(
+                          flashCountdownText,
+                          style: const TextStyle(
                             color: AppColor.textOnPrimary,
                             fontWeight: FontWeight.w700,
                             fontSize: 11,
@@ -493,8 +533,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: const [
-                Text(
+              children: [
+                const Text(
                   "Flash Sale",
                   style: TextStyle(
                     fontSize: 14,
@@ -503,8 +543,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
                 Text(
-                  "Berakhir 03:45:22",
-                  style: TextStyle(
+                  "Berakhir $flashCountdownText",
+                  style: const TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w600,
                     color: AppColor.error,
