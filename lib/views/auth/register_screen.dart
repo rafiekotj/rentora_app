@@ -3,7 +3,7 @@ import 'package:rentora_app/controllers/user_controller.dart';
 import 'package:rentora_app/core/constants/app_color.dart';
 import 'package:rentora_app/core/extensions/navigator.dart';
 import 'package:rentora_app/views/auth/login_screen.dart';
-import 'package:rentora_app/views/home/bottom_navbar.dart';
+import 'package:rentora_app/views/navigation/bottom_navbar.dart';
 import 'package:rentora_app/widgets/custom_button.dart';
 import 'package:rentora_app/widgets/custom_text_field.dart';
 

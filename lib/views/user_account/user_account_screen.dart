@@ -4,7 +4,7 @@ import 'package:material_symbols_icons/symbols.dart';
 import 'package:rentora_app/controllers/user_controller.dart';
 import 'package:rentora_app/core/constants/app_color.dart';
 import 'package:rentora_app/views/seller/seller_home_screen.dart';
-import 'package:rentora_app/views/settings/setting_screen.dart';
+import 'package:rentora_app/views/settings/settings_screen.dart';
 import 'package:rentora_app/views/transaction_history/transaction_history_screen.dart';
 
 class UserAccountScreen extends StatefulWidget {
@@ -197,13 +197,13 @@ class _UserAccountScreenState extends State<UserAccountScreen> {
                         OrderStatusItem(
                           icon: Symbols.receipt_long,
                           label: "Belum Bayar",
-                          badge: '2',
+                          badge: '0',
                           onTap: () {},
                         ),
                         OrderStatusItem(
                           icon: Symbols.inventory_2,
                           label: "Diambil",
-                          badge: '1',
+                          badge: '0',
                           onTap: () {},
                         ),
                         OrderStatusItem(
@@ -215,7 +215,7 @@ class _UserAccountScreenState extends State<UserAccountScreen> {
                         OrderStatusItem(
                           icon: Symbols.star,
                           label: "Ulasan",
-                          badge: '3',
+                          badge: '0',
                           onTap: () {},
                         ),
                       ],

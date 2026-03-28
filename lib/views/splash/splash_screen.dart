@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:rentora_app/core/constants/app_color.dart';
 import 'package:rentora_app/core/extensions/navigator.dart';
 import 'package:rentora_app/views/boarding/boarding_screen.dart';
-import 'package:rentora_app/views/home/bottom_navbar.dart';
+import 'package:rentora_app/views/navigation/bottom_navbar.dart';
 import 'package:rentora_app/services/local_storage/preference_handler.dart';
 
 class SplashScreen extends StatefulWidget {
