@@ -222,6 +222,8 @@ class _UserAccountScreenState extends State<UserAccountScreen> {
                     ),
                   ),
 
+                  const SizedBox(height: 12),
+
                   SectionCard(
                     title: "Aktivitas",
                     subtitle: "Semua jejak belanja dan sewa ada di sini",
@@ -273,6 +275,8 @@ class _UserAccountScreenState extends State<UserAccountScreen> {
                     ),
                   ),
 
+                  const SizedBox(height: 12),
+
                   SectionCard(
                     title: "Seller",
                     subtitle: "Pantau performa toko langsung dari dashboard",
@@ -297,10 +301,11 @@ class _UserAccountScreenState extends State<UserAccountScreen> {
                     ),
                   ),
 
+                  const SizedBox(height: 12),
+
                   SectionCard(
                     title: "Bantuan & Akun",
                     subtitle: "Butuh bantuan? Semua solusi ada di sini",
-                    removeBottomMargin: true,
                     child: Column(
                       children: [
                         MenuItemCard(
@@ -405,7 +410,6 @@ class SectionCard extends StatelessWidget {
   final String? subtitle;
   final String? actionLabel;
   final VoidCallback? onActionTap;
-  final bool removeBottomMargin;
   final Widget child;
 
   const SectionCard({
@@ -414,7 +418,6 @@ class SectionCard extends StatelessWidget {
     this.subtitle,
     this.actionLabel,
     this.onActionTap,
-    this.removeBottomMargin = false,
     required this.child,
   });
 
@@ -422,7 +425,6 @@ class SectionCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(16),
-      margin: EdgeInsets.only(bottom: removeBottomMargin ? 0 : 12),
       decoration: BoxDecoration(
         color: AppColor.surface,
         borderRadius: BorderRadius.circular(14),
