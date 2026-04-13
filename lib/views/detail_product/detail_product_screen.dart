@@ -245,7 +245,6 @@ class _DetailProductScreenState extends State<DetailProductScreen> {
               ),
             ),
             bottomNavigationBar: Container(
-              height: 76,
               decoration: BoxDecoration(
                 color: AppColor.surface,
                 boxShadow: [
@@ -257,96 +256,102 @@ class _DetailProductScreenState extends State<DetailProductScreen> {
                 ],
               ),
               child: SafeArea(
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Expanded(
-                      child: GestureDetector(
-                        onTap: () {},
-                        behavior: HitTestBehavior.opaque,
-                        child: Center(
-                          child: Icon(Symbols.chat, color: AppColor.primary),
+                child: SizedBox(
+                  height: kBottomNavigationBarHeight,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: () {},
+                          behavior: HitTestBehavior.opaque,
+                          child: Center(
+                            child: Icon(Symbols.chat, color: AppColor.primary),
+                          ),
                         ),
                       ),
-                    ),
 
-                    Container(width: 1, height: 24, color: AppColor.divider),
+                      Container(width: 1, height: 24, color: AppColor.divider),
 
-                    Expanded(
-                      child: GestureDetector(
-                        onTap: () async {
-                          try {
-                            final currentUser = await _userController
-                                .getCurrentUser();
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: () async {
+                            try {
+                              final currentUser = await _userController
+                                  .getCurrentUser();
 
-                            if (currentUser != null &&
-                                _store != null &&
-                                _store!.id == widget.produk.storeId &&
-                                _store!.userId == currentUser.id) {
+                              if (currentUser != null &&
+                                  _store != null &&
+                                  _store!.id == widget.produk.storeId &&
+                                  _store!.userId == currentUser.id) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text(
+                                      'Tidak bisa menambahkan produk sendiri ke keranjang',
+                                    ),
+                                    duration: Duration(seconds: 2),
+                                  ),
+                                );
+                                return;
+                              }
+
+                              await _cartController.addToCart(
+                                CartModel(product: widget.produk),
+                              );
+
+                              if (!context.mounted) return;
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
                                   content: Text(
-                                    'Tidak bisa menambahkan produk sendiri ke keranjang',
+                                    'Produk ditambahkan ke keranjang',
                                   ),
-                                  duration: Duration(seconds: 2),
+                                  duration: Duration(seconds: 1),
                                 ),
                               );
-                              return;
+                            } catch (e) {
+                              if (!context.mounted) return;
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    e.toString().replaceFirst(
+                                      'Exception: ',
+                                      '',
+                                    ),
+                                  ),
+                                  duration: const Duration(seconds: 2),
+                                ),
+                              );
                             }
-
-                            await _cartController.addToCart(
-                              CartModel(product: widget.produk),
-                            );
-
-                            if (!context.mounted) return;
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text(
-                                  'Produk ditambahkan ke keranjang',
-                                ),
-                                duration: Duration(seconds: 1),
-                              ),
-                            );
-                          } catch (e) {
-                            if (!context.mounted) return;
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(
-                                  e.toString().replaceFirst('Exception: ', ''),
-                                ),
-                                duration: const Duration(seconds: 2),
-                              ),
-                            );
-                          }
-                        },
-                        behavior: HitTestBehavior.opaque,
-                        child: Center(
-                          child: Icon(
-                            Symbols.add_shopping_cart,
-                            color: AppColor.primary,
+                          },
+                          behavior: HitTestBehavior.opaque,
+                          child: Center(
+                            child: Icon(
+                              Symbols.add_shopping_cart,
+                              color: AppColor.primary,
+                            ),
                           ),
                         ),
                       ),
-                    ),
 
-                    GestureDetector(
-                      onTap: () {},
-                      child: Container(
-                        width: 200,
-                        height: double.infinity,
-                        alignment: Alignment.center,
-                        color: AppColor.primary,
-                        child: const Text(
-                          "Sewa",
-                          style: TextStyle(
-                            color: AppColor.surface,
-                            fontSize: 16,
-                            fontWeight: FontWeight.w700,
+                      GestureDetector(
+                        onTap: () {},
+                        child: Container(
+                          width: 200,
+                          height: double.infinity,
+                          alignment: Alignment.center,
+                          color: AppColor.primary,
+                          child: const Text(
+                            "Sewa",
+                            style: TextStyle(
+                              color: AppColor.surface,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700,
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),

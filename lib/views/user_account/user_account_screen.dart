@@ -366,7 +366,7 @@ class OrderStatusItem extends StatelessWidget {
                     color: AppColor.primary,
                   ),
                 ),
-                if (badge != null)
+                if (badge != null && badge != '0')
                   Positioned(
                     right: -4,
                     top: -6,
@@ -569,7 +569,7 @@ class MenuItemCard extends StatelessWidget {
                 ],
               ),
             ),
-            if (badge != null)
+            if (badge != null && badge != '0')
               Container(
                 margin: const EdgeInsets.only(right: 8),
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),

@@ -323,67 +323,75 @@ class _CartScreenState extends State<CartScreen> {
               : 'Rp ${AppFormatters.formatRupiah(totalPrice.toString())}';
 
           return Container(
-            height: 56,
             decoration: const BoxDecoration(color: AppColor.surface),
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                Text(
-                  totalLabel,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: AppColor.secondary,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                GestureDetector(
-                  onTap: () {
-                    final selectedItems = _getSelectedCartItems(
-                      cartItems,
-                      selectedProductIds,
-                    );
-
-                    if (selectedItems.isEmpty) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text(
-                            'Pilih minimal 1 produk untuk checkout',
-                          ),
-                          duration: Duration(seconds: 2),
+            child: SafeArea(
+              top: false,
+              child: SizedBox(
+                height: kBottomNavigationBarHeight,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      Text(
+                        totalLabel,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: AppColor.secondary,
                         ),
-                      );
-                      return;
-                    }
+                      ),
+                      const SizedBox(width: 12),
+                      GestureDetector(
+                        onTap: () {
+                          final selectedItems = _getSelectedCartItems(
+                            cartItems,
+                            selectedProductIds,
+                          );
 
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) =>
-                            CheckoutScreen(cartItems: selectedItems),
+                          if (selectedItems.isEmpty) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text(
+                                  'Pilih minimal 1 produk untuk checkout',
+                                ),
+                                duration: Duration(seconds: 2),
+                              ),
+                            );
+                            return;
+                          }
+
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  CheckoutScreen(cartItems: selectedItems),
+                            ),
+                          );
+                        },
+                        child: Container(
+                          margin: EdgeInsets.symmetric(vertical: 8),
+                          decoration: BoxDecoration(
+                            color: AppColor.primary,
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          width: 120,
+                          height: double.infinity,
+                          alignment: Alignment.center,
+                          child: const Text(
+                            "Checkout",
+                            style: TextStyle(
+                              color: AppColor.surface,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
                       ),
-                    );
-                  },
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: AppColor.primary,
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    width: 120,
-                    height: double.infinity,
-                    alignment: Alignment.center,
-                    child: const Text(
-                      "Checkout",
-                      style: TextStyle(
-                        color: AppColor.surface,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
+                    ],
                   ),
                 ),
-              ],
+              ),
             ),
           );
         },

@@ -351,108 +351,119 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(16, 10, 16, 12),
+        padding: const EdgeInsets.only(top: 10, bottom: 12),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(
-              width: double.infinity,
-              decoration: BoxDecoration(
-                color: AppColor.primary,
-                borderRadius: BorderRadius.circular(14),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Container(
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  color: AppColor.primary,
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 12,
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: const [
+                          Text(
+                            "Flash Rent Week",
+                            style: TextStyle(
+                              color: AppColor.textOnPrimary,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          SizedBox(height: 2),
+                          Text(
+                            "Diskon biaya sewa hingga 20%",
+                            style: TextStyle(
+                              color: AppColor.textOnPrimary,
+                              fontSize: 11,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppColor.textOnPrimary.withAlpha(40),
+                        borderRadius: BorderRadius.circular(999),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(
+                            Symbols.bolt,
+                            size: 14,
+                            weight: 700,
+                            color: AppColor.textOnPrimary,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            flashCountdownText,
+                            style: const TextStyle(
+                              color: AppColor.textOnPrimary,
+                              fontWeight: FontWeight.w700,
+                              fontSize: 11,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            ),
+
+            const SizedBox(height: 14),
+
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: const [
-                        Text(
-                          "Flash Rent Week",
-                          style: TextStyle(
-                            color: AppColor.textOnPrimary,
-                            fontSize: 14,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                        SizedBox(height: 2),
-                        Text(
-                          "Diskon biaya sewa hingga 20%",
-                          style: TextStyle(
-                            color: AppColor.textOnPrimary,
-                            fontSize: 11,
-                          ),
-                        ),
-                      ],
-                    ),
+                  const Text(
+                    "Kategori Pilihan",
+                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
                   ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 6,
+                  TextButton(
+                    onPressed: () {},
+                    style: TextButton.styleFrom(
+                      padding: EdgeInsets.zero,
+                      minimumSize: const Size(48, 24),
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     ),
-                    decoration: BoxDecoration(
-                      color: AppColor.textOnPrimary.withAlpha(40),
-                      borderRadius: BorderRadius.circular(999),
-                    ),
-                    child: Row(
-                      children: [
-                        const Icon(
-                          Symbols.bolt,
-                          size: 14,
-                          weight: 700,
-                          color: AppColor.textOnPrimary,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          flashCountdownText,
-                          style: const TextStyle(
-                            color: AppColor.textOnPrimary,
-                            fontWeight: FontWeight.w700,
-                            fontSize: 11,
-                          ),
-                        ),
-                      ],
+                    child: const Text(
+                      "Lihat semua",
+                      style: TextStyle(
+                        color: AppColor.primary,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 12,
+                      ),
                     ),
                   ),
                 ],
               ),
             ),
 
-            const SizedBox(height: 14),
-
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  "Kategori Pilihan",
-                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
-                ),
-                TextButton(
-                  onPressed: () {},
-                  style: TextButton.styleFrom(
-                    padding: EdgeInsets.zero,
-                    minimumSize: const Size(48, 24),
-                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  ),
-                  child: const Text(
-                    "Lihat semua",
-                    style: TextStyle(
-                      color: AppColor.primary,
-                      fontWeight: FontWeight.w600,
-                      fontSize: 12,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-
             const SizedBox(height: 10),
 
             SizedBox(
               height: 102,
+              width: double.infinity,
               child: ListView.separated(
+                padding: const EdgeInsets.only(left: 16),
                 scrollDirection: Axis.horizontal,
                 itemCount: categoryItems.length,
                 separatorBuilder: (context, index) => const SizedBox(width: 12),
@@ -476,217 +487,233 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
 
-            const SizedBox(height: 14),
-
-            SizedBox(
-              height: 120,
-              width: double.infinity,
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(14),
-                child: Stack(
-                  children: [
-                    PageView.builder(
-                      controller: _pageController,
-                      onPageChanged: (index) {
-                        setState(() {
-                          _currentBannerIndex = index;
-                        });
-                      },
-                      itemCount: bannerImages.length,
-                      itemBuilder: (context, index) {
-                        return Image.asset(
-                          bannerImages[index],
-                          fit: BoxFit.cover,
-                          gaplessPlayback: true,
-                        );
-                      },
-                    ),
-                    Positioned(
-                      bottom: 8,
-                      left: 0,
-                      right: 0,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: List.generate(
-                          bannerImages.length,
-                          (index) => AnimatedContainer(
-                            duration: const Duration(milliseconds: 300),
-                            margin: const EdgeInsets.symmetric(horizontal: 4),
-                            width: _currentBannerIndex == index ? 20 : 8,
-                            height: 8,
-                            decoration: BoxDecoration(
-                              color: _currentBannerIndex == index
-                                  ? AppColor.textOnPrimary
-                                  : AppColor.surface.withAlpha(150),
-                              borderRadius: BorderRadius.circular(4),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: SizedBox(
+                height: 120,
+                width: double.infinity,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(14),
+                  child: Stack(
+                    children: [
+                      PageView.builder(
+                        controller: _pageController,
+                        onPageChanged: (index) {
+                          setState(() {
+                            _currentBannerIndex = index;
+                          });
+                        },
+                        itemCount: bannerImages.length,
+                        itemBuilder: (context, index) {
+                          return Image.asset(
+                            bannerImages[index],
+                            fit: BoxFit.cover,
+                            gaplessPlayback: true,
+                          );
+                        },
+                      ),
+                      Positioned(
+                        bottom: 8,
+                        left: 0,
+                        right: 0,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: List.generate(
+                            bannerImages.length,
+                            (index) => AnimatedContainer(
+                              duration: const Duration(milliseconds: 300),
+                              margin: const EdgeInsets.symmetric(horizontal: 4),
+                              width: _currentBannerIndex == index ? 20 : 8,
+                              height: 8,
+                              decoration: BoxDecoration(
+                                color: _currentBannerIndex == index
+                                    ? AppColor.textOnPrimary
+                                    : AppColor.surface.withAlpha(150),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
                             ),
                           ),
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),
 
             const SizedBox(height: 14),
 
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  "Flash Sale",
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                    color: AppColor.error,
-                  ),
-                ),
-                Text(
-                  "Berakhir $flashCountdownText",
-                  style: const TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w600,
-                    color: AppColor.error,
-                  ),
-                ),
-              ],
-            ),
-
-            const SizedBox(height: 10),
-
-            SizedBox(
-              height: 290,
-              child: ListView.separated(
-                scrollDirection: Axis.horizontal,
-                itemCount: produkList.length > 6 ? 6 : produkList.length,
-                separatorBuilder: (context, index) => const SizedBox(width: 8),
-                itemBuilder: (context, index) {
-                  final produk = produkList[index];
-                  final location = storeMap[produk.storeId] ?? "...";
-
-                  return SizedBox(
-                    width: 168,
-                    height: double.infinity,
-                    child: GestureDetector(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => DetailProductScreen(
-                              produk: produk,
-                              storeId: produk.storeId,
-                            ),
-                          ),
-                        );
-                      },
-                      child: Stack(
-                        children: [
-                          Positioned.fill(
-                            child: ProductCard(
-                              produk: produk,
-                              location: location,
-                            ),
-                          ),
-                          Positioned(
-                            top: 8,
-                            left: 8,
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 7,
-                                vertical: 4,
-                              ),
-                              decoration: BoxDecoration(
-                                color: AppColor.error,
-                                borderRadius: BorderRadius.circular(6),
-                              ),
-                              child: const Text(
-                                "-20%",
-                                style: TextStyle(
-                                  color: AppColor.textOnPrimary,
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w700,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    "Flash Sale",
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      color: AppColor.error,
                     ),
-                  );
-                },
+                  ),
+                  Text(
+                    "Berakhir $flashCountdownText",
+                    style: const TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: AppColor.error,
+                    ),
+                  ),
+                ],
               ),
             ),
 
-            const SizedBox(height: 16),
+            const SizedBox(height: 10),
 
-            const Text(
-              "Rekomendasi Untukmu",
-              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
+            Padding(
+              padding: const EdgeInsets.only(left: 16),
+              child: SizedBox(
+                height: 290,
+                child: ListView.separated(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: produkList.length > 6 ? 6 : produkList.length,
+                  separatorBuilder: (context, index) =>
+                      const SizedBox(width: 8),
+                  itemBuilder: (context, index) {
+                    final produk = produkList[index];
+                    final location = storeMap[produk.storeId] ?? "...";
+
+                    return SizedBox(
+                      width: 168,
+                      height: double.infinity,
+                      child: GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => DetailProductScreen(
+                                produk: produk,
+                                storeId: produk.storeId,
+                              ),
+                            ),
+                          );
+                        },
+                        child: Stack(
+                          children: [
+                            Positioned.fill(
+                              child: ProductCard(
+                                produk: produk,
+                                location: location,
+                              ),
+                            ),
+                            Positioned(
+                              top: 8,
+                              left: 8,
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 7,
+                                  vertical: 4,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: AppColor.error,
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                                child: const Text(
+                                  "-20%",
+                                  style: TextStyle(
+                                    color: AppColor.textOnPrimary,
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 14),
+
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16),
+              child: Text(
+                "Rekomendasi Untukmu",
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
+              ),
             ),
 
             const SizedBox(height: 10),
 
-            isLoading
-                ? const Center(
-                    child: CircularProgressIndicator(color: AppColor.primary),
-                  )
-                : Builder(
-                    builder: (context) {
-                      final leftProducts = <ProductModel>[];
-                      final rightProducts = <ProductModel>[];
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: isLoading
+                  ? const Center(
+                      child: CircularProgressIndicator(color: AppColor.primary),
+                    )
+                  : Builder(
+                      builder: (context) {
+                        final leftProducts = <ProductModel>[];
+                        final rightProducts = <ProductModel>[];
 
-                      for (int i = 0; i < produkList.length; i++) {
-                        if (i.isEven) {
-                          leftProducts.add(produkList[i]);
-                        } else {
-                          rightProducts.add(produkList[i]);
+                        for (int i = 0; i < produkList.length; i++) {
+                          if (i.isEven) {
+                            leftProducts.add(produkList[i]);
+                          } else {
+                            rightProducts.add(produkList[i]);
+                          }
                         }
-                      }
 
-                      Widget buildColumn(List<ProductModel> items) {
-                        return Column(
-                          children: items.asMap().entries.map((entry) {
-                            final index = entry.key;
-                            final produk = entry.value;
-                            final location = storeMap[produk.storeId] ?? "...";
+                        Widget buildColumn(List<ProductModel> items) {
+                          return Column(
+                            children: items.asMap().entries.map((entry) {
+                              final index = entry.key;
+                              final produk = entry.value;
+                              final location =
+                                  storeMap[produk.storeId] ?? "...";
 
-                            return Padding(
-                              padding: EdgeInsets.only(
-                                bottom: index == items.length - 1 ? 0 : 8,
-                              ),
-                              child: GestureDetector(
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => DetailProductScreen(
-                                        produk: produk,
-                                        storeId: produk.storeId,
-                                      ),
-                                    ),
-                                  );
-                                },
-                                child: ProductCard(
-                                  produk: produk,
-                                  location: location,
+                              return Padding(
+                                padding: EdgeInsets.only(
+                                  bottom: index == items.length - 1 ? 0 : 8,
                                 ),
-                              ),
-                            );
-                          }).toList(),
-                        );
-                      }
+                                child: GestureDetector(
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) =>
+                                            DetailProductScreen(
+                                              produk: produk,
+                                              storeId: produk.storeId,
+                                            ),
+                                      ),
+                                    );
+                                  },
+                                  child: ProductCard(
+                                    produk: produk,
+                                    location: location,
+                                  ),
+                                ),
+                              );
+                            }).toList(),
+                          );
+                        }
 
-                      return Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Expanded(child: buildColumn(leftProducts)),
-                          const SizedBox(width: 8),
-                          Expanded(child: buildColumn(rightProducts)),
-                        ],
-                      );
-                    },
-                  ),
+                        return Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(child: buildColumn(leftProducts)),
+                            const SizedBox(width: 8),
+                            Expanded(child: buildColumn(rightProducts)),
+                          ],
+                        );
+                      },
+                    ),
+            ),
           ],
         ),
       ),
