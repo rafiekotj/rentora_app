@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
 import 'package:rentora_app/core/constants/app_color.dart';
 import 'package:rentora_app/widgets/custom_button.dart';
+import 'package:rentora_app/views/transaction_history/transaction_history_screen.dart';
 
 class PaymentSuccessScreen extends StatefulWidget {
   const PaymentSuccessScreen({super.key});
@@ -53,7 +54,12 @@ class _PaymentSuccessScreenState extends State<PaymentSuccessScreen> {
                 CustomButton(
                   text: 'Lihat Riwayat Transaksi',
                   onPressed: () {
-                    Navigator.of(context).pop();
+                    Navigator.of(context).pushAndRemoveUntil(
+                      MaterialPageRoute(
+                        builder: (context) => const TransactionHistoryScreen(),
+                      ),
+                      (route) => route.isFirst,
+                    );
                   },
                   backgroundColor: AppColor.primary,
                   textColor: AppColor.surface,

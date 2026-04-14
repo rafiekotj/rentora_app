@@ -623,51 +623,68 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         ),
       ),
       bottomNavigationBar: Container(
-        height: 56,
-        decoration: const BoxDecoration(color: AppColor.surface),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: [
-            Text(
-              'Rp ${AppFormatters.formatRupiah(_totalPayment)}',
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: AppColor.secondary,
-              ),
-            ),
-            const SizedBox(width: 12),
-            GestureDetector(
-              onTap: _processPayment,
-              child: Container(
-                decoration: BoxDecoration(
-                  color: AppColor.primary,
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                width: 120,
-                height: double.infinity,
-                alignment: Alignment.center,
-                child: _isPaying
-                    ? const SizedBox(
-                        width: 18,
-                        height: 18,
-                        child: CircularProgressIndicator(
-                          color: AppColor.surface,
-                          strokeWidth: 2,
-                        ),
-                      )
-                    : const Text(
-                        "Bayar",
-                        style: TextStyle(
-                          color: AppColor.surface,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-              ),
+        decoration: const BoxDecoration(
+          color: AppColor.surface,
+          boxShadow: [
+            BoxShadow(
+              color: AppColor.shadowLight,
+              blurRadius: 10,
+              offset: Offset(0, -4),
             ),
           ],
+        ),
+        child: SafeArea(
+          top: false,
+          child: SizedBox(
+            height: kBottomNavigationBarHeight,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  Text(
+                    'Rp ${AppFormatters.formatRupiah(_totalPayment)}',
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: AppColor.secondary,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  GestureDetector(
+                    onTap: _processPayment,
+                    child: Container(
+                      margin: EdgeInsets.symmetric(vertical: 8),
+                      decoration: BoxDecoration(
+                        color: AppColor.primary,
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      width: 120,
+                      height: double.infinity,
+                      alignment: Alignment.center,
+                      child: _isPaying
+                          ? const SizedBox(
+                              width: 18,
+                              height: 18,
+                              child: CircularProgressIndicator(
+                                color: AppColor.surface,
+                                strokeWidth: 2,
+                              ),
+                            )
+                          : const Text(
+                              "Bayar",
+                              style: TextStyle(
+                                color: AppColor.surface,
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
         ),
       ),
     );

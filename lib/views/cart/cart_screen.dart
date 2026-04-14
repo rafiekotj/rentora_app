@@ -323,7 +323,16 @@ class _CartScreenState extends State<CartScreen> {
               : 'Rp ${AppFormatters.formatRupiah(totalPrice.toString())}';
 
           return Container(
-            decoration: const BoxDecoration(color: AppColor.surface),
+            decoration: const BoxDecoration(
+              color: AppColor.surface,
+              boxShadow: [
+                BoxShadow(
+                  color: AppColor.shadowLight,
+                  blurRadius: 10,
+                  offset: Offset(0, -4),
+                ),
+              ],
+            ),
             child: SafeArea(
               top: false,
               child: SizedBox(
