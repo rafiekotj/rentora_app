@@ -9,9 +9,6 @@ import 'package:rentora_app/core/constants/app_color.dart';
 import 'package:rentora_app/core/utils/app_formatters.dart';
 import 'package:rentora_app/models/cart_model.dart';
 import 'package:rentora_app/models/product_model.dart';
-import 'package:rentora_app/views/cart/cart_screen.dart';
-import 'package:rentora_app/views/detail_product/detail_product_screen.dart';
-import 'package:rentora_app/views/home/category_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -124,33 +121,33 @@ class _HomeScreenState extends State<HomeScreen> {
 
   // Memuat data semua produk
   Future<void> _loadProduk() async {
-    setState(() {
-      isLoading = true;
-    });
+    // setState(() {
+    //   isLoading = true;
+    // });
 
-    final products = await _produkController.getAllProduct();
-    final storeController = StoreController();
+    // final products = await _produkController.getAllProduct();
+    // final storeController = StoreController();
 
-    // Ambil semua store unik
-    final storeIds = products.map((p) => p.storeId).toList();
+    // // Ambil semua store unik
+    // final storeIds = products.map((p) => p.storeId).toList();
 
-    Map<int, String> tempStoreMap = {};
+    // Map<int, String> tempStoreMap = {};
 
-    final storesMap = await storeController.getStoresByIds(storeIds);
+    // final storesMap = await storeController.getStoresByIds(storeIds);
 
-    for (var storeId in storeIds) {
-      final store = storesMap[storeId];
-      tempStoreMap[storeId] =
-          store?.location?.toUpperCase() ?? "LOKASI TIDAK ADA";
-    }
+    // for (var storeId in storeIds) {
+    //   final store = storesMap[storeId];
+    //   tempStoreMap[storeId] =
+    //       store?.location?.toUpperCase() ?? "LOKASI TIDAK ADA";
+    // }
 
-    if (!mounted) return;
+    // if (!mounted) return;
 
-    setState(() {
-      produkList = products;
-      storeMap = tempStoreMap;
-      isLoading = false;
-    });
+    // setState(() {
+    //   produkList = products;
+    //   storeMap = tempStoreMap;
+    //   isLoading = false;
+    // });
   }
 
   // Memulai timer yang mengganti halaman banner
@@ -276,76 +273,76 @@ class _HomeScreenState extends State<HomeScreen> {
                   weight: 700,
                 ),
               ),
-              ValueListenableBuilder<List<CartModel>>(
-                valueListenable: _cartController.cartItemsNotifier,
-                builder: (context, cartItems, child) {
-                  final Set<int> uniqueProductIds = cartItems
-                      .map((item) => item.product.id)
-                      .whereType<int>()
-                      .toSet();
-                  final int cartCount = uniqueProductIds.length;
+              // ValueListenableBuilder<List<CartModel>>(
+              //   valueListenable: _cartController.cartItemsNotifier,
+              //   builder: (context, cartItems, child) {
+              //     final Set<int> uniqueProductIds = cartItems
+              //         .map((item) => item.product.id)
+              //         .whereType<int>()
+              //         .toSet();
+              //     final int cartCount = uniqueProductIds.length;
 
-                  return Stack(
-                    clipBehavior: Clip.none,
-                    children: [
-                      IconButton(
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const CartScreen(),
-                            ),
-                          );
-                        },
-                        padding: EdgeInsets.zero,
-                        constraints: const BoxConstraints(
-                          minWidth: 32,
-                          minHeight: 32,
-                        ),
-                        visualDensity: VisualDensity.compact,
-                        splashRadius: 28,
-                        icon: Icon(
-                          Symbols.shopping_cart,
-                          color: AppColor.textOnPrimary,
-                          size: 24,
-                          weight: 700,
-                        ),
-                      ),
-                      if (cartCount > 0)
-                        Positioned(
-                          top: -2,
-                          right: -1,
-                          child: Container(
-                            alignment: Alignment.center,
-                            padding: const EdgeInsets.symmetric(horizontal: 4),
-                            constraints: const BoxConstraints(
-                              minWidth: 20,
-                              minHeight: 20,
-                            ),
-                            decoration: BoxDecoration(
-                              color: AppColor.error,
-                              borderRadius: BorderRadius.circular(999),
-                              border: Border.all(
-                                color: AppColor.primary,
-                                width: 1.2,
-                              ),
-                            ),
-                            child: Text(
-                              cartCount > 99 ? '99+' : '$cartCount',
-                              textAlign: TextAlign.center,
-                              style: const TextStyle(
-                                color: AppColor.textOnPrimary,
-                                fontSize: 10,
-                                fontWeight: FontWeight.w700,
-                                height: 1,
-                              ),
-                            ),
-                          ),
-                        ),
-                    ],
-                  );
-                },
-              ),
+              //     return Stack(
+              //       clipBehavior: Clip.none,
+              //       children: [
+              //         IconButton(
+              //           onPressed: () {
+              //             // Navigator.push(
+              //             //   context,
+              //             //   MaterialPageRoute(
+              //             //     builder: (context) => const CartScreen(),
+              //             //   ),
+              //             // );
+              //           },
+              //           padding: EdgeInsets.zero,
+              //           constraints: const BoxConstraints(
+              //             minWidth: 32,
+              //             minHeight: 32,
+              //           ),
+              //           visualDensity: VisualDensity.compact,
+              //           splashRadius: 28,
+              //           icon: Icon(
+              //             Symbols.shopping_cart,
+              //             color: AppColor.textOnPrimary,
+              //             size: 24,
+              //             weight: 700,
+              //           ),
+              //         ),
+              //         if (cartCount > 0)
+              //           Positioned(
+              //             top: -2,
+              //             right: -1,
+              //             child: Container(
+              //               alignment: Alignment.center,
+              //               padding: const EdgeInsets.symmetric(horizontal: 4),
+              //               constraints: const BoxConstraints(
+              //                 minWidth: 20,
+              //                 minHeight: 20,
+              //               ),
+              //               decoration: BoxDecoration(
+              //                 color: AppColor.error,
+              //                 borderRadius: BorderRadius.circular(999),
+              //                 border: Border.all(
+              //                   color: AppColor.primary,
+              //                   width: 1.2,
+              //                 ),
+              //               ),
+              //               child: Text(
+              //                 cartCount > 99 ? '99+' : '$cartCount',
+              //                 textAlign: TextAlign.center,
+              //                 style: const TextStyle(
+              //                   color: AppColor.textOnPrimary,
+              //                   fontSize: 10,
+              //                   fontWeight: FontWeight.w700,
+              //                   height: 1,
+              //                 ),
+              //               ),
+              //             ),
+              //           ),
+              //       ],
+              //     );
+              //   },
+              // ),
             ],
           ),
         ),
@@ -471,15 +468,15 @@ class _HomeScreenState extends State<HomeScreen> {
                   final item = categoryItems[index];
                   return GestureDetector(
                     onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => CategoryScreen(
-                            title: item.label,
-                            categoryValue: item.value,
-                          ),
-                        ),
-                      );
+                      // Navigator.push(
+                      //   context,
+                      //   MaterialPageRoute(
+                      //     builder: (context) => CategoryScreen(
+                      //       title: item.label,
+                      //       categoryValue: item.value,
+                      //     ),
+                      //   ),
+                      // );
                     },
                     child: item,
                   );
@@ -588,15 +585,15 @@ class _HomeScreenState extends State<HomeScreen> {
                       height: double.infinity,
                       child: GestureDetector(
                         onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => DetailProductScreen(
-                                produk: produk,
-                                storeId: produk.storeId,
-                              ),
-                            ),
-                          );
+                          // Navigator.push(
+                          //   context,
+                          //   MaterialPageRoute(
+                          //     builder: (context) => DetailProductScreen(
+                          //       produk: produk,
+                          //       storeId: produk.storeId,
+                          //     ),
+                          //   ),
+                          // );
                         },
                         child: Stack(
                           children: [
@@ -682,16 +679,16 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ),
                                 child: GestureDetector(
                                   onTap: () {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) =>
-                                            DetailProductScreen(
-                                              produk: produk,
-                                              storeId: produk.storeId,
-                                            ),
-                                      ),
-                                    );
+                                    // Navigator.push(
+                                    //   context,
+                                    //   MaterialPageRoute(
+                                    //     builder: (context) =>
+                                    //         DetailProductScreen(
+                                    //           produk: produk,
+                                    //           storeId: produk.storeId,
+                                    //         ),
+                                    //   ),
+                                    // );
                                   },
                                   child: ProductCard(
                                     produk: produk,

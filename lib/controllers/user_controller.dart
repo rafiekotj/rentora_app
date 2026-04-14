@@ -1,5 +1,6 @@
 import 'package:rentora_app/models/user_model.dart';
-import 'package:rentora_app/services/database/sqflite.dart';
+import 'package:rentora_app/services/database/firebase_service.dart';
+import 'package:rentora_app/services/database/user_service.dart';
 import 'package:rentora_app/services/local_storage/preference_handler.dart';
 
 class UserController {
@@ -8,18 +9,21 @@ class UserController {
 
   Future<bool> login({required String email, required String password}) async {
     _isLoading = true;
-
-    final UserModel? login = await DBHelper.loginUser(
-      email: email,
-      password: password,
-    );
-
-    if (login != null) {
-      PreferenceHandler().storingIsLogin(true);
-      PreferenceHandler().storingUserEmail(login.email);
-      _isLoading = false;
-      return true;
-    } else {
+    try {
+      final cred = await FirebaseService.loginUser(
+        email: email,
+        password: password,
+      );
+      if (cred != null) {
+        PreferenceHandler().storingIsLogin(true);
+        PreferenceHandler().storingUserEmail(email);
+        _isLoading = false;
+        return true;
+      } else {
+        _isLoading = false;
+        return false;
+      }
+    } catch (e) {
       _isLoading = false;
       return false;
     }
@@ -32,44 +36,21 @@ class UserController {
     String? username,
     String? image,
   }) async {
-    await DBHelper.registerUser(
-      UserModel(
-        email: email,
-        password: password,
-        phone: phone,
-        username: username,
-        image: image,
-      ),
+    await FirebaseService.registerUser(
+      email: email,
+      password: password,
+      phone: phone,
+      username: username ?? '',
     );
-
     PreferenceHandler().storingIsLogin(true);
     PreferenceHandler().storingUserEmail(email);
-  }
-
-  // Mengambil email user yang tersimpan di local
-  Future<String?> getUserEmail() async {
-    return await PreferenceHandler.getUserEmail();
   }
 
   // Mengambil detail data user yang sedang login
   Future<UserModel?> getCurrentUser() async {
     final email = await PreferenceHandler.getUserEmail();
-
     if (email == null) return null;
-
-    final db = await DBHelper.database();
-
-    final result = await db.query(
-      'user',
-      where: 'email = ?',
-      whereArgs: [email],
-    );
-
-    if (result.isNotEmpty) {
-      return UserModel.fromMap(result.first);
-    }
-
-    return null;
+    return await UserFirestoreService.getUserByEmail(email);
   }
 
   /// Update the currently logged in user's profile information.
@@ -82,16 +63,11 @@ class UserController {
     if (user == null) {
       throw Exception('User belum login');
     }
-
-    final updated = UserModel(
-      id: user.id,
-      email: user.email,
-      password: user.password,
-      phone: phone ?? user.phone,
+    await UserFirestoreService.updateUser(
+      uid: user.uid,
       username: username ?? user.username,
+      phone: phone ?? user.phone,
       image: image ?? user.image,
     );
-
-    await DBHelper.updateUser(updated);
   }
 }
