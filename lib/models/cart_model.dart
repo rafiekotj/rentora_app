@@ -3,13 +3,13 @@ import 'product_model.dart';
 
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 class CartModel {
-  final int? id;
+  final String uid;
   final ProductModel product;
   int quantity;
   int rentalDays;
 
   CartModel({
-    this.id,
+    required this.uid,
     required this.product,
     this.quantity = 1,
     this.rentalDays = 1,
@@ -17,9 +17,9 @@ class CartModel {
 
   Map<String, dynamic> toMap() {
     return {
-      'id': id,
-      'product_id': product.id,
-      'store_id': product.storeId,
+      'uid': uid,
+      'product_uid': product.uid,
+      'store_uid': product.storeUid,
       'quantity': quantity,
       'rental_days': rentalDays,
       'product_data': jsonEncode(product.toMap()),
@@ -28,7 +28,7 @@ class CartModel {
 
   factory CartModel.fromMap(Map<String, dynamic> map) {
     return CartModel(
-      id: map['id'] as int?,
+      uid: map['uid'] as String,
       quantity: map['quantity'] as int,
       rentalDays: map['rental_days'] as int,
       product: ProductModel.fromMap(jsonDecode(map['product_data'] as String)),

@@ -2,15 +2,15 @@ import 'dart:convert';
 
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 class StoreModel {
-  final int? id;
-  final int userId;
+  final String uid;
+  final String userUid;
   final String name;
   final String? image;
   final String? location;
 
   StoreModel({
-    this.id,
-    required this.userId,
+    required this.uid,
+    required this.userUid,
     required this.name,
     this.image,
     this.location,
@@ -18,8 +18,8 @@ class StoreModel {
 
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
-      'id': id,
-      'userId': userId,
+      'uid': uid,
+      'userUid': userUid,
       'name': name,
       'image': image,
       'location': location,
@@ -28,9 +28,9 @@ class StoreModel {
 
   factory StoreModel.fromMap(Map<String, dynamic> map) {
     return StoreModel(
-      id: map['id'] != null ? map['id'] as int : null,
-      userId: map['userId'] as int,
-      name: map['name'] as String,
+      uid: map['uid'] != null ? map['uid'] as String : '',
+      userUid: map['userUid'] != null ? map['userUid'] as String : '',
+      name: map['name'] != null ? map['name'] as String : '',
       image: map['image'] != null ? map['image'] as String : null,
       location: map['location'] != null ? map['location'] as String : null,
     );

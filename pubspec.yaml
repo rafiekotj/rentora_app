@@ -34,6 +34,8 @@ dependencies:
   cloud_firestore: ^6.3.0
   firebase_auth: ^6.4.0
   firebase_core: ^4.7.0
+  firebase_storage: ^13.3.0
+  flutter_image_compress: ^2.4.0
   flutter_launcher_icons: ^0.14.4
   image_picker: ^1.2.1
   intl: ^0.20.2
@@ -83,7 +85,6 @@ flutter:
     - assets/images/
     - assets/icons/
     - assets/animations/
-    - assets/data/
   #   - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see

@@ -3,9 +3,9 @@ import 'dart:convert';
 import 'package:rentora_app/models/cart_model.dart';
 
 class TransactionModel {
-  final int? id;
-  final int userId;
-  final int storeId;
+  final String uid;
+  final String userUid;
+  final String storeUid;
   final String storeName;
   final String status;
   final String paymentMethod;
@@ -19,9 +19,9 @@ class TransactionModel {
   final String createdAt;
 
   TransactionModel({
-    this.id,
-    required this.userId,
-    required this.storeId,
+    required this.uid,
+    required this.userUid,
+    required this.storeUid,
     required this.storeName,
     required this.status,
     required this.paymentMethod,
@@ -37,9 +37,9 @@ class TransactionModel {
 
   Map<String, dynamic> toMap() {
     return {
-      'id': id,
-      'user_id': userId,
-      'store_id': storeId,
+      'uid': uid,
+      'user_uid': userUid,
+      'store_uid': storeUid,
       'store_name': storeName,
       'status': status,
       'payment_method': paymentMethod,
@@ -59,9 +59,9 @@ class TransactionModel {
         jsonDecode(map['items_data'] as String) as List<dynamic>;
 
     return TransactionModel(
-      id: map['id'] as int?,
-      userId: map['user_id'] as int,
-      storeId: map['store_id'] as int,
+      uid: map['uid'] as String,
+      userUid: map['user_uid'] as String,
+      storeUid: map['store_uid'] as String,
       storeName: map['store_name'] as String? ?? '-',
       status: map['status'] as String,
       paymentMethod: map['payment_method'] as String,

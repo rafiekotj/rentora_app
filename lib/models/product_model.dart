@@ -2,8 +2,8 @@ import 'dart:convert';
 
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 class ProductModel {
-  final int? id;
-  final int storeId;
+  final String uid;
+  final String storeUid;
   final List<String> images;
   final String namaProduk;
   final String deskripsiProduk;
@@ -15,8 +15,8 @@ class ProductModel {
   final int maxHariPinjam;
 
   ProductModel({
-    this.id,
-    required this.storeId,
+    required this.uid,
+    required this.storeUid,
     required this.images,
     required this.namaProduk,
     required this.deskripsiProduk,
@@ -30,8 +30,8 @@ class ProductModel {
 
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
-      'id': id,
-      'storeId': storeId,
+      'uid': uid,
+      'storeUid': storeUid,
       'images': jsonEncode(images),
       'namaProduk': namaProduk,
       'deskripsiProduk': deskripsiProduk,
@@ -46,8 +46,8 @@ class ProductModel {
 
   factory ProductModel.fromMap(Map<String, dynamic> map) {
     return ProductModel(
-      id: map['id'] != null ? map['id'] as int : null,
-      storeId: map['storeId'] as int,
+      uid: map['uid'] as String,
+      storeUid: map['storeUid'] as String,
       images: List<String>.from(jsonDecode(map['images'])),
       namaProduk: map['namaProduk'] as String,
       deskripsiProduk: map['deskripsiProduk'] as String,
