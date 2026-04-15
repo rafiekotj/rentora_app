@@ -1,4 +1,5 @@
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:rentora_app/core/constants/app_color.dart';
@@ -11,6 +12,14 @@ void main() async {
   await PreferenceHandler().init();
 
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
+  // Aktifkan App Check (gunakan provider sesuai kebutuhan, debug untuk development)
+  await FirebaseAppCheck.instance.activate(
+    providerAndroid:
+        AndroidDebugAppCheckProvider(), // Ganti ke AndroidPlayIntegrityAppCheckProvider() untuk production
+    providerApple:
+        AppleDebugAppCheckProvider(), // Ganti ke AppleDeviceCheckAppCheckProvider() untuk production
+  );
 
   SystemChrome.setSystemUIOverlayStyle(
     SystemUiOverlayStyle(
