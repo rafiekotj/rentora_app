@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:rentora_app/controllers/user_controller.dart';
@@ -113,7 +112,8 @@ class _UserAccountScreenState extends State<UserAccountScreen> {
                                 radius: 34,
                                 backgroundColor: AppColor.primarySoft,
                                 backgroundImage: (_imagePath ?? '').isNotEmpty
-                                    ? FileImage(File(_imagePath!))
+                                    ? NetworkImage(_imagePath!)
+                                          as ImageProvider<Object>?
                                     : null,
                                 child:
                                     (_imagePath == null || _imagePath!.isEmpty)

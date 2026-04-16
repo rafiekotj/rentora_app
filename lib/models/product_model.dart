@@ -45,10 +45,30 @@ class ProductModel {
   }
 
   factory ProductModel.fromMap(Map<String, dynamic> map) {
+    List<String> imagesList = [];
+    try {
+      final raw = map['images'];
+      if (raw == null || raw.toString().isEmpty) {
+        imagesList = [];
+      } else if (raw is List) {
+        imagesList = List<String>.from(raw);
+      } else if (raw is String) {
+        final decoded = jsonDecode(raw);
+        if (decoded is List) {
+          imagesList = List<String>.from(decoded);
+        } else {
+          imagesList = [];
+        }
+      } else {
+        imagesList = [];
+      }
+    } catch (e) {
+      imagesList = [];
+    }
     return ProductModel(
       uid: map['uid'] as String,
       storeUid: map['storeUid'] as String,
-      images: List<String>.from(jsonDecode(map['images'])),
+      images: imagesList,
       namaProduk: map['namaProduk'] as String,
       deskripsiProduk: map['deskripsiProduk'] as String,
       kategori: map['kategori'] as String,

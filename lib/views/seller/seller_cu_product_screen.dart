@@ -22,6 +22,7 @@ class SellerCuProductScreen extends StatefulWidget {
 }
 
 class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
+  bool _isUploadingImage = false;
   final UserController _userController = UserController();
   final ProductController _productController = ProductController();
   final StoreController _storeController = StoreController();
@@ -78,6 +79,10 @@ class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
     );
     if (pickedImage == null) return;
 
+    setState(() {
+      _isUploadingImage = true;
+    });
+
     try {
       // Kompres gambar
       final compressed = await FlutterImageCompress.compressWithFile(
@@ -101,8 +106,14 @@ class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Gagal upload gambar: ${e.toString()}')),
+          SnackBar(content: Text('Gagal upload gambar: ${e.toString()}')),
         );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isUploadingImage = false;
+        });
       }
     }
   }
@@ -665,7 +676,33 @@ class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
                                     ),
                                   );
                                 }),
-                                if (_imageUrls.length < 5)
+                                if (_isUploadingImage)
+                                  Padding(
+                                    padding: const EdgeInsets.only(right: 10),
+                                    child: Container(
+                                      width: 80,
+                                      height: 80,
+                                      decoration: BoxDecoration(
+                                        color: AppColor.primarySoft,
+                                        border: Border.all(
+                                          color: AppColor.primary,
+                                          width: 1.5,
+                                        ),
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: const Center(
+                                        child: SizedBox(
+                                          width: 12,
+                                          height: 12,
+                                          child: CircularProgressIndicator(
+                                            color: AppColor.primary,
+                                            strokeWidth: 2,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                if (_imageUrls.length < 5 && !_isUploadingImage)
                                   GestureDetector(
                                     onTap: _pickImage,
                                     child: Container(

@@ -1,5 +1,5 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:rentora_app/controllers/user_controller.dart';
@@ -15,6 +15,7 @@ class AccountSettingScreen extends StatefulWidget {
 }
 
 class _AccountSettingScreenState extends State<AccountSettingScreen> {
+  bool _isUploadingImage = false;
   final _userController = UserController();
 
   final _usernameController = TextEditingController();
@@ -22,7 +23,7 @@ class _AccountSettingScreenState extends State<AccountSettingScreen> {
   final _phoneController = TextEditingController();
 
   final _imagePicker = ImagePicker();
-  String? _imagePath;
+  String? _imageUrl;
 
   bool _isLoading = false;
 
@@ -49,7 +50,7 @@ class _AccountSettingScreenState extends State<AccountSettingScreen> {
         _emailController.text = user.email;
         _phoneController.text = user.phone;
         if (user.image != null && user.image!.isNotEmpty) {
-          _imagePath = user.image;
+          _imageUrl = user.image;
         }
       }
     } finally {
@@ -63,8 +64,31 @@ class _AccountSettingScreenState extends State<AccountSettingScreen> {
     );
     if (pickedFile != null) {
       setState(() {
-        _imagePath = pickedFile.path;
+        _isUploadingImage = true;
       });
+      try {
+        final fileName =
+            'profile_images/${DateTime.now().millisecondsSinceEpoch}_${pickedFile.name}';
+        final ref = FirebaseStorage.instance.ref().child(fileName);
+        final uploadTask = ref.putData(await pickedFile.readAsBytes());
+        await uploadTask;
+        final url = await ref.getDownloadURL();
+        setState(() {
+          _imageUrl = url;
+        });
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Gagal upload foto: ${e.toString()}')),
+          );
+        }
+      } finally {
+        if (mounted) {
+          setState(() {
+            _isUploadingImage = false;
+          });
+        }
+      }
     }
   }
 
@@ -81,16 +105,20 @@ class _AccountSettingScreenState extends State<AccountSettingScreen> {
       await _userController.updateCurrentUser(
         username: _usernameController.text,
         phone: _phoneController.text,
-        image: _imagePath,
+        image: _imageUrl,
       );
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Profil berhasil disimpan')));
-      if (mounted) Navigator.of(context).pop();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Profil berhasil disimpan')),
+        );
+        Navigator.of(context).pop();
+      }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Gagal menyimpan: ${e.toString()}')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Gagal menyimpan: ${e.toString()}')),
+        );
+      }
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -122,10 +150,11 @@ class _AccountSettingScreenState extends State<AccountSettingScreen> {
                     CircleAvatar(
                       radius: 60,
                       backgroundColor: AppColor.border,
-                      backgroundImage: (_imagePath ?? '').isNotEmpty
-                          ? FileImage(File(_imagePath!))
+                      backgroundImage:
+                          (_imageUrl != null && _imageUrl!.isNotEmpty)
+                          ? NetworkImage(_imageUrl!) as ImageProvider<Object>?
                           : null,
-                      child: _imagePath == null
+                      child: (_imageUrl == null)
                           ? const Icon(
                               Symbols.person,
                               size: 60,
@@ -133,11 +162,30 @@ class _AccountSettingScreenState extends State<AccountSettingScreen> {
                             )
                           : null,
                     ),
+                    if (_isUploadingImage)
+                      Positioned.fill(
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: Colors.black.withOpacity(0.3),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Center(
+                            child: SizedBox(
+                              width: 28,
+                              height: 28,
+                              child: CircularProgressIndicator(
+                                color: AppColor.primary,
+                                strokeWidth: 3,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
                     Positioned(
                       bottom: 0,
                       right: 0,
                       child: InkWell(
-                        onTap: _pickImage,
+                        onTap: _isUploadingImage ? null : _pickImage,
                         child: Container(
                           decoration: BoxDecoration(
                             color: AppColor.primary,
