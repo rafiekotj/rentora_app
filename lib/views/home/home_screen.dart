@@ -585,7 +585,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
                     return SizedBox(
                       width: 168,
-                      height: double.infinity,
+                      height: 290,
                       child: GestureDetector(
                         onTap: () {
                           Navigator.push(
@@ -724,8 +724,14 @@ class _HomeScreenState extends State<HomeScreen> {
 class ProductCard extends StatelessWidget {
   final ProductModel produk;
   final String location;
+  final int maxTitleLines;
 
-  const ProductCard({super.key, required this.produk, required this.location});
+  const ProductCard({
+    super.key,
+    required this.produk,
+    required this.location,
+    this.maxTitleLines = 2,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -780,7 +786,7 @@ class ProductCard extends StatelessWidget {
                     fontWeight: FontWeight.w600,
                     fontSize: 13,
                   ),
-                  maxLines: 2,
+                  maxLines: maxTitleLines,
                   overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 4),

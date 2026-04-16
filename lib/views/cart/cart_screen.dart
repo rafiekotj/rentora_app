@@ -587,7 +587,15 @@ class CartItemCard extends StatelessWidget {
               border: Border.all(color: AppColor.border),
               image: cartItem.product.images.isNotEmpty
                   ? DecorationImage(
-                      image: FileImage(File(cartItem.product.images.first)),
+                      image:
+                          cartItem.product.images.first.trim().startsWith(
+                            'http',
+                          )
+                          ? NetworkImage(cartItem.product.images.first.trim())
+                          : FileImage(
+                                  File(cartItem.product.images.first.trim()),
+                                )
+                                as ImageProvider,
                       fit: BoxFit.cover,
                     )
                   : null,

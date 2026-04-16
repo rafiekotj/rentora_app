@@ -103,7 +103,10 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                   color: AppColor.border,
                   image: imagePath != null
                       ? DecorationImage(
-                          image: FileImage(File(imagePath)),
+                          image: imagePath.trim().startsWith('http')
+                              ? NetworkImage(imagePath.trim())
+                              : FileImage(File(imagePath.trim()))
+                                    as ImageProvider,
                           fit: BoxFit.cover,
                         )
                       : null,

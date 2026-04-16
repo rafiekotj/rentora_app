@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:rentora_app/controllers/cart_controller.dart';
@@ -165,8 +164,8 @@ class _DetailProductScreenState extends State<DetailProductScreen> {
                                 decoration: BoxDecoration(
                                   image: widget.produk.images.isNotEmpty
                                       ? DecorationImage(
-                                          image: FileImage(
-                                            File(widget.produk.images[index]),
+                                          image: NetworkImage(
+                                            widget.produk.images[index].trim(),
                                           ),
                                           fit: BoxFit.cover,
                                         )
@@ -560,8 +559,8 @@ class StoreInfoSection extends StatelessWidget {
                 children: [
                   store.image != null
                       ? ClipOval(
-                          child: Image.file(
-                            File(store.image!),
+                          child: Image.network(
+                            store.image!,
                             width: 56,
                             height: 56,
                             fit: BoxFit.cover,
