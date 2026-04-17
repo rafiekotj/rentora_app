@@ -6,6 +6,7 @@ import 'package:rentora_app/controllers/user_controller.dart';
 import 'package:rentora_app/core/constants/app_color.dart';
 import 'package:rentora_app/models/store_model.dart';
 import 'package:rentora_app/models/user_model.dart';
+import 'package:rentora_app/views/seller/seller_order_screen.dart';
 import 'package:rentora_app/views/seller/seller_product_screen.dart';
 import 'package:rentora_app/views/seller/seller_settings_screen.dart';
 
@@ -504,7 +505,15 @@ class _SellerHomeScreenState extends State<SellerHomeScreen> {
                                 : null,
                             iconColor: AppColor.warning,
                             isHighlighted: _pendingShipmentCount > 0,
-                            onTap: () {},
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      const SellerOrderScreen(),
+                                ),
+                              );
+                            },
                           ),
                           const SizedBox(height: 8),
                           MenuItemCard(

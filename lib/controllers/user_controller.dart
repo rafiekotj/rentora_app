@@ -4,6 +4,11 @@ import 'package:rentora_app/services/database/user_service.dart';
 import 'package:rentora_app/services/local_storage/preference_handler.dart';
 
 class UserController {
+  // Ambil user by uid (untuk seller melihat peminjam)
+  Future<UserModel?> getUserByUid(String uid) async {
+    return await UserFirestoreService.getUserByUid(uid);
+  }
+
   bool _isLoading = false;
   bool get isLoading => _isLoading;
 

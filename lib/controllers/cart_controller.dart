@@ -79,7 +79,8 @@ class CartController {
   // Menambahkan produk ke keranjang Firestore
   Future<void> addToCart(CartModel cartItem) async {
     final user = await _userController.getCurrentUser();
-    if (user?.uid == null) {
+    final userUid = user?.uid;
+    if (userUid == null || userUid.isEmpty) {
       throw Exception('User belum login');
     }
 
@@ -99,8 +100,21 @@ class CartController {
       // Update Firestore
       // Perlu simpan id dokumen Firestore di CartModel jika ingin update
     } else {
-      await _cartService.addToCart(user!.uid, cartItem);
-      cartItemsNotifier.value = [...cartItemsNotifier.value, cartItem];
+      // Setelah add, ambil doc id dan update uid lokal
+      final docRef = await _cartService.cartsCollection.add({
+        'userUid': userUid,
+        ...cartItem.toMap(),
+      });
+      await _cartService.cartsCollection.doc(docRef.id).update({
+        'uid': docRef.id,
+      });
+      final newCart = CartModel(
+        uid: docRef.id,
+        product: cartItem.product,
+        quantity: cartItem.quantity,
+        rentalDays: cartItem.rentalDays,
+      );
+      cartItemsNotifier.value = [...cartItemsNotifier.value, newCart];
     }
   }
 

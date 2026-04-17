@@ -9,13 +9,21 @@ class CartService {
     final snapshot = await cartsCollection
         .where('userUid', isEqualTo: userUid)
         .get();
-    return snapshot.docs
-        .map((doc) => CartModel.fromMap(doc.data() as Map<String, dynamic>))
-        .toList();
+    return snapshot.docs.map((doc) {
+      final data = doc.data() as Map<String, dynamic>;
+      // Pastikan uid selalu sama dengan doc.id
+      return CartModel.fromMap({...data, 'uid': doc.id});
+    }).toList();
   }
 
   Future<void> addToCart(String userUid, CartModel cartItem) async {
-    await cartsCollection.add({'userUid': userUid, ...cartItem.toMap()});
+    final docRef = await cartsCollection.add({
+      'userUid': userUid,
+      ...cartItem.toMap(),
+    });
+    // Update field uid di Firestore agar sync dengan doc id
+    await cartsCollection.doc(docRef.id).update({'uid': docRef.id});
+    // JANGAN lupa update juga cartItem.uid di objek lokal jika perlu (di controller)
   }
 
   Future<void> updateCart(String cartId, CartModel cartItem) async {

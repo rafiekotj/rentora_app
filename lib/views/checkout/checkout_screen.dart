@@ -3,6 +3,10 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:rentora_app/controllers/cart_controller.dart';
+import 'package:rentora_app/controllers/store_controller.dart';
+import 'package:rentora_app/models/store_model.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:rentora_app/controllers/transaction_controller.dart';
 import 'package:rentora_app/core/constants/app_color.dart';
 import 'package:rentora_app/core/utils/app_formatters.dart';
@@ -22,6 +26,11 @@ class CheckoutScreen extends StatefulWidget {
 class _CheckoutScreenState extends State<CheckoutScreen> {
   final TransactionController _transactionController = TransactionController();
   final CartController _cartController = CartController();
+
+  final StoreController _storeController = StoreController();
+  StoreModel? _store;
+  bool _isLoadingStore = true;
+  GoogleMapController? _mapController;
 
   String selectedMethod = "bank";
   String selectedBankCode = 'bca';
@@ -157,6 +166,22 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    _fetchStore();
+  }
+
+  Future<void> _fetchStore() async {
+    if (widget.cartItems.isEmpty) return;
+    final storeUid = widget.cartItems.first.product.storeUid;
+    final store = await _storeController.getStoreById(storeUid);
+    setState(() {
+      _store = store;
+      _isLoadingStore = false;
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColor.backgroundLight,
@@ -174,7 +199,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           children: [
             // ----- PICKUP LOCATION -----
             Container(
-              padding: EdgeInsets.all(8),
+              padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               width: double.infinity,
               decoration: BoxDecoration(
                 color: AppColor.surface,
@@ -188,60 +213,143 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     style: TextStyle(fontWeight: FontWeight.w700),
                   ),
                   const SizedBox(height: 8),
-                  Container(
-                    height: 162,
-                    decoration: BoxDecoration(color: AppColor.textHint),
-                  ),
+                  _isLoadingStore
+                      ? SizedBox(
+                          height: 162,
+                          child: Center(child: CircularProgressIndicator()),
+                        )
+                      : (_store != null &&
+                            _store!.latitude != null &&
+                            _store!.longitude != null)
+                      ? SizedBox(
+                          height: 162,
+                          child: AbsorbPointer(
+                            child: GoogleMap(
+                              initialCameraPosition: CameraPosition(
+                                target: LatLng(
+                                  _store!.latitude!,
+                                  _store!.longitude!,
+                                ),
+                                zoom: 16,
+                              ),
+                              markers: {
+                                Marker(
+                                  markerId: MarkerId('store'),
+                                  position: LatLng(
+                                    _store!.latitude!,
+                                    _store!.longitude!,
+                                  ),
+                                  infoWindow: InfoWindow(title: _store!.name),
+                                ),
+                              },
+                              onMapCreated: (controller) {
+                                _mapController = controller;
+                              },
+                              myLocationButtonEnabled: false,
+                              zoomControlsEnabled: false,
+                              scrollGesturesEnabled: false,
+                              zoomGesturesEnabled: false,
+                              rotateGesturesEnabled: false,
+                              tiltGesturesEnabled: false,
+                              mapToolbarEnabled: true,
+                            ),
+                          ),
+                        )
+                      : Container(
+                          height: 162,
+                          decoration: BoxDecoration(color: AppColor.textHint),
+                          child: Center(child: Text('Lokasi tidak tersedia')),
+                        ),
                   const SizedBox(height: 8),
-                  const Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        child: Column(
+                  _isLoadingStore
+                      ? SizedBox(
+                          height: 24,
+                          child: Center(
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          ),
+                        )
+                      : Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Row(
-                              crossAxisAlignment: CrossAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Icon(
                                   Symbols.location_pin,
                                   size: 16,
                                   color: AppColor.textHint,
                                 ),
-                                SizedBox(width: 8),
-                                Text(
-                                  "Rafie",
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w700,
-                                  ),
-                                ),
-                                SizedBox(width: 8),
-                                Text(
-                                  "(+62) 888-8888-8888",
-                                  style: TextStyle(
-                                    color: AppColor.textHint,
-                                    fontSize: 12,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                SizedBox(width: 24),
+                                const SizedBox(width: 8),
                                 Expanded(
-                                  child: Text(
-                                    "Jl. Jalan Ks Tubun II C, RW 01, Slipi, Palmerah, West Jakarta, Special Capital Region of Jakarta, Java, 10260, Indonesia",
-                                    style: TextStyle(fontSize: 12),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        _store?.name ?? '-',
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w700,
+                                        ),
+                                      ),
+                                      if (_store?.fullAddress != null)
+                                        Text(
+                                          _store!.fullAddress!,
+                                          style: TextStyle(fontSize: 12),
+                                        ),
+                                    ],
                                   ),
                                 ),
                               ],
                             ),
+                            if (_store != null &&
+                                _store!.latitude != null &&
+                                _store!.longitude != null)
+                              Padding(
+                                padding: const EdgeInsets.only(top: 8.0),
+                                child: SizedBox(
+                                  width: double.infinity,
+                                  child: ElevatedButton.icon(
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: AppColor.primary,
+                                      foregroundColor: AppColor.surface,
+                                      padding: const EdgeInsets.symmetric(
+                                        vertical: 12,
+                                      ),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                    ),
+                                    icon: const Icon(Icons.directions),
+                                    label: const Text('Lihat di Google Maps'),
+                                    onPressed: () async {
+                                      final lat = _store!.latitude!;
+                                      final lng = _store!.longitude!;
+                                      final url =
+                                          'https://www.google.com/maps/dir/?api=1&destination=$lat,$lng';
+                                      final uri = Uri.parse(url);
+                                      if (await canLaunchUrl(uri)) {
+                                        await launchUrl(
+                                          uri,
+                                          mode: LaunchMode.externalApplication,
+                                        );
+                                      } else {
+                                        ScaffoldMessenger.of(
+                                          context,
+                                        ).showSnackBar(
+                                          SnackBar(
+                                            content: Text(
+                                              'Tidak dapat membuka Google Maps',
+                                            ),
+                                          ),
+                                        );
+                                      }
+                                    },
+                                  ),
+                                ),
+                              ),
                           ],
                         ),
-                      ),
-                    ],
-                  ),
                 ],
               ),
             ),
@@ -258,13 +366,17 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               child: Column(
                 children: [
                   Padding(
-                    padding: const EdgeInsets.all(8),
+                    padding: const EdgeInsets.only(
+                      left: 12,
+                      top: 12,
+                      right: 12,
+                    ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         ...widget.cartItems.map((item) {
                           final imagePath = item.product.images.isNotEmpty
-                              ? item.product.images.first
+                              ? item.product.images.first.trim()
                               : null;
                           return Padding(
                             padding: const EdgeInsets.only(bottom: 8),
@@ -277,10 +389,15 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                                     color: AppColor.textHint,
                                   ),
                                   child: imagePath != null
-                                      ? Image.file(
-                                          File(imagePath),
-                                          fit: BoxFit.cover,
-                                        )
+                                      ? (imagePath.startsWith('http')
+                                            ? Image.network(
+                                                imagePath,
+                                                fit: BoxFit.cover,
+                                              )
+                                            : Image.file(
+                                                File(imagePath),
+                                                fit: BoxFit.cover,
+                                              ))
                                       : null,
                                 ),
                                 const SizedBox(width: 8),
@@ -332,7 +449,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                           );
                         }),
 
-                        const SizedBox(height: 12),
+                        const SizedBox(height: 6),
                       ],
                     ),
                   ),
@@ -340,7 +457,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   const Divider(height: 1, color: AppColor.divider),
 
                   Padding(
-                    padding: const EdgeInsets.all(8.0),
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 8,
+                      horizontal: 12,
+                    ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -361,7 +481,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   const Divider(height: 1, color: AppColor.divider),
 
                   Padding(
-                    padding: const EdgeInsets.all(8.0),
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 8,
+                      horizontal: 12,
+                    ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -387,7 +510,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
             // ----- PAYMENT METHOD -----
             Container(
-              padding: EdgeInsets.all(8),
+              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
               width: double.infinity,
               decoration: BoxDecoration(
                 color: AppColor.surface,
@@ -419,7 +542,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                               ),
                             ),
                           );
-
                           if (selected == null) return;
                           _applyPaymentSelection(selected);
                         },
@@ -476,27 +598,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     ),
                   ),
 
-                  // GestureDetector(
-                  //   onTap: () => setState(() => selectedMethod = "debit"),
-                  //   child: Row(
-                  //     children: [
-                  //       const Icon(Symbols.credit_card),
-                  //       const SizedBox(width: 12),
-                  //       const Text(
-                  //         "Kartu Debit",
-                  //         style: TextStyle(fontSize: 12),
-                  //       ),
-                  //       const Spacer(),
-                  //       Radio<String>(
-                  //         value: "debit",
-                  //         activeColor: AppColor.primary,
-                  //         groupValue: selectedMethod,
-                  //         onChanged: (value) =>
-                  //             setState(() => selectedMethod = value!),
-                  //       ),
-                  //     ],
-                  //   ),
-                  // ),
                   GestureDetector(
                     onTap: () => setState(() => selectedMethod = "qris"),
                     child: Row(
@@ -539,6 +640,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 ],
               ),
             ),
+
             const SizedBox(height: 8),
 
             // ----- PAYMENT SUMMARY -----
@@ -554,7 +656,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Padding(
-                        padding: const EdgeInsets.all(8.0),
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 8,
+                          horizontal: 12,
+                        ),
                         child: Text(
                           "Rincian Pembayaran",
                           style: TextStyle(
@@ -564,7 +669,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                         ),
                       ),
                       Padding(
-                        padding: const EdgeInsets.fromLTRB(8, 0, 8, 4),
+                        padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
                         child: Column(
                           children: [
                             Row(
@@ -601,7 +706,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   ),
                   const Divider(height: 8, color: AppColor.divider),
                   Padding(
-                    padding: const EdgeInsets.fromLTRB(8, 4, 8, 8),
+                    padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [

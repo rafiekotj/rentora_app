@@ -7,6 +7,8 @@ class TransactionService {
 
   Future<String> createTransaction(TransactionModel transaction) async {
     final docRef = await transactionsCollection.add(transaction.toMap());
+    // Update field uid di dokumen agar sesuai dengan doc id
+    await transactionsCollection.doc(docRef.id).update({'uid': docRef.id});
     return docRef.id;
   }
 

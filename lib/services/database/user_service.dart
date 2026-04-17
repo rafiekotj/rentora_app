@@ -29,4 +29,12 @@ class UserFirestoreService {
     if (image != null) data['image'] = image;
     await _firebaseFirestore.collection('users').doc(uid).update(data);
   }
+
+  static Future<UserModel?> getUserByUid(String uid) async {
+    final doc = await _firebaseFirestore.collection('users').doc(uid).get();
+    if (doc.exists) {
+      return UserModel.fromMap(doc.data()!);
+    }
+    return null;
+  }
 }

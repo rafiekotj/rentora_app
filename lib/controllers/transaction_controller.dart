@@ -9,6 +9,11 @@ class TransactionController {
   final StoreController _storeController = StoreController();
   final TransactionService _transactionService = TransactionService();
 
+  // Add getters for accessing these from screens if necessary, though it's better to add methods.
+  // We'll add them to fix the direct access errors for now.
+  StoreController get storeController => _storeController;
+  TransactionService get transactionService => _transactionService;
+
   Future<String> createTransaction({
     required List<CartModel> cartItems,
     required String paymentMethod,

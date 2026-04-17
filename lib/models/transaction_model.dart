@@ -1,5 +1,4 @@
 import 'dart:convert';
-
 import 'package:rentora_app/models/cart_model.dart';
 
 class TransactionModel {
@@ -35,6 +34,40 @@ class TransactionModel {
     required this.createdAt,
   });
 
+  TransactionModel copyWith({
+    String? uid,
+    String? userUid,
+    String? storeUid,
+    String? storeName,
+    String? status,
+    String? paymentMethod,
+    String? paymentLabel,
+    List<CartModel>? items,
+    int? totalProducts,
+    int? rentalDays,
+    int? subtotal,
+    int? serviceFee,
+    int? totalPayment,
+    String? createdAt,
+  }) {
+    return TransactionModel(
+      uid: uid ?? this.uid,
+      userUid: userUid ?? this.userUid,
+      storeUid: storeUid ?? this.storeUid,
+      storeName: storeName ?? this.storeName,
+      status: status ?? this.status,
+      paymentMethod: paymentMethod ?? this.paymentMethod,
+      paymentLabel: paymentLabel ?? this.paymentLabel,
+      items: items ?? this.items,
+      totalProducts: totalProducts ?? this.totalProducts,
+      rentalDays: rentalDays ?? this.rentalDays,
+      subtotal: subtotal ?? this.subtotal,
+      serviceFee: serviceFee ?? this.serviceFee,
+      totalPayment: totalPayment ?? this.totalPayment,
+      createdAt: createdAt ?? this.createdAt,
+    );
+  }
+
   Map<String, dynamic> toMap() {
     return {
       'uid': uid,
@@ -55,8 +88,12 @@ class TransactionModel {
   }
 
   factory TransactionModel.fromMap(Map<String, dynamic> map) {
-    final decodedItems =
-        jsonDecode(map['items_data'] as String) as List<dynamic>;
+    var decodedItems = [];
+    if (map['items_data'] is String) {
+      decodedItems = jsonDecode(map['items_data'] as String) as List<dynamic>;
+    } else if (map['items_data'] is List) {
+      decodedItems = map['items_data'] as List<dynamic>;
+    }
 
     return TransactionModel(
       uid: map['uid'] as String,
