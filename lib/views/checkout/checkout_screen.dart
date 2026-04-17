@@ -30,7 +30,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   final StoreController _storeController = StoreController();
   StoreModel? _store;
   bool _isLoadingStore = true;
-  GoogleMapController? _mapController;
 
   String selectedMethod = "bank";
   String selectedBankCode = 'bca';
@@ -242,9 +241,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                                   infoWindow: InfoWindow(title: _store!.name),
                                 ),
                               },
-                              onMapCreated: (controller) {
-                                _mapController = controller;
-                              },
+                              onMapCreated: (_) {},
                               myLocationButtonEnabled: false,
                               zoomControlsEnabled: false,
                               scrollGesturesEnabled: false,
