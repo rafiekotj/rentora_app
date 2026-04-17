@@ -38,6 +38,13 @@ class StoreController {
     required String name,
     String? location,
     String? image,
+    String? province,
+    String? city,
+    String? district,
+    String? postalCode,
+    String? fullAddress,
+    double? latitude,
+    double? longitude,
   }) async {
     final userController = UserController();
     final user = await userController.getCurrentUser();
@@ -49,6 +56,13 @@ class StoreController {
       name: name,
       location: location,
       image: image,
+      province: province,
+      city: city,
+      district: district,
+      postalCode: postalCode,
+      fullAddress: fullAddress,
+      latitude: latitude,
+      longitude: longitude,
     );
   }
 }

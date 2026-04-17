@@ -6,6 +6,9 @@ import 'package:material_symbols_icons/symbols.dart';
 import 'package:rentora_app/controllers/store_controller.dart';
 import 'package:rentora_app/core/constants/app_color.dart';
 import 'package:rentora_app/widgets/custom_text_field.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:geocoding/geocoding.dart' as geocoding;
 
 class SellerSettingsScreen extends StatefulWidget {
   const SellerSettingsScreen({super.key});
@@ -15,10 +18,94 @@ class SellerSettingsScreen extends StatefulWidget {
 }
 
 class _SellerSettingsScreenState extends State<SellerSettingsScreen> {
+  GoogleMapController? _mapController;
+  LatLng? _currentLatLng;
+  bool _isMapReady = false;
+  bool isMapSectionLoading = false;
   final _storeController = StoreController();
 
   final _nameController = TextEditingController();
   final _locationController = TextEditingController();
+
+  String? _address;
+  String? _province;
+  String? _city;
+  String? _district;
+  String? _postalCode;
+  double? _latitude;
+  double? _longitude;
+
+  Future<void> _updateAddressFromLatLng(LatLng latLng) async {
+    setState(() => isMapSectionLoading = true);
+    try {
+      final placemarks = await geocoding.placemarkFromCoordinates(
+        latLng.latitude,
+        latLng.longitude,
+      );
+      if (placemarks.isNotEmpty) {
+        final p = placemarks.first;
+        final address = [
+          p.street,
+          p.subLocality,
+          p.locality,
+          p.subAdministrativeArea,
+          p.administrativeArea,
+          p.postalCode,
+        ].where((e) => e != null && e.isNotEmpty).join(', ');
+        setState(() {
+          _address = address;
+          _locationController.text = address;
+          _province = p.administrativeArea;
+          _city = p.locality;
+          _district = p.subAdministrativeArea;
+          _postalCode = p.postalCode;
+          _latitude = latLng.latitude;
+          _longitude = latLng.longitude;
+          // Gunakan _mapController untuk animasi ke lokasi baru
+          if (_mapController != null) {
+            _mapController!.animateCamera(CameraUpdate.newLatLng(latLng));
+          }
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _address = null;
+      });
+    } finally {
+      setState(() => isMapSectionLoading = false);
+    }
+  }
+
+  // Mendapatkan lokasi saat ini
+  Future<void> _getCurrentLocation() async {
+    setState(() => isMapSectionLoading = true);
+    try {
+      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        await Geolocator.openLocationSettings();
+        return;
+      }
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) {
+          return;
+        }
+      }
+      if (permission == LocationPermission.deniedForever) {
+        return;
+      }
+      final position = await Geolocator.getCurrentPosition();
+      setState(() {
+        _currentLatLng = LatLng(position.latitude, position.longitude);
+      });
+      if (_currentLatLng != null) {
+        await _updateAddressFromLatLng(_currentLatLng!);
+      }
+    } finally {
+      setState(() => isMapSectionLoading = false);
+    }
+  }
 
   final _imagePicker = ImagePicker();
 
@@ -30,6 +117,7 @@ class _SellerSettingsScreenState extends State<SellerSettingsScreen> {
   void initState() {
     super.initState();
     _loadStoreData();
+    _getCurrentLocation();
   }
 
   @override
@@ -122,6 +210,13 @@ class _SellerSettingsScreenState extends State<SellerSettingsScreen> {
         name: _nameController.text,
         location: _locationController.text,
         image: imageToSave,
+        province: _province,
+        city: _city,
+        district: _district,
+        postalCode: _postalCode,
+        fullAddress: _address,
+        latitude: _latitude,
+        longitude: _longitude,
       );
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -144,6 +239,7 @@ class _SellerSettingsScreenState extends State<SellerSettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
       backgroundColor: AppColor.backgroundLight,
       appBar: AppBar(
@@ -249,6 +345,7 @@ class _SellerSettingsScreenState extends State<SellerSettingsScreen> {
                 ],
               ),
             ),
+
             const SizedBox(height: 12),
 
             // --- STORE INFO SECTION ---
@@ -292,11 +389,105 @@ class _SellerSettingsScreenState extends State<SellerSettingsScreen> {
                     prefixIcon: Symbols.storefront,
                   ),
                   const SizedBox(height: 12),
-                  CustomTextField(
-                    controller: _locationController,
-                    hintText: 'Lokasi',
-                    prefixIcon: Symbols.location_on,
-                  ),
+
+                  // --- GOOGLE MAP SECTION ---
+                  if (_currentLatLng != null)
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Stack(
+                          children: [
+                            SizedBox(
+                              height: 220,
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(12),
+                                child: GoogleMap(
+                                  initialCameraPosition: CameraPosition(
+                                    target: _currentLatLng!,
+                                    zoom: 16,
+                                  ),
+                                  myLocationEnabled: true,
+                                  myLocationButtonEnabled: true,
+                                  zoomGesturesEnabled: true,
+                                  onMapCreated: (controller) {
+                                    _mapController = controller;
+                                    if (mounted && !_isMapReady) {
+                                      setState(() {
+                                        _isMapReady = true;
+                                      });
+                                    }
+                                  },
+                                  markers: {
+                                    Marker(
+                                      markerId: const MarkerId(
+                                        'current_location',
+                                      ),
+                                      position: _currentLatLng!,
+                                      draggable: true,
+                                      onDragEnd: (newPos) async {
+                                        setState(() {
+                                          _currentLatLng = newPos;
+                                        });
+                                        await _updateAddressFromLatLng(newPos);
+                                      },
+                                    ),
+                                  },
+                                  onTap: (latLng) async {
+                                    setState(() {
+                                      _currentLatLng = latLng;
+                                    });
+                                    await _updateAddressFromLatLng(latLng);
+                                  },
+                                ),
+                              ),
+                            ),
+                            if (isMapSectionLoading)
+                              Positioned.fill(
+                                child: ColoredBox(
+                                  color: theme.colorScheme.surface.withAlpha(
+                                    115,
+                                  ),
+                                  child: const Center(
+                                    child: CircularProgressIndicator(
+                                      color: AppColor.primary,
+                                      strokeWidth: 3.5,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
+                        const SizedBox(height: 10),
+                        if (_address != null && _address!.isNotEmpty)
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Icon(
+                                Icons.location_on,
+                                color: AppColor.primary,
+                                size: 20,
+                              ),
+                              const SizedBox(width: 6),
+                              Expanded(
+                                child: Text(
+                                  _address!,
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    color: AppColor.textPrimary,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                      ],
+                    ),
+                  if (_currentLatLng == null)
+                    Container(
+                      height: 220,
+                      alignment: Alignment.center,
+                      child: const CircularProgressIndicator(),
+                    ),
                 ],
               ),
             ),

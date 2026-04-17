@@ -230,37 +230,11 @@ class _UserAccountScreenState extends State<UserAccountScreen> {
                     child: Column(
                       children: [
                         MenuItemCard(
-                          icon: Symbols.receipt_long,
-                          text: "Riwayat Pesanan",
-                          subtitle:
-                              "Lihat transaksi lama, terbaru, sampai selesai",
-                          iconColor: Colors.blue,
-                          onTap: () {},
-                        ),
-                        const SizedBox(height: 8),
-                        MenuItemCard(
                           icon: Symbols.favorite,
                           text: "Favorit Saya",
                           subtitle: "Simpan dulu, checkout kapan pun kamu siap",
                           fill: 1,
                           iconColor: Colors.red,
-                          onTap: () {},
-                        ),
-                        const SizedBox(height: 8),
-                        MenuItemCard(
-                          icon: Symbols.history,
-                          text: "Terakhir Dilihat",
-                          subtitle:
-                              "Lanjutkan jelajah dari produk yang tadi dibuka",
-                          iconColor: Colors.orange,
-                          onTap: () {},
-                        ),
-                        const SizedBox(height: 8),
-                        MenuItemCard(
-                          icon: Symbols.shopping_bag,
-                          text: "Beli Lagi",
-                          subtitle: "Pesan ulang favoritmu lebih cepat",
-                          iconColor: Colors.teal,
                           onTap: () {},
                         ),
                         const SizedBox(height: 8),

@@ -220,8 +220,8 @@ class _SellerHomeScreenState extends State<SellerHomeScreen> {
     final String displayName = (_store?.name ?? '').isNotEmpty
         ? _store!.name
         : _user?.email ?? 'Toko Saya';
-    final String storeLocation = (_store?.location ?? '').isNotEmpty
-        ? _store!.location!
+    final String storeLocation = (_store?.district ?? '').isNotEmpty
+        ? _store!.district!
         : 'Lokasi belum diatur';
 
     return Scaffold(
@@ -522,15 +522,6 @@ class _SellerHomeScreenState extends State<SellerHomeScreen> {
                             subtitle:
                                 "Analisis penjualan, traffic, dan produk unggulan",
                             iconColor: AppColor.info,
-                            onTap: () {},
-                          ),
-                          const SizedBox(height: 8),
-                          MenuItemCard(
-                            icon: Symbols.percent_discount,
-                            text: "Promosi Toko",
-                            subtitle:
-                                "Buat promo biar produk lebih cepat dilirik pembeli",
-                            iconColor: AppColor.error,
                             onTap: () {},
                           ),
                           const SizedBox(height: 8),

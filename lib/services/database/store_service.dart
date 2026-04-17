@@ -52,7 +52,27 @@ class StoreService {
     required String name,
     String? location,
     String? image,
+    String? province,
+    String? city,
+    String? district,
+    String? postalCode,
+    String? fullAddress,
+    double? latitude,
+    double? longitude,
   }) async {
+    final data = {
+      'userUid': userUid,
+      'name': name,
+      'location': location,
+      'image': image,
+      'province': province,
+      'city': city,
+      'district': district,
+      'postalCode': postalCode,
+      'fullAddress': fullAddress,
+      'latitude': latitude,
+      'longitude': longitude,
+    };
     final snapshot = await storesCollection
         .where('userUid', isEqualTo: userUid)
         .limit(1)
@@ -60,18 +80,11 @@ class StoreService {
     if (snapshot.docs.isNotEmpty) {
       final docId = snapshot.docs.first.id;
       await storesCollection.doc(docId).update({
-        'name': name,
-        'location': location,
-        'image': image,
+        ...data,
         'uid': docId, // pastikan field uid selalu terisi
       });
     } else {
-      final docRef = await storesCollection.add({
-        'userUid': userUid,
-        'name': name,
-        'location': location,
-        'image': image,
-      });
+      final docRef = await storesCollection.add(data);
       // update field uid setelah dokumen berhasil dibuat
       await storesCollection.doc(docRef.id).update({'uid': docRef.id});
     }
