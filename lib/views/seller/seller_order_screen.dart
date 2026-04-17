@@ -6,7 +6,9 @@ import 'package:rentora_app/core/utils/app_formatters.dart';
 import 'package:rentora_app/models/cart_model.dart';
 import 'package:rentora_app/models/product_model.dart';
 import 'package:rentora_app/controllers/transaction_controller.dart';
+import 'package:rentora_app/controllers/user_controller.dart';
 import 'package:rentora_app/models/transaction_model.dart';
+import 'order_detail_screen.dart';
 
 class SellerOrderScreen extends StatefulWidget {
   const SellerOrderScreen({super.key});
@@ -92,11 +94,7 @@ class _SellerOrderScreenState extends State<SellerOrderScreen> {
                       const SizedBox(height: 12),
                   itemBuilder: (context, index) {
                     final tx = _transactions[index];
-                    return OrderProductsCard(
-                      storeName: tx.storeName,
-                      items: tx.items,
-                      rentalDays: tx.rentalDays,
-                    );
+                    return OrderProductsCard(transaction: tx);
                   },
                 ),
               ),
@@ -107,16 +105,9 @@ class _SellerOrderScreenState extends State<SellerOrderScreen> {
 
 // ---------------- Inlined OrderProductsCard ----------------
 class OrderProductsCard extends StatefulWidget {
-  final String storeName;
-  final List<dynamic> items;
-  final int rentalDays;
+  final TransactionModel transaction;
 
-  const OrderProductsCard({
-    super.key,
-    required this.storeName,
-    required this.items,
-    this.rentalDays = 1,
-  });
+  const OrderProductsCard({super.key, required this.transaction});
 
   @override
   State<OrderProductsCard> createState() => _OrderProductsCardState();
@@ -124,18 +115,29 @@ class OrderProductsCard extends StatefulWidget {
 
 class _OrderProductsCardState extends State<OrderProductsCard> {
   bool _expanded = false;
+  bool _suppressNavigationTap = false;
+  final UserController _userController = UserController();
+  String? _buyerUsername;
+  bool _loadingUser = true;
 
   int _computeTotal() {
     int total = 0;
-    for (final item in widget.items) {
+    for (final item in widget.transaction.items) {
       final normalized = _normalizeItem(item);
-      final harga = normalized['hargaPerHari'] ?? 0;
+      final product = (normalized['product'] as Map<String, dynamic>?) ?? {};
+      final hargaVal = product['hargaPerHari'] ?? product['harga'] ?? 0;
       final qty = normalized['quantity'] ?? 0;
-      final days = normalized['rental_days'] ?? widget.rentalDays;
-      total +=
-          (harga is int ? harga : int.tryParse(harga.toString()) ?? 0) *
-          (qty is int ? qty : int.tryParse(qty.toString()) ?? 0) *
-          (days is int ? days : int.tryParse(days.toString()) ?? 0);
+      final days = normalized['rental_days'] ?? widget.transaction.rentalDays;
+
+      final harga = (hargaVal is int
+          ? hargaVal
+          : int.tryParse(hargaVal.toString()) ?? 0);
+      final quantity = (qty is int ? qty : int.tryParse(qty.toString()) ?? 0);
+      final rentalDays = (days is int
+          ? days
+          : int.tryParse(days.toString()) ?? 0);
+
+      total += harga * quantity * rentalDays;
     }
     return total;
   }
@@ -158,7 +160,7 @@ class _OrderProductsCardState extends State<OrderProductsCard> {
       return {
         'product': prodMap,
         'quantity': item['quantity'] ?? 1,
-        'rental_days': item['rental_days'] ?? widget.rentalDays,
+        'rental_days': item['rental_days'] ?? widget.transaction.rentalDays,
       };
     }
 
@@ -175,7 +177,45 @@ class _OrderProductsCardState extends State<OrderProductsCard> {
       };
     }
 
-    return {'product': {}, 'quantity': 1, 'rental_days': widget.rentalDays};
+    return {
+      'product': {},
+      'quantity': 1,
+      'rental_days': widget.transaction.rentalDays,
+    };
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _loadBuyerUsername();
+  }
+
+  Future<void> _loadBuyerUsername() async {
+    try {
+      final user = await _userController.getUserByUid(
+        widget.transaction.userUid,
+      );
+      if (!mounted) return;
+      setState(() {
+        if (user != null) {
+          final uname = user.username;
+          if (uname != null && uname.trim().isNotEmpty) {
+            _buyerUsername = uname;
+          } else {
+            _buyerUsername = user.email;
+          }
+        } else {
+          _buyerUsername = '-';
+        }
+        _loadingUser = false;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _buyerUsername = '-';
+        _loadingUser = false;
+      });
+    }
   }
 
   Widget _buildItem(dynamic rawItem) {
@@ -197,7 +237,7 @@ class _OrderProductsCardState extends State<OrderProductsCard> {
     final nama = product['namaProduk'] ?? product['nama'] ?? '-';
     final hargaPerHari = product['hargaPerHari'] ?? 0;
     final quantity = item['quantity'] ?? 1;
-    final rentalDays = item['rental_days'] ?? widget.rentalDays;
+    final rentalDays = item['rental_days'] ?? widget.transaction.rentalDays;
     final itemTotal =
         (int.tryParse(hargaPerHari.toString()) ?? 0) *
         (int.tryParse(quantity.toString()) ?? 0) *
@@ -258,49 +298,67 @@ class _OrderProductsCardState extends State<OrderProductsCard> {
   @override
   Widget build(BuildContext context) {
     final total = _computeTotal();
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  widget.storeName,
-                  style: const TextStyle(fontWeight: FontWeight.w700),
-                ),
-              ),
-              const SizedBox(width: 8),
-              const Text('Selesai', style: TextStyle(color: AppColor.primary)),
-            ],
+
+    return GestureDetector(
+      onTap: () {
+        if (_suppressNavigationTap) return;
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) =>
+                OrderDetailScreen(transaction: widget.transaction),
           ),
-          const SizedBox(height: 12),
-          _buildItem(widget.items[0]),
-          if (_expanded)
-            Column(
-              children: widget.items
-                  .sublist(1)
-                  .map(
-                    (e) => Column(
-                      children: [const Divider(height: 1), _buildItem(e)],
-                    ),
-                  )
-                  .toList(),
+        );
+      },
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Column(
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    _loadingUser ? '...' : (_buyerUsername ?? '-'),
+                    style: const TextStyle(fontWeight: FontWeight.w700),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  widget.transaction.status,
+                  style: const TextStyle(color: AppColor.primary),
+                ),
+              ],
             ),
-          const SizedBox(height: 4),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              if (widget.items.length > 1)
-                InkWell(
+            const SizedBox(height: 12),
+            _buildItem(widget.transaction.items[0]),
+            if (_expanded)
+              Column(
+                children: widget.transaction.items
+                    .sublist(1)
+                    .map(
+                      (e) => Column(
+                        children: [const Divider(height: 1), _buildItem(e)],
+                      ),
+                    )
+                    .toList(),
+              ),
+            const SizedBox(height: 4),
+            if (widget.transaction.items.length > 1)
+              Center(
+                child: InkWell(
                   onTap: () {
                     setState(() {
                       _expanded = !_expanded;
+                      _suppressNavigationTap = true;
+                    });
+                    // prevent parent tap from immediately navigating
+                    Future.delayed(const Duration(milliseconds: 150), () {
+                      _suppressNavigationTap = false;
                     });
                   },
                   borderRadius: BorderRadius.circular(8),
@@ -310,6 +368,7 @@ class _OrderProductsCardState extends State<OrderProductsCard> {
                       vertical: 8,
                     ),
                     child: Row(
+                      mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
                           _expanded ? 'Sembunyikan' : 'Lihat Lainnya',
@@ -328,16 +387,20 @@ class _OrderProductsCardState extends State<OrderProductsCard> {
                       ],
                     ),
                   ),
-                )
-              else
-                const SizedBox(),
-              Text(
-                'Total ${widget.items.length} produk: Rp ${AppFormatters.formatRupiah(total)}',
+                ),
+              )
+            else
+              const SizedBox(),
+            const SizedBox(height: 8),
+            Align(
+              alignment: Alignment.centerRight,
+              child: Text(
+                'Total ${widget.transaction.items.length} produk: Rp ${AppFormatters.formatRupiah(total)}',
                 style: const TextStyle(fontWeight: FontWeight.w600),
               ),
-            ],
-          ),
-        ],
+            ),
+          ],
+        ),
       ),
     );
   }
