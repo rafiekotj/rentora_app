@@ -4,6 +4,7 @@ import 'package:rentora_app/core/constants/app_color.dart';
 import 'package:rentora_app/core/extensions/navigator.dart';
 import 'package:rentora_app/views/auth/register_screen.dart';
 import 'package:rentora_app/views/navigation/bottom_navbar.dart';
+import 'package:rentora_app/services/onesignal_legacy.dart';
 import 'package:rentora_app/widgets/custom_button.dart';
 import 'package:rentora_app/widgets/custom_text_field.dart';
 
@@ -166,6 +167,24 @@ class _LoginScreenState extends State<LoginScreen> {
                                       content: Text("Login Berhasil"),
                                     ),
                                   );
+
+                                  // Set external user id for OneSignal so this device
+                                  // can be targeted from the OneSignal dashboard/server.
+                                  try {
+                                    final user = await _userController
+                                        .getCurrentUser();
+                                    if (user?.uid != null) {
+                                      await setOneSignalExternalId(user!.uid);
+                                      debugPrint(
+                                        'OneSignal external id set: ${user.uid}',
+                                      );
+                                    }
+                                  } catch (e, s) {
+                                    debugPrint(
+                                      'setOneSignalExternalId error: $e\n$s',
+                                    );
+                                  }
+
                                   Navigator.of(context).pushAndRemoveUntil(
                                     MaterialPageRoute(
                                       builder: (context) =>

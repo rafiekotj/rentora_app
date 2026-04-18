@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/symbols.dart';
+import 'package:intl/intl.dart';
 import 'package:rentora_app/core/constants/app_color.dart';
+import 'package:rentora_app/services/local_storage/preference_handler.dart';
 
 class NotificationScreen extends StatefulWidget {
   const NotificationScreen({super.key});
@@ -10,6 +12,20 @@ class NotificationScreen extends StatefulWidget {
 }
 
 class _NotificationScreenState extends State<NotificationScreen> {
+  late Future<List<Map<String, dynamic>>> _futureNotifications;
+
+  @override
+  void initState() {
+    super.initState();
+    _futureNotifications = PreferenceHandler.getNotifications();
+  }
+
+  Future<void> _refresh() async {
+    setState(() {
+      _futureNotifications = PreferenceHandler.getNotifications();
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -27,163 +43,113 @@ class _NotificationScreenState extends State<NotificationScreen> {
           const SizedBox(width: 8),
         ],
       ),
-      body: ListView.separated(
-        padding: const EdgeInsets.all(12),
-        itemCount: 3,
-        separatorBuilder: (context, index) => const SizedBox(height: 8),
-        itemBuilder: (context, index) {
-          if (index == 0) {
-            return Container(
-              decoration: BoxDecoration(
-                color: AppColor.surface,
-                borderRadius: BorderRadius.circular(10),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColor.shadowLight,
-                    blurRadius: 4,
-                    offset: const Offset(0, 2),
+      body: RefreshIndicator(
+        onRefresh: _refresh,
+        child: FutureBuilder<List<Map<String, dynamic>>>(
+          future: _futureNotifications,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            }
+
+            final items = snapshot.data ?? [];
+
+            if (items.isEmpty) {
+              return ListView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                children: [
+                  const SizedBox(height: 40),
+                  Center(
+                    child: Column(
+                      children: const [
+                        Icon(
+                          Symbols.notifications,
+                          size: 56,
+                          color: AppColor.textHint,
+                        ),
+                        SizedBox(height: 12),
+                        Text(
+                          'Belum ada notifikasi',
+                          style: TextStyle(color: AppColor.textHint),
+                        ),
+                      ],
+                    ),
                   ),
                 ],
-              ),
-              child: ListTile(
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 10,
-                ),
-                leading: Icon(
-                  Symbols.notifications,
-                  color: AppColor.primary,
-                  size: 28,
-                ),
-                title: const Text(
-                  'Pembayaran Berhasil',
-                  style: TextStyle(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 15,
-                    color: AppColor.textPrimary,
+              );
+            }
+
+            return ListView.separated(
+              padding: const EdgeInsets.all(12),
+              itemCount: items.length,
+              separatorBuilder: (context, index) => const SizedBox(height: 8),
+              itemBuilder: (context, index) {
+                final item = items[index];
+                final title = item['title'] as String? ?? '';
+                final body = item['body'] as String? ?? '';
+                final createdAt = item['createdAt'] as String? ?? '';
+                String formattedDate = '';
+                try {
+                  final dt = DateTime.parse(createdAt).toLocal();
+                  formattedDate = DateFormat('dd MMM yyyy, HH:mm').format(dt);
+                } catch (_) {}
+
+                return Container(
+                  decoration: BoxDecoration(
+                    color: AppColor.surface,
+                    borderRadius: BorderRadius.circular(10),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColor.shadowLight,
+                        blurRadius: 4,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
                   ),
-                ),
-                subtitle: const Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Transaksi #INV123456 telah berhasil diproses.',
-                      style: TextStyle(
-                        color: AppColor.textSecondary,
-                        fontSize: 13,
+                  child: ListTile(
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 10,
+                    ),
+                    leading: Icon(
+                      Symbols.notifications,
+                      color: AppColor.primary,
+                      size: 28,
+                    ),
+                    title: Text(
+                      title,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 15,
+                        color: AppColor.textPrimary,
                       ),
                     ),
-                    SizedBox(height: 4),
-                    Text(
-                      '13 Apr 2026',
-                      style: TextStyle(color: AppColor.textHint, fontSize: 12),
+                    subtitle: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          body,
+                          style: const TextStyle(
+                            color: AppColor.textSecondary,
+                            fontSize: 13,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          formattedDate,
+                          style: const TextStyle(
+                            color: AppColor.textHint,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
-              ),
+                  ),
+                );
+              },
             );
-          } else if (index == 1) {
-            return Container(
-              decoration: BoxDecoration(
-                color: AppColor.surface,
-                borderRadius: BorderRadius.circular(10),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColor.shadowLight,
-                    blurRadius: 4,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: ListTile(
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 10,
-                ),
-                leading: Icon(
-                  Symbols.notifications,
-                  color: AppColor.primary,
-                  size: 28,
-                ),
-                title: const Text(
-                  'Barang Dikirim',
-                  style: TextStyle(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 15,
-                    color: AppColor.textPrimary,
-                  ),
-                ),
-                subtitle: const Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Pesanan Anda sedang dalam perjalanan.',
-                      style: TextStyle(
-                        color: AppColor.textSecondary,
-                        fontSize: 13,
-                      ),
-                    ),
-                    SizedBox(height: 4),
-                    Text(
-                      '12 Apr 2026',
-                      style: TextStyle(color: AppColor.textHint, fontSize: 12),
-                    ),
-                  ],
-                ),
-              ),
-            );
-          } else {
-            return Container(
-              decoration: BoxDecoration(
-                color: AppColor.surface,
-                borderRadius: BorderRadius.circular(10),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColor.shadowLight,
-                    blurRadius: 4,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: ListTile(
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 10,
-                ),
-                leading: Icon(
-                  Symbols.notifications,
-                  color: AppColor.primary,
-                  size: 28,
-                ),
-                title: const Text(
-                  'Pengingat Pembayaran',
-                  style: TextStyle(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 15,
-                    color: AppColor.textPrimary,
-                  ),
-                ),
-                subtitle: const Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Segera selesaikan pembayaran untuk pesanan #INV123457.',
-                      style: TextStyle(
-                        color: AppColor.textSecondary,
-                        fontSize: 13,
-                      ),
-                    ),
-                    SizedBox(height: 4),
-                    Text(
-                      '11 Apr 2026',
-                      style: TextStyle(color: AppColor.textHint, fontSize: 12),
-                    ),
-                  ],
-                ),
-              ),
-            );
-          }
-        },
+          },
+        ),
       ),
     );
   }

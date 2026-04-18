@@ -16,12 +16,18 @@ class BottomNavbar extends StatefulWidget {
 class _BottomNavbarState extends State<BottomNavbar> {
   int _selectedIndex = 0;
 
-  static const List<Widget> _widgetOptions = <Widget>[
-    HomeScreen(),
-    NotificationScreen(),
-    TransactionHistoryScreen(),
-    UserAccountScreen(),
-  ];
+  Widget _buildBody() {
+    switch (_selectedIndex) {
+      case 0:
+        return HomeScreen();
+      case 1:
+        return NotificationScreen();
+      case 2:
+        return TransactionHistoryScreen();
+      default:
+        return UserAccountScreen();
+    }
+  }
 
   void _onItemTapped(int index) {
     setState(() {
@@ -32,7 +38,7 @@ class _BottomNavbarState extends State<BottomNavbar> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: _widgetOptions.elementAt(_selectedIndex),
+      body: _buildBody(),
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
           boxShadow: [

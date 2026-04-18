@@ -32,6 +32,8 @@ Future<void> main() async {
     ),
   );
 
+  // Local notification initialization removed — notifications handled by OneSignal.
+
   if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
     try {
       setupOneSignal();

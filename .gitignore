@@ -48,3 +48,6 @@ release-key.jks
 
 /android/app/google-services.json
 /lib/firebase_options.dart
+
+# OneSignal local secrets (do not commit)
+/lib/config/onesignal_secrets.dart
