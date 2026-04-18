@@ -37,4 +37,8 @@ class TransactionService {
         )
         .toList();
   }
+
+  Future<void> updateTransactionStatus(String uid, String status) async {
+    await transactionsCollection.doc(uid).update({'status': status});
+  }
 }

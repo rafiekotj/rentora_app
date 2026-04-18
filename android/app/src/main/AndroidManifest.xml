@@ -1,6 +1,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
 <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+<uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
     <application
         android:label="Rentora"
         android:name="${applicationName}"
@@ -36,6 +37,10 @@
         <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="AIzaSyDk_IqTjxDnhlwFcVf8bYfNR0qBtEGAyJw"/>
+
+        <meta-data
+            android:name="onesignal_app_id"
+            android:value="c2c0a5ff-4f19-4ff4-95db-51099737a183" />
     </application>
     <!-- Required to query activities that can process text, see:
          https://developer.android.com/training/package-visibility and

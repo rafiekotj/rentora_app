@@ -96,4 +96,56 @@ class TransactionController {
 
     return totalItems;
   }
+
+  Future<int> getRentedItemCountForCurrentSeller() async {
+    final user = await _userController.getCurrentUser();
+    if (user?.uid == null) {
+      return 0;
+    }
+
+    final store = await _storeController.getStoreByUserId(user!.uid);
+    if (store == null) {
+      return 0;
+    }
+
+    final transactions = await _transactionService.getTransactionsByStore(
+      store.uid,
+      ['Disewa', 'Sedang Disewa'],
+    );
+
+    int totalItems = 0;
+    for (final transaction in transactions) {
+      for (final item in transaction.items) {
+        totalItems += item.quantity;
+      }
+    }
+
+    return totalItems;
+  }
+
+  Future<int> getReturnedItemCountForCurrentSeller() async {
+    final user = await _userController.getCurrentUser();
+    if (user?.uid == null) {
+      return 0;
+    }
+
+    final store = await _storeController.getStoreByUserId(user!.uid);
+    if (store == null) {
+      return 0;
+    }
+
+    final transactions = await _transactionService.getTransactionsByStore(
+      store.uid,
+      ['Dikembalikan'],
+    );
+
+    int totalItems = 0;
+    for (final transaction in transactions) {
+      for (final item in transaction.items) {
+        totalItems += item.quantity;
+      }
+    }
+
+    return totalItems;
+  }
 }

@@ -25,6 +25,8 @@ class _SellerHomeScreenState extends State<SellerHomeScreen> {
   StoreModel? _store;
   UserModel? _user;
   int _pendingShipmentCount = 0;
+  int _rentedItemCount = 0;
+  int _returnedItemCount = 0;
 
   @override
   void initState() {
@@ -54,10 +56,16 @@ class _SellerHomeScreenState extends State<SellerHomeScreen> {
   Future<void> _loadSellerStats() async {
     final pendingCount = await _transactionController
         .getPendingShipmentCountForCurrentSeller();
+    final rentedCount = await _transactionController
+        .getRentedItemCountForCurrentSeller();
+    final returnedCount = await _transactionController
+        .getReturnedItemCountForCurrentSeller();
 
     if (!mounted) return;
     setState(() {
       _pendingShipmentCount = pendingCount;
+      _rentedItemCount = rentedCount;
+      _returnedItemCount = returnedCount;
     });
   }
 
@@ -407,16 +415,16 @@ class _SellerHomeScreenState extends State<SellerHomeScreen> {
                                   isUrgent: _pendingShipmentCount > 0,
                                 ),
                                 const _StatDivider(),
-                                const StatItem(
-                                  icon: Symbols.cancel,
-                                  count: 0,
-                                  label: "Pembatalan",
-                                  iconColor: AppColor.error,
+                                StatItem(
+                                  icon: Symbols.inventory_2,
+                                  count: _rentedItemCount,
+                                  label: "Disewakan",
+                                  iconColor: AppColor.success,
                                 ),
                                 const _StatDivider(),
-                                const StatItem(
+                                StatItem(
                                   icon: Symbols.assignment_return,
-                                  count: 0,
+                                  count: _returnedItemCount,
                                   label: "Pengembalian",
                                   iconColor: AppColor.info,
                                 ),
@@ -449,13 +457,6 @@ class _SellerHomeScreenState extends State<SellerHomeScreen> {
                           ),
                           const SizedBox(width: 8),
                           const SellerStatusTile(
-                            icon: Symbols.percent_discount,
-                            title: "Promo Aktif",
-                            value: 0,
-                            valueColor: AppColor.textPrimary,
-                          ),
-                          const SizedBox(width: 8),
-                          const SellerStatusTile(
                             icon: Symbols.chat,
                             title: "Ulasan Baru",
                             value: 0,
@@ -478,7 +479,6 @@ class _SellerHomeScreenState extends State<SellerHomeScreen> {
                             subtitle:
                                 "Tambah, edit, dan atur stok katalog sewa",
                             iconColor: AppColor.primary,
-                            isHighlighted: true,
                             onTap: () async {
                               await Navigator.push(
                                 context,
@@ -504,7 +504,6 @@ class _SellerHomeScreenState extends State<SellerHomeScreen> {
                                       : _pendingShipmentCount.toString()
                                 : null,
                             iconColor: AppColor.warning,
-                            isHighlighted: _pendingShipmentCount > 0,
                             onTap: () {
                               Navigator.push(
                                 context,
@@ -540,7 +539,6 @@ class _SellerHomeScreenState extends State<SellerHomeScreen> {
                             subtitle:
                                 "Lengkapi profil toko, alamat, dan informasi operasional",
                             iconColor: AppColor.secondary,
-                            isHighlighted: false,
                             onTap: () async {
                               await Navigator.push(
                                 context,
@@ -553,15 +551,6 @@ class _SellerHomeScreenState extends State<SellerHomeScreen> {
                                 _loadData();
                               }
                             },
-                          ),
-                          const SizedBox(height: 8),
-                          MenuItemCard(
-                            icon: Symbols.help,
-                            text: "Pusat Bantuan",
-                            subtitle:
-                                "Temukan FAQ dan bantuan cepat untuk seller",
-                            iconColor: AppColor.info,
-                            onTap: () {},
                           ),
                         ],
                       ),
@@ -748,7 +737,6 @@ class MenuItemCard extends StatelessWidget {
   final String? subtitle;
   final String? badge;
   final Color iconColor;
-  final bool isHighlighted;
   final VoidCallback onTap;
 
   const MenuItemCard({
@@ -758,7 +746,6 @@ class MenuItemCard extends StatelessWidget {
     this.subtitle,
     this.badge,
     this.iconColor = AppColor.textPrimary,
-    this.isHighlighted = false,
     required this.onTap,
   });
 
@@ -775,11 +762,8 @@ class MenuItemCard extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
           decoration: BoxDecoration(
-            border: Border.all(
-              color: isHighlighted ? AppColor.primarySoft : AppColor.border,
-            ),
+            border: Border.all(color: AppColor.border),
             borderRadius: BorderRadius.circular(14),
-            color: isHighlighted ? AppColor.primarySoft.withAlpha(70) : null,
           ),
           child: Row(
             children: [

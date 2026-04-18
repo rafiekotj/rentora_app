@@ -8,6 +8,8 @@ import 'package:rentora_app/core/utils/app_formatters.dart';
 import 'package:rentora_app/models/cart_model.dart';
 import 'package:rentora_app/models/product_model.dart';
 import 'package:rentora_app/models/transaction_model.dart';
+import 'package:rentora_app/controllers/transaction_controller.dart';
+import 'package:rentora_app/widgets/custom_button.dart';
 
 class OrderDetailScreen extends StatefulWidget {
   final TransactionModel transaction;
@@ -19,6 +21,9 @@ class OrderDetailScreen extends StatefulWidget {
 }
 
 class _OrderDetailScreenState extends State<OrderDetailScreen> {
+  final TransactionController _transactionController = TransactionController();
+  late TransactionModel _tx;
+  bool _updating = false;
   String _formatDate(String iso) {
     try {
       final dt = DateTime.parse(iso).toLocal();
@@ -141,7 +146,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final tx = widget.transaction;
+    final tx = _tx;
     return Scaffold(
       backgroundColor: AppColor.backgroundLight,
       appBar: AppBar(
@@ -255,6 +260,66 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
             ),
             const SizedBox(height: 80),
           ],
+        ),
+      ),
+      bottomNavigationBar: _buildBottomActionBar(),
+    );
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _tx = widget.transaction;
+  }
+
+  Future<void> _updateStatus(String newStatus) async {
+    setState(() {
+      _updating = true;
+    });
+    try {
+      await _transactionController.transactionService.updateTransactionStatus(
+        _tx.uid,
+        newStatus,
+      );
+      if (!mounted) return;
+      setState(() {
+        _tx = _tx.copyWith(status: newStatus);
+        _updating = false;
+      });
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Status diperbarui: $newStatus')));
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _updating = false;
+      });
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Gagal memperbarui status: $e')));
+    }
+  }
+
+  void _onActionPressed() {
+    if (_tx.status == 'Diproses') {
+      _updateStatus('Disewa');
+    } else if (_tx.status == 'Disewa') {
+      _updateStatus('Dikembalikan');
+    }
+  }
+
+  Widget? _buildBottomActionBar() {
+    if (!(_tx.status == 'Diproses' || _tx.status == 'Disewa')) return null;
+    final label = _tx.status == 'Diproses' ? 'Diserahkan' : 'Dikembalikan';
+    return SafeArea(
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        color: Colors.white,
+        child: CustomButton(
+          text: label,
+          height: 48,
+          isLoading: _updating,
+          onPressed: _onActionPressed,
         ),
       ),
     );

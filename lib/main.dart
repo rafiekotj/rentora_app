@@ -7,6 +7,7 @@ import 'package:rentora_app/core/constants/app_color.dart';
 import 'package:rentora_app/firebase_options.dart';
 import 'package:rentora_app/services/local_storage/preference_handler.dart';
 import 'package:rentora_app/views/splash/splash_screen.dart';
+import 'package:rentora_app/services/onesignal_legacy.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -30,6 +31,14 @@ Future<void> main() async {
       statusBarBrightness: Brightness.light,
     ),
   );
+
+  if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
+    try {
+      setupOneSignal();
+    } catch (e, s) {
+      debugPrint('setupOneSignal error: $e\n$s');
+    }
+  }
 
   runApp(const MyApp());
 }

@@ -23,6 +23,14 @@ class _SellerOrderScreenState extends State<SellerOrderScreen> {
   bool _loading = true;
   String? _error;
 
+  static const List<String> _tabTitles = [
+    'Semua',
+    'Diproses',
+    'Disewa',
+    'Dikembalikan',
+    'Dibatalkan',
+  ];
+
   @override
   void initState() {
     super.initState();
@@ -47,10 +55,9 @@ class _SellerOrderScreenState extends State<SellerOrderScreen> {
       final transactions = await _transactionController.transactionService
           .getTransactionsByStore(store.uid, [
             'Diproses',
-            'Belum Bayar',
-            'Dikirim',
-            'Dikemas',
-            'Selesai',
+            'Disewa',
+            'Dikembalikan',
+            'Dibatalkan',
           ]);
 
       if (!mounted) return;
@@ -67,37 +74,84 @@ class _SellerOrderScreenState extends State<SellerOrderScreen> {
     }
   }
 
+  List<TransactionModel> _transactionsByTab(String tab) {
+    if (tab == 'Semua') return _transactions;
+    if (tab == 'Diproses') {
+      final set = {'Belum Bayar', 'Diproses', 'Dikemas', 'Dikirim'};
+      return _transactions.where((t) => set.contains(t.status)).toList();
+    }
+    if (tab == 'Disewa') {
+      return _transactions
+          .where(
+            (t) =>
+                t.status.toLowerCase().contains('disewa') ||
+                t.status == 'Sedang Disewa',
+          )
+          .toList();
+    }
+    if (tab == 'Dikembalikan') {
+      final set = {'Selesai', 'Dikembalikan'};
+      return _transactions.where((t) => set.contains(t.status)).toList();
+    }
+    if (tab == 'Dibatalkan') {
+      return _transactions.where((t) => t.status == 'Dibatalkan').toList();
+    }
+    return [];
+  }
+
+  Widget _buildTabContent(String tab) {
+    if (_loading) {
+      return const Center(
+        child: CircularProgressIndicator(color: AppColor.primary),
+      );
+    }
+    if (_error != null) {
+      return Center(child: Text(_error!));
+    }
+
+    final filtered = _transactionsByTab(tab);
+    if (filtered.isEmpty) {
+      return const Center(child: Text('Belum ada pesanan'));
+    }
+
+    return RefreshIndicator(
+      onRefresh: _loadTransactions,
+      child: ListView.separated(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        itemCount: filtered.length,
+        separatorBuilder: (context, index) => const SizedBox(height: 12),
+        itemBuilder: (context, index) {
+          final tx = filtered[index];
+          return OrderProductsCard(transaction: tx);
+        },
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColor.backgroundLight,
-      appBar: AppBar(
-        toolbarHeight: 58,
-        backgroundColor: AppColor.primary,
-        foregroundColor: AppColor.textOnPrimary,
-        title: const Text(
-          'Pesanan',
-          style: TextStyle(fontWeight: FontWeight.w600),
+    return DefaultTabController(
+      length: _tabTitles.length,
+      child: Scaffold(
+        backgroundColor: AppColor.backgroundLight,
+        appBar: AppBar(
+          toolbarHeight: 58,
+          backgroundColor: AppColor.primary,
+          foregroundColor: AppColor.textOnPrimary,
+          title: const Text(
+            'Pesanan',
+            style: TextStyle(fontWeight: FontWeight.w600),
+          ),
+          bottom: TabBar(
+            isScrollable: true,
+            tabAlignment: TabAlignment.start,
+            indicatorColor: AppColor.surface,
+            labelColor: AppColor.surface,
+            unselectedLabelColor: AppColor.textOnPrimary.withAlpha(170),
+            tabs: _tabTitles.map((t) => Tab(text: t)).toList(),
+          ),
         ),
-      ),
-      body: SafeArea(
-        child: _loading
-            ? const Center(child: CircularProgressIndicator())
-            : _error != null
-            ? Center(child: Text(_error!))
-            : RefreshIndicator(
-                onRefresh: _loadTransactions,
-                child: ListView.separated(
-                  padding: const EdgeInsets.symmetric(vertical: 8),
-                  itemCount: _transactions.length,
-                  separatorBuilder: (context, index) =>
-                      const SizedBox(height: 12),
-                  itemBuilder: (context, index) {
-                    final tx = _transactions[index];
-                    return OrderProductsCard(transaction: tx);
-                  },
-                ),
-              ),
+        body: TabBarView(children: _tabTitles.map(_buildTabContent).toList()),
       ),
     );
   }
