@@ -28,7 +28,7 @@ class UserController {
         _isLoading = false;
         return false;
       }
-    } catch (e) {
+    } catch (_) {
       _isLoading = false;
       return false;
     }

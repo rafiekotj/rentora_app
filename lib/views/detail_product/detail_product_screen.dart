@@ -47,7 +47,7 @@ class _DetailProductScreenState extends State<DetailProductScreen> {
       setState(() {
         _store = store;
       });
-    } catch (e) {
+    } catch (_) {
       setState(() {});
     }
   }

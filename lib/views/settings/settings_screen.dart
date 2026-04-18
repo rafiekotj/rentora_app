@@ -51,9 +51,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               onPressed: () async {
                 try {
                   await removeOneSignalExternalId();
-                } catch (e, s) {
-                  debugPrint('removeOneSignalExternalId error: $e\n$s');
-                }
+                } catch (_) {}
 
                 await PreferenceHandler().deleteIsLogin();
                 context.pushAndRemoveAll(LoginScreen());

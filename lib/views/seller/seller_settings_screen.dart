@@ -67,7 +67,7 @@ class _SellerSettingsScreenState extends State<SellerSettingsScreen> {
           }
         });
       }
-    } catch (e) {
+    } catch (_) {
       setState(() {
         _address = null;
       });

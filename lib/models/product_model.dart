@@ -62,7 +62,7 @@ class ProductModel {
       } else {
         imagesList = [];
       }
-    } catch (e) {
+    } catch (_) {
       imagesList = [];
     }
     return ProductModel(

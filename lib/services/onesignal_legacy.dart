@@ -26,9 +26,7 @@ void setupOneSignal() {
       data: additionalData,
     );
 
-    if (additionalData.isNotEmpty) {
-      print('OneSignal click additionalData: $additionalData');
-    }
+    if (additionalData.isNotEmpty) {}
 
     // Uncomment dan sesuaikan blok ini jika ingin melakukan navigasi
     // berdasarkan payload tambahan yang dikirim OneSignal.
@@ -59,10 +57,7 @@ void setupOneSignal() {
       OneSignal.Notifications.displayNotification(
         event.notification.notificationId,
       );
-    } catch (e, s) {
-      // ignore: avoid_print
-      print('foreground display error: $e\n$s');
-    }
+    } catch (_) {}
   });
 }
 
@@ -71,18 +66,12 @@ void setupOneSignal() {
 Future<void> setOneSignalExternalId(String externalId) async {
   try {
     await OneSignal.login(externalId);
-  } catch (err, s) {
-    // ignore: avoid_print
-    print('setOneSignalExternalId error: $err\n$s');
-  }
+  } catch (_) {}
 }
 
 /// Remove the external user id previously set for this device.
 Future<void> removeOneSignalExternalId() async {
   try {
     await OneSignal.logout();
-  } catch (err, s) {
-    // ignore: avoid_print
-    print('removeOneSignalExternalId error: $err\n$s');
-  }
+  } catch (_) {}
 }

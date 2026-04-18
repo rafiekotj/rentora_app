@@ -1,24 +1,23 @@
 import 'dart:io';
 import 'dart:convert';
-import 'package:http/http.dart' as http;
-import 'package:rentora_app/config/onesignal_secrets.dart';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:http/http.dart' as http;
 import 'package:material_symbols_icons/symbols.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:rentora_app/config/onesignal_secrets.dart';
 import 'package:rentora_app/controllers/cart_controller.dart';
+import 'package:rentora_app/controllers/transaction_controller.dart';
 import 'package:rentora_app/controllers/store_controller.dart';
 import 'package:rentora_app/controllers/user_controller.dart';
-import 'package:rentora_app/models/store_model.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:url_launcher/url_launcher.dart';
-import 'package:rentora_app/controllers/transaction_controller.dart';
 import 'package:rentora_app/core/constants/app_color.dart';
 import 'package:rentora_app/core/utils/app_formatters.dart';
 import 'package:rentora_app/models/cart_model.dart';
+import 'package:rentora_app/models/store_model.dart';
+import 'package:rentora_app/services/local_storage/preference_handler.dart';
 import 'package:rentora_app/views/checkout/payment_method_screen.dart';
 import 'package:rentora_app/views/checkout/payment_success_screen.dart';
-import 'package:rentora_app/services/local_storage/preference_handler.dart';
 
 class CheckoutScreen extends StatefulWidget {
   final List<CartModel> cartItems;
@@ -176,8 +175,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             targets.add(buyerExternalId);
           }
 
-          if (kDebugMode) print('OneSignal target external_ids: $targets');
-
           final uri = Uri.parse('https://onesignal.com/api/v1/notifications');
 
           Future<http.Response> doPost() {
@@ -200,12 +197,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
           http.Response resp = await doPost();
 
-          // Always log response for debugging
-          if (kDebugMode) {
-            print('OneSignal REST status: ${resp.statusCode}');
-            print('OneSignal REST body: ${resp.body}');
-          }
-
           int recipients = -1;
           String? errorMsg;
           try {
@@ -217,28 +208,20 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             }
             if (jsonResp.containsKey('errors')) {
               final e = jsonResp['errors'];
-              if (e is List && e.isNotEmpty)
+              if (e is List && e.isNotEmpty) {
                 errorMsg = e.first.toString();
-              else if (e is String)
+              } else if (e is String) {
                 errorMsg = e;
+              }
             }
-          } catch (e) {
-            if (kDebugMode) print('Failed parsing OneSignal response: $e');
-          }
+          } catch (_) {}
 
           // If no recipients or explicit not-subscribed error, retry once after short delay
           if ((recipients == 0) ||
               (errorMsg != null && errorMsg.contains('not subscribed'))) {
-            if (kDebugMode)
-              print(
-                'OneSignal: recipients==0 or not subscribed — retrying once after delay',
-              );
             await Future.delayed(const Duration(milliseconds: 900));
             resp = await doPost();
-            if (kDebugMode) {
-              print('OneSignal REST retry status: ${resp.statusCode}');
-              print('OneSignal REST retry body: ${resp.body}');
-            }
+
             try {
               final Map<String, dynamic> jsonResp2 = jsonDecode(resp.body);
               if (jsonResp2.containsKey('recipients')) {
@@ -248,15 +231,13 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               }
               if (jsonResp2.containsKey('errors')) {
                 final e2 = jsonResp2['errors'];
-                if (e2 is List && e2.isNotEmpty)
+                if (e2 is List && e2.isNotEmpty) {
                   errorMsg = e2.first.toString();
-                else if (e2 is String)
+                } else if (e2 is String) {
                   errorMsg = e2;
+                }
               }
-            } catch (e) {
-              if (kDebugMode)
-                print('Failed parsing OneSignal retry response: $e');
-            }
+            } catch (_) {}
           }
 
           if (recipients == 0 ||
@@ -272,20 +253,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             }
           }
 
-          if (resp.statusCode != 200 && resp.statusCode != 201) {
-            // ignore: avoid_print
-            print(
-              'OneSignal REST send failed: ${resp.statusCode} ${resp.body}',
-            );
-          }
-        } else {
-          if (kDebugMode)
-            print('No sellerExternalId available; skipping OneSignal send');
-        }
-      } catch (e) {
-        // ignore: avoid_print
-        print('OneSignal send error: $e');
-      }
+          if (resp.statusCode != 200 && resp.statusCode != 201) {}
+        } else {}
+      } catch (_) {}
 
       if (!mounted) return;
 

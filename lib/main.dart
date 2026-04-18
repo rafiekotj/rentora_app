@@ -37,9 +37,7 @@ Future<void> main() async {
   if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
     try {
       setupOneSignal();
-    } catch (e, s) {
-      debugPrint('setupOneSignal error: $e\n$s');
-    }
+    } catch (_) {}
   }
 
   runApp(const MyApp());

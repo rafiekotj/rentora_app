@@ -175,15 +175,8 @@ class _LoginScreenState extends State<LoginScreen> {
                                         .getCurrentUser();
                                     if (user?.uid != null) {
                                       await setOneSignalExternalId(user!.uid);
-                                      debugPrint(
-                                        'OneSignal external id set: ${user.uid}',
-                                      );
                                     }
-                                  } catch (e, s) {
-                                    debugPrint(
-                                      'setOneSignalExternalId error: $e\n$s',
-                                    );
-                                  }
+                                  } catch (_) {}
 
                                   Navigator.of(context).pushAndRemoveUntil(
                                     MaterialPageRoute(

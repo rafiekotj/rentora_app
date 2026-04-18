@@ -218,7 +218,7 @@ class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
       }
 
       Navigator.pop(context);
-    } catch (e) {
+    } catch (_) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text("Terjadi kesalahan saat menyimpan produk"),
