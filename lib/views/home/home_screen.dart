@@ -5,7 +5,6 @@ import 'package:rentora_app/controllers/cart_controller.dart';
 import 'package:rentora_app/controllers/product_controller.dart';
 import 'package:rentora_app/controllers/store_controller.dart';
 import 'package:rentora_app/core/constants/app_color.dart';
-import 'package:rentora_app/core/utils/app_formatters.dart';
 import 'package:rentora_app/models/cart_model.dart';
 import 'package:rentora_app/models/product_model.dart';
 import 'package:rentora_app/views/cart/cart_screen.dart';
@@ -148,7 +147,7 @@ class _HomeScreenState extends State<HomeScreen> {
     for (var storeUid in storeUids) {
       final store = storesMap[storeUid];
       tempStoreMap[storeUid] =
-          store?.location?.toUpperCase() ?? "LOKASI TIDAK ADA";
+          store?.district?.toUpperCase() ?? "LOKASI TIDAK ADA";
     }
 
     if (!mounted) return;
@@ -470,22 +469,22 @@ class _HomeScreenState extends State<HomeScreen> {
                     "Kategori Pilihan",
                     style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
                   ),
-                  TextButton(
-                    onPressed: () {},
-                    style: TextButton.styleFrom(
-                      padding: EdgeInsets.zero,
-                      minimumSize: const Size(48, 24),
-                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    ),
-                    child: const Text(
-                      "Lihat semua",
-                      style: TextStyle(
-                        color: AppColor.primary,
-                        fontWeight: FontWeight.w600,
-                        fontSize: 12,
-                      ),
-                    ),
-                  ),
+                  // TextButton(
+                  //   onPressed: () {},
+                  //   style: TextButton.styleFrom(
+                  //     padding: EdgeInsets.zero,
+                  //     minimumSize: const Size(48, 24),
+                  //     tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  //   ),
+                  //   child: const Text(
+                  //     "Lihat semua",
+                  //     style: TextStyle(
+                  //       color: AppColor.primary,
+                  //       fontWeight: FontWeight.w600,
+                  //       fontSize: 12,
+                  //     ),
+                  //   ),
+                  // ),
                 ],
               ),
             ),
@@ -496,7 +495,7 @@ class _HomeScreenState extends State<HomeScreen> {
               height: 102,
               width: double.infinity,
               child: ListView.separated(
-                padding: const EdgeInsets.only(left: 16),
+                padding: const EdgeInsets.only(left: 16, right: 16),
                 scrollDirection: Axis.horizontal,
                 itemCount: categoryItems.length,
                 separatorBuilder: (context, index) => const SizedBox(width: 12),

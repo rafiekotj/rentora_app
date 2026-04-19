@@ -66,7 +66,7 @@ class ChatService {
         .get();
 
     final toUpdate = snapshot.docs.where((d) {
-      final data = d.data() as Map<String, dynamic>;
+      final data = d.data();
       final sender = data['sender_uid'] as String? ?? '';
       return sender != userUid;
     }).toList();
@@ -78,5 +78,24 @@ class ChatService {
       batch.update(d.reference, {'read': true});
     }
     await batch.commit();
+  }
+
+  Future<int> getUnreadCount(String threadId, String currentUid) async {
+    try {
+      final snapshot = await chatsCollection
+          .doc(threadId)
+          .collection('messages')
+          .where('read', isEqualTo: false)
+          .get();
+      int cnt = 0;
+      for (final d in snapshot.docs) {
+        final data = d.data();
+        final sender = data['sender_uid'] as String? ?? '';
+        if (sender != currentUid) cnt++;
+      }
+      return cnt;
+    } catch (_) {
+      return 0;
+    }
   }
 }

@@ -54,7 +54,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
     for (var storeUid in storeUids) {
       final store = storesMap[storeUid];
       tempStoreMap[storeUid] =
-          store?.location?.toUpperCase() ?? "LOKASI TIDAK ADA";
+          store?.district?.toUpperCase() ?? "LOKASI TIDAK ADA";
     }
 
     if (!mounted) return;

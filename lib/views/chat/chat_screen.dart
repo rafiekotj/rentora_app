@@ -84,6 +84,12 @@ class _ChatScreenState extends State<ChatScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final sName = widget.otherStore?.name ?? '';
+    final uName = widget.otherUser.username ?? '';
+    final eMail = widget.otherUser.email;
+    final displayName = sName.isNotEmpty
+        ? sName
+        : (uName.isNotEmpty ? uName : (eMail.isNotEmpty ? eMail : 'Pengguna'));
     return Scaffold(
       appBar: AppBar(
         backgroundColor: AppColor.primary,
@@ -108,17 +114,17 @@ class _ChatScreenState extends State<ChatScreen> {
                       .isEmpty
                   ? Icon(
                       widget.otherStore != null ? Icons.store : Icons.person,
+                      color: AppColor.primary,
                       size: 18,
                     )
                   : null,
             ),
-            const SizedBox(width: 10),
+            const SizedBox(width: 14),
             Expanded(
               child: Text(
-                widget.otherStore?.name ??
-                    widget.otherUser.username ??
-                    widget.otherUser.email,
+                displayName,
                 overflow: TextOverflow.ellipsis,
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
               ),
             ),
           ],
@@ -241,10 +247,15 @@ class _ChatScreenState extends State<ChatScreen> {
                               ],
                             ),
                             child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
+                              crossAxisAlignment: isMe
+                                  ? CrossAxisAlignment.end
+                                  : CrossAxisAlignment.start,
                               children: [
                                 Text(
                                   m.text,
+                                  textAlign: isMe
+                                      ? TextAlign.right
+                                      : TextAlign.left,
                                   style: TextStyle(
                                     color: isMe
                                         ? AppColor.textOnPrimary

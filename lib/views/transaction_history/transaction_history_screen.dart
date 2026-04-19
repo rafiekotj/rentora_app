@@ -202,7 +202,19 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
 
     final filtered = _transactionsByStatus(status);
     if (filtered.isEmpty) {
-      return const Center(child: Text('Belum ada transaksi'));
+      return const Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Symbols.money_bag, size: 56, color: AppColor.textHint),
+            SizedBox(height: 12),
+            Text(
+              'Belum ada transaksi',
+              style: TextStyle(color: AppColor.textHint),
+            ),
+          ],
+        ),
+      );
     }
 
     return RefreshIndicator(

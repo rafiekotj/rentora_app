@@ -18,6 +18,7 @@ class _UserAccountScreenState extends State<UserAccountScreen> {
   String _email = '';
   String? _username;
   String? _imagePath;
+  bool _isLoadingUser = true;
 
   @override
   void initState() {
@@ -27,6 +28,9 @@ class _UserAccountScreenState extends State<UserAccountScreen> {
 
   // Mengambil data user lengkap
   Future<void> _loadUserData() async {
+    setState(() {
+      _isLoadingUser = true;
+    });
     final user = await _userController.getCurrentUser();
 
     if (!mounted) return;
@@ -38,7 +42,10 @@ class _UserAccountScreenState extends State<UserAccountScreen> {
         _imagePath = user.image;
       } else {
         _email = 'user@example.com';
+        _username = null;
+        _imagePath = null;
       }
+      _isLoadingUser = false;
     });
   }
 
@@ -55,7 +62,7 @@ class _UserAccountScreenState extends State<UserAccountScreen> {
         foregroundColor: AppColor.textOnPrimary,
         title: const Text(
           "Akun",
-          style: TextStyle(fontWeight: FontWeight.w700),
+          style: TextStyle(fontWeight: FontWeight.w600),
         ),
         actions: [
           IconButton(
@@ -68,7 +75,7 @@ class _UserAccountScreenState extends State<UserAccountScreen> {
                 _loadUserData();
               }
             },
-            icon: const Icon(Symbols.settings, weight: 650),
+            icon: const Icon(Symbols.settings, weight: 600),
           ),
           const SizedBox(width: 8),
         ],
@@ -109,7 +116,7 @@ class _UserAccountScreenState extends State<UserAccountScreen> {
                           Row(
                             children: [
                               CircleAvatar(
-                                radius: 34,
+                                radius: 30,
                                 backgroundColor: AppColor.primarySoft,
                                 backgroundImage: (_imagePath ?? '').isNotEmpty
                                     ? NetworkImage(_imagePath!)
@@ -119,9 +126,10 @@ class _UserAccountScreenState extends State<UserAccountScreen> {
                                     (_imagePath == null || _imagePath!.isEmpty)
                                     ? const Icon(
                                         Symbols.person,
-                                        size: 32,
-                                        color: AppColor.secondary,
+                                        size: 28,
+                                        color: AppColor.primary,
                                         weight: 600,
+                                        fill: 1,
                                       )
                                     : null,
                               ),
@@ -130,26 +138,54 @@ class _UserAccountScreenState extends State<UserAccountScreen> {
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text(
-                                      displayName,
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: const TextStyle(
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.w700,
-                                        color: AppColor.textPrimary,
+                                    if (_isLoadingUser) ...[
+                                      Container(
+                                        height: 18,
+                                        width: 140,
+                                        decoration: BoxDecoration(
+                                          color: AppColor.textHint.withOpacity(
+                                            0.12,
+                                          ),
+                                          borderRadius: BorderRadius.circular(
+                                            6,
+                                          ),
+                                        ),
                                       ),
-                                    ),
-                                    const SizedBox(height: 3),
-                                    Text(
-                                      _email,
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: const TextStyle(
-                                        fontSize: 12,
-                                        color: AppColor.textSecondary,
+                                      const SizedBox(height: 8),
+                                      Container(
+                                        height: 12,
+                                        width: 100,
+                                        decoration: BoxDecoration(
+                                          color: AppColor.textHint.withOpacity(
+                                            0.12,
+                                          ),
+                                          borderRadius: BorderRadius.circular(
+                                            6,
+                                          ),
+                                        ),
                                       ),
-                                    ),
+                                    ] else ...[
+                                      Text(
+                                        displayName,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: const TextStyle(
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.w700,
+                                          color: AppColor.textPrimary,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 3),
+                                      Text(
+                                        _email,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: const TextStyle(
+                                          fontSize: 12,
+                                          color: AppColor.textSecondary,
+                                        ),
+                                      ),
+                                    ],
                                   ],
                                 ),
                               ),
@@ -161,11 +197,8 @@ class _UserAccountScreenState extends State<UserAccountScreen> {
                           const Row(
                             children: [
                               _ProfileStatItem(label: 'Transaksi', value: '40'),
-                              _ProfileStatItem(label: 'Pengikut', value: '120'),
-                              _ProfileStatItem(
-                                label: 'Mengikuti',
-                                value: '420',
-                              ),
+                              _ProfileStatItem(label: 'Pengikut', value: '10'),
+                              _ProfileStatItem(label: 'Mengikuti', value: '10'),
                             ],
                           ),
                         ],

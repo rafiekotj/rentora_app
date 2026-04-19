@@ -82,7 +82,7 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
     final storesList = await _storeController.getStoresByIds(storeUids);
     final tempStoreMap = {
       for (var s in storesList)
-        s.uid: s.location?.toUpperCase() ?? 'LOKASI TIDAK ADA',
+        s.uid: s.district?.toUpperCase() ?? 'LOKASI TIDAK ADA',
     };
 
     if (!mounted) return;

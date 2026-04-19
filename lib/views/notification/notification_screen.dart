@@ -55,27 +55,34 @@ class _NotificationScreenState extends State<NotificationScreen> {
             final items = snapshot.data ?? [];
 
             if (items.isEmpty) {
-              return ListView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                children: [
-                  const SizedBox(height: 40),
-                  Center(
-                    child: Column(
-                      children: const [
-                        Icon(
-                          Symbols.notifications,
-                          size: 56,
-                          color: AppColor.textHint,
+              return LayoutBuilder(
+                builder: (context, constraints) {
+                  return SingleChildScrollView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(
+                        minHeight: constraints.maxHeight,
+                      ),
+                      child: Center(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: const [
+                            Icon(
+                              Symbols.notifications,
+                              size: 56,
+                              color: AppColor.textHint,
+                            ),
+                            SizedBox(height: 12),
+                            Text(
+                              'Belum ada notifikasi',
+                              style: TextStyle(color: AppColor.textHint),
+                            ),
+                          ],
                         ),
-                        SizedBox(height: 12),
-                        Text(
-                          'Belum ada notifikasi',
-                          style: TextStyle(color: AppColor.textHint),
-                        ),
-                      ],
+                      ),
                     ),
-                  ),
-                ],
+                  );
+                },
               );
             }
 

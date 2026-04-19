@@ -58,8 +58,9 @@ class _ChatListScreenState extends State<ChatListScreen> {
       if (value == null) return null;
       if (value is Timestamp) return value.toDate();
       if (value is String) return DateTime.parse(value).toLocal();
-      if (value is int)
+      if (value is int) {
         return DateTime.fromMillisecondsSinceEpoch(value).toLocal();
+      }
       if (value is Map) {
         final seconds = value['seconds'] ?? value['_seconds'];
         if (seconds is int) {
@@ -91,7 +92,10 @@ class _ChatListScreenState extends State<ChatListScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Pesan'),
+        title: const Text(
+          'Pesan',
+          style: TextStyle(fontWeight: FontWeight.w600),
+        ),
         backgroundColor: AppColor.primary,
         foregroundColor: AppColor.textOnPrimary,
       ),
@@ -200,12 +204,22 @@ class _ChatListScreenState extends State<ChatListScreen> {
                             final u =
                                 unreadRaw[_currentUser!.uid] ??
                                 unreadRaw[_currentUser!.uid.toString()];
-                            if (u is int)
+                            if (u is int) {
                               unreadCount = u;
-                            else if (u is String)
+                            } else if (u is String) {
                               unreadCount = int.tryParse(u) ?? 0;
+                            }
                           }
                         } catch (_) {}
+
+                        final sName = store?.name ?? '';
+                        final uName = other?.username ?? '';
+                        final eMail = other?.email ?? '';
+                        final displayName = sName.isNotEmpty
+                            ? sName
+                            : (uName.isNotEmpty
+                                  ? uName
+                                  : (eMail.isNotEmpty ? eMail : 'Pengguna'));
 
                         return Material(
                           color: Colors.transparent,
@@ -215,7 +229,8 @@ class _ChatListScreenState extends State<ChatListScreen> {
                                   other ??
                                   UserModel(
                                     uid: otherUid,
-                                    email: '',
+                                    email:
+                                        otherUid, // fallback ke UID jika email tidak ada
                                     phone: '',
                                     username: null,
                                     image: null,
@@ -258,6 +273,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
                                             store != null
                                                 ? Icons.store
                                                 : Icons.person,
+                                            color: AppColor.primary,
                                           )
                                         : null,
                                   ),
@@ -272,10 +288,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
                                           children: [
                                             Expanded(
                                               child: Text(
-                                                store?.name ??
-                                                    other?.username ??
-                                                    other?.email ??
-                                                    'Pengguna',
+                                                displayName,
                                                 overflow: TextOverflow.ellipsis,
                                                 style: const TextStyle(
                                                   fontWeight: FontWeight.w600,
@@ -305,36 +318,55 @@ class _ChatListScreenState extends State<ChatListScreen> {
                                                 ),
                                               ),
                                             ),
-                                            if (unreadCount > 0) ...[
-                                              const SizedBox(width: 8),
-                                              Container(
-                                                width: 20,
-                                                height: 20,
-                                                decoration: BoxDecoration(
-                                                  color: AppColor.primary,
-                                                  shape: BoxShape.circle,
-                                                  boxShadow: const [
-                                                    BoxShadow(
-                                                      color:
-                                                          AppColor.shadowLight,
-                                                      blurRadius: 2,
-                                                      offset: Offset(0, 1),
+                                            FutureBuilder<int>(
+                                              future: _chatController
+                                                  .getUnreadCount(threadId),
+                                              builder: (context, ucSnap) {
+                                                final dynamicUnread =
+                                                    ucSnap.data ?? 0;
+                                                final effectiveUnread =
+                                                    dynamicUnread > 0
+                                                    ? dynamicUnread
+                                                    : unreadCount;
+                                                if (effectiveUnread <= 0) {
+                                                  return const SizedBox();
+                                                }
+                                                return Padding(
+                                                  padding:
+                                                      const EdgeInsets.only(
+                                                        left: 8,
+                                                      ),
+                                                  child: Container(
+                                                    width: 20,
+                                                    height: 20,
+                                                    decoration: BoxDecoration(
+                                                      color: AppColor.primary,
+                                                      shape: BoxShape.circle,
+                                                      boxShadow: const [
+                                                        BoxShadow(
+                                                          color: AppColor
+                                                              .shadowLight,
+                                                          blurRadius: 2,
+                                                          offset: Offset(0, 1),
+                                                        ),
+                                                      ],
                                                     ),
-                                                  ],
-                                                ),
-                                                alignment: Alignment.center,
-                                                child: Text(
-                                                  unreadCount > 99
-                                                      ? '99+'
-                                                      : unreadCount.toString(),
-                                                  style: TextStyle(
-                                                    fontSize: 10,
-                                                    color:
-                                                        AppColor.textOnPrimary,
+                                                    alignment: Alignment.center,
+                                                    child: Text(
+                                                      effectiveUnread > 99
+                                                          ? '99+'
+                                                          : effectiveUnread
+                                                                .toString(),
+                                                      style: TextStyle(
+                                                        fontSize: 10,
+                                                        color: AppColor
+                                                            .textOnPrimary,
+                                                      ),
+                                                    ),
                                                   ),
-                                                ),
-                                              ),
-                                            ],
+                                                );
+                                              },
+                                            ),
                                           ],
                                         ),
                                       ],

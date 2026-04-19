@@ -37,4 +37,10 @@ class ChatController {
     if (user == null) return;
     await _chatService.markThreadRead(threadId, user.uid);
   }
+
+  Future<int> getUnreadCount(String threadId) async {
+    final user = await _userController.getCurrentUser();
+    if (user == null) return 0;
+    return await _chatService.getUnreadCount(threadId, user.uid);
+  }
 }
