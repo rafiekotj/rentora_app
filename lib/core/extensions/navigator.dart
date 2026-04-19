@@ -25,11 +25,6 @@ extension ExtendedNavigator on BuildContext {
     return Navigator.of(this).pushNamed(routeName, arguments: arguments);
   }
 
-  // Future<dynamic> pushReplacementNamed(String newRouteName,
-  //     {Object? arguments}) {
-  //   Navigator.popUntil(this, ModalRoute.withName(newRouteName));
-  //   return Navigator.pushNamed(this, newRouteName, arguments: arguments);
-  // }
   Future<dynamic> pushReplacementNamed(
     String newRouteName, {
     Object? arguments,

@@ -1,7 +1,6 @@
 import 'dart:convert';
-import 'product_model.dart';
+import 'package:rentora_app/models/product_model.dart';
 
-// ignore_for_file: public_member_api_docs, sort_constructors_first
 class CartModel {
   final String uid;
   final ProductModel product;

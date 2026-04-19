@@ -4,10 +4,35 @@ import 'package:rentora_app/services/database/store_service.dart';
 
 class StoreController {
   final StoreService _storeService = StoreService();
+  // Cache sederhana in-memory per instance untuk mengurangi panggilan Firestore berulang
+  final Map<String, StoreModel> _cache = {};
 
   // Mengambil beberapa toko berdasarkan daftar ID (Firestore pakai String ID)
   Future<List<StoreModel>> getStoresByIds(List<String> storeIds) async {
-    return await _storeService.getStoresByIds(storeIds);
+    // Ambil terlebih dahulu dari cache, dan hanya minta yang belum ada.
+    final ids = storeIds.where((id) => id.isNotEmpty).toList();
+    if (ids.isEmpty) return [];
+
+    final missing = <String>[];
+    final results = <StoreModel>[];
+    for (final id in ids) {
+      final cached = _cache[id];
+      if (cached != null) {
+        results.add(cached);
+      } else {
+        missing.add(id);
+      }
+    }
+
+    if (missing.isNotEmpty) {
+      final fetched = await _storeService.getStoresByIds(missing);
+      for (final s in fetched) {
+        _cache[s.uid] = s;
+      }
+      results.addAll(fetched);
+    }
+
+    return results;
   }
 
   // Mengambil semua toko yang dimiliki oleh seorang user berdasarkan userId (Firestore pakai String userId)
@@ -17,12 +42,19 @@ class StoreController {
 
   // Mengambil data satu toko berdasarkan ID toko
   Future<StoreModel?> getStoreById(String storeId) async {
-    return await _storeService.getStoreById(storeId);
+    if (storeId.isEmpty) return null;
+    final cached = _cache[storeId];
+    if (cached != null) return cached;
+    final store = await _storeService.getStoreById(storeId);
+    if (store != null) _cache[storeId] = store;
+    return store;
   }
 
   // Mengambil data satu toko berdasarkan ID user yang memiliki toko tersebut
   Future<StoreModel?> getStoreByUserId(String userId) async {
-    return await _storeService.getStoreByUserId(userId);
+    final store = await _storeService.getStoreByUserId(userId);
+    if (store != null) _cache[store.uid] = store;
+    return store;
   }
 
   // Mengambil data toko milik user yang sedang login saat ini

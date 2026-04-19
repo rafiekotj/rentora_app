@@ -1,7 +1,7 @@
-import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:rentora_app/controllers/product_controller.dart';
 import 'package:rentora_app/controllers/store_controller.dart';
@@ -23,6 +23,7 @@ class SellerCuProductScreen extends StatefulWidget {
 
 class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
   bool _isUploadingImage = false;
+
   final UserController _userController = UserController();
   final ProductController _productController = ProductController();
   final StoreController _storeController = StoreController();
@@ -32,6 +33,7 @@ class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
   String? _dendaPerHari;
 
   final List<String> _imageUrls = [];
+
   final ImagePicker _picker = ImagePicker();
 
   final TextEditingController _namaProdukController = TextEditingController();
@@ -52,7 +54,6 @@ class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
   bool _isSaving = false;
   String? _currentStoreId;
 
-  // daftar kategori produk
   static const List<String> _kategoriList = [
     "Elektronik & Gadget",
     "Kamera & Fotografi",
@@ -70,9 +71,64 @@ class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
     "Kesehatan & Medis",
   ];
 
-  // Memilih gambar dan menyalin ke local storage aplikasi
+  static const int _maxImages = 5;
+  static const int _imageMinWidth = 800;
+  static const int _imageMinHeight = 800;
+  static const int _imageQuality = 75;
+  static const String _storagePathPrefix = 'product_images';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadCurrentUser();
+
+    if (widget.produk != null) {
+      _namaProdukController.text = widget.produk!.namaProduk;
+      _deskripsiProdukController.text = widget.produk!.deskripsiProduk;
+      _selectedKategori = widget.produk!.kategori;
+      _hargaPerHari = widget.produk!.hargaPerHari.toString();
+      _dendaPerHari = widget.produk!.dendaPerHari.toString();
+      _stokController.text = widget.produk!.stok.toString();
+      _jumlahPinjamController.text = widget.produk!.minJumlahPinjam.toString();
+      _hariPinjamController.text = widget.produk!.maxHariPinjam.toString();
+      _imageUrls.clear();
+      _imageUrls.addAll(widget.produk!.images);
+    }
+  }
+
+  int _parseCurrency(String? formatted) =>
+      int.tryParse(formatted?.replaceAll('.', '') ?? '') ?? 0;
+
+  bool _isDendaValid(int harga, int denda) => denda <= (harga * 0.5);
+
+  ProductModel _productFromForm({String? uid}) {
+    return ProductModel(
+      uid: uid ?? widget.produk?.uid ?? '',
+      storeUid: _currentStoreId ?? '',
+      images: _imageUrls,
+      namaProduk: _namaProdukController.text,
+      deskripsiProduk: _deskripsiProdukController.text,
+      kategori: _selectedKategori ?? '',
+      hargaPerHari: _parseCurrency(_hargaPerHari),
+      dendaPerHari: _parseCurrency(_dendaPerHari),
+      stok: int.tryParse(_stokController.text) ?? 0,
+      minJumlahPinjam: int.tryParse(_jumlahPinjamController.text) ?? 1,
+      maxHariPinjam: int.tryParse(_hariPinjamController.text) ?? 7,
+    );
+  }
+
+  bool _isFormValid() {
+    if (_imageUrls.isEmpty) return false;
+    if (_namaProdukController.text.isEmpty) return false;
+    if (_deskripsiProdukController.text.isEmpty) return false;
+    if (_selectedKategori == null) return false;
+    if (_hargaPerHari == null || _hargaPerHari!.isEmpty) return false;
+    if (_dendaPerHari == null || _dendaPerHari!.isEmpty) return false;
+    return true;
+  }
+
   Future<void> _pickImage() async {
-    if (_imageUrls.length >= 5) return;
+    if (_imageUrls.length >= _maxImages) return;
 
     final XFile? pickedImage = await _picker.pickImage(
       source: ImageSource.gallery,
@@ -84,18 +140,16 @@ class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
     });
 
     try {
-      // Kompres gambar
       final compressed = await FlutterImageCompress.compressWithFile(
         pickedImage.path,
-        minWidth: 800,
-        minHeight: 800,
-        quality: 75,
+        minWidth: _imageMinWidth,
+        minHeight: _imageMinHeight,
+        quality: _imageQuality,
       );
       if (compressed == null) throw Exception('Gagal kompres gambar');
 
-      // Upload ke Firebase Storage
       final ref = FirebaseStorage.instance.ref().child(
-        'product_images/${DateTime.now().millisecondsSinceEpoch}.jpg',
+        '$_storagePathPrefix/${DateTime.now().millisecondsSinceEpoch}.jpg',
       );
       await ref.putData(compressed);
       final url = await ref.getDownloadURL();
@@ -118,14 +172,12 @@ class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
     }
   }
 
-  // Menghapus gambar dari daftar
   void _removeImage(int index) {
     setState(() {
       _imageUrls.removeAt(index);
     });
   }
 
-  // Memuat data user saat ini dan store yang terkait
   Future<void> _loadCurrentUser() async {
     final email = await PreferenceHandler.getUserEmail();
     if (email == null) return;
@@ -143,22 +195,14 @@ class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
     });
   }
 
-  // Menyimpan atau mengupdate produk
   Future<void> _simpanProduk() async {
-    // Validasi input
-    if (_imageUrls.isEmpty ||
-        _namaProdukController.text.isEmpty ||
-        _deskripsiProdukController.text.isEmpty ||
-        _selectedKategori == null ||
-        (_hargaPerHari == null || _hargaPerHari!.isEmpty) ||
-        (_dendaPerHari == null || _dendaPerHari!.isEmpty)) {
+    if (!_isFormValid()) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Lengkapi semua data produk")),
       );
       return;
     }
 
-    // Validasi store
     if (_currentStoreId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -173,44 +217,16 @@ class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
     setState(() => _isSaving = true);
 
     try {
-      // Buat objek ProductModel dari input user
-      final produk = ProductModel(
-        uid: widget.produk?.uid ?? '',
-        storeUid: _currentStoreId!,
-        images: _imageUrls,
-        namaProduk: _namaProdukController.text,
-        deskripsiProduk: _deskripsiProdukController.text,
-        kategori: _selectedKategori!,
-        hargaPerHari: int.tryParse(_hargaPerHari!.replaceAll(".", "")) ?? 0,
-        dendaPerHari: int.tryParse(_dendaPerHari!.replaceAll(".", "")) ?? 0,
-        stok: int.tryParse(_stokController.text) ?? 0,
-        minJumlahPinjam: int.tryParse(_jumlahPinjamController.text) ?? 1,
-        maxHariPinjam: int.tryParse(_hariPinjamController.text) ?? 7,
-      );
+      final produk = _productFromForm(uid: widget.produk?.uid ?? '');
 
-      // Simpan atau update produk
       if (widget.produk != null) {
         await _productController.updateProduct(produk.uid, produk);
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("Produk berhasil diupdate")),
         );
       } else {
-        // Tambah produk baru, dapatkan id dokumen
         final newProductId = await _productController.addProduct(produk);
-        // Update field uid pada produk di Firestore
-        final produkWithUid = ProductModel(
-          uid: newProductId,
-          storeUid: produk.storeUid,
-          images: produk.images,
-          namaProduk: produk.namaProduk,
-          deskripsiProduk: produk.deskripsiProduk,
-          kategori: produk.kategori,
-          hargaPerHari: produk.hargaPerHari,
-          dendaPerHari: produk.dendaPerHari,
-          stok: produk.stok,
-          minJumlahPinjam: produk.minJumlahPinjam,
-          maxHariPinjam: produk.maxHariPinjam,
-        );
+        final produkWithUid = _productFromForm(uid: newProductId);
         await _productController.updateProduct(newProductId, produkWithUid);
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("Produk berhasil disimpan")),
@@ -229,27 +245,6 @@ class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
     }
   }
 
-  @override
-  void initState() {
-    super.initState();
-    _loadCurrentUser();
-
-    // Jika widget.produk tidak null, masuk Mode Edit.
-    if (widget.produk != null) {
-      _namaProdukController.text = widget.produk!.namaProduk;
-      _deskripsiProdukController.text = widget.produk!.deskripsiProduk;
-      _selectedKategori = widget.produk!.kategori;
-      _hargaPerHari = widget.produk!.hargaPerHari.toString();
-      _dendaPerHari = widget.produk!.dendaPerHari.toString();
-      _stokController.text = widget.produk!.stok.toString();
-      _jumlahPinjamController.text = widget.produk!.minJumlahPinjam.toString();
-      _hariPinjamController.text = widget.produk!.maxHariPinjam.toString();
-      _imageUrls.clear();
-      _imageUrls.addAll(widget.produk!.images);
-    }
-  }
-
-  // Menampilkan modal untuk memilih kategori produk
   void _showCategoryPicker() {
     showModalBottomSheet(
       context: context,
@@ -319,7 +314,6 @@ class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
     );
   }
 
-  // Menampilkan modal untuk mengatur harga sewa
   void _showPricePicker() {
     _hargaController.text = _hargaPerHari ?? "";
     showModalBottomSheet(
@@ -435,7 +429,6 @@ class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
     );
   }
 
-  // Menampilkan modal untuk mengatur denda keterlambatan
   void _showFinePicker() {
     _dendaController.text = _dendaPerHari ?? "";
     showModalBottomSheet(
@@ -533,18 +526,10 @@ class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
                     ),
                   ),
                   onPressed: () {
-                    final harga =
-                        int.tryParse(
-                          _hargaPerHari?.replaceAll(".", "") ?? "0",
-                        ) ??
-                        0;
-                    final denda =
-                        int.tryParse(
-                          _dendaController.text.replaceAll(".", ""),
-                        ) ??
-                        0;
+                    final harga = _parseCurrency(_hargaPerHari);
+                    final denda = _parseCurrency(_dendaController.text);
 
-                    if (denda > harga * 0.5) {
+                    if (!_isDendaValid(harga, denda)) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
                           content: Text(
@@ -592,7 +577,6 @@ class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
         padding: const EdgeInsets.all(8),
         child: Column(
           children: [
-            // Foto Produk, Nama, dan Deskripsi
             Container(
               padding: const EdgeInsets.symmetric(vertical: 16),
               decoration: BoxDecoration(
@@ -779,7 +763,7 @@ class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
               ),
             ),
             const SizedBox(height: 8),
-            // Pilihan Kategori
+
             Container(
               decoration: BoxDecoration(
                 color: AppColor.surface,
@@ -839,7 +823,7 @@ class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
               ),
             ),
             const SizedBox(height: 8),
-            // Harga, Stok, dan Aturan Peminjaman
+
             Container(
               decoration: BoxDecoration(
                 color: AppColor.surface,
@@ -911,7 +895,7 @@ class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
           ],
         ),
       ),
-      // Tombol Simpan
+
       bottomNavigationBar: Container(
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
@@ -936,7 +920,6 @@ class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
   }
 }
 
-// TextField
 class _InfoProdukTextField extends StatelessWidget {
   final TextEditingController controller;
   final ValueChanged<String> onChanged;
@@ -1011,7 +994,6 @@ class _InfoProdukTextField extends StatelessWidget {
   }
 }
 
-// Tile untuk menampilkan opsi Harga/Denda
 class _OptionTile extends StatelessWidget {
   final IconData icon;
   final String title;
@@ -1058,7 +1040,6 @@ class _OptionTile extends StatelessWidget {
   }
 }
 
-// Tile input angka langsung di baris
 class _NumericInputTile extends StatelessWidget {
   final IconData icon;
   final String title;

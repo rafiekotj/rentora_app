@@ -11,6 +11,7 @@ import 'package:rentora_app/models/product_model.dart';
 import 'package:rentora_app/views/cart/cart_screen.dart';
 import 'package:rentora_app/views/detail_product/detail_product_screen.dart';
 import 'package:rentora_app/views/home/category_screen.dart';
+import 'package:rentora_app/views/chat/chat_list_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -21,19 +22,22 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _currentBannerIndex = 0;
+
   late PageController _pageController;
+
   Timer? _bannerTimer;
   Timer? _countdownTimer;
 
   final ProductController _produkController = ProductController();
   final CartController _cartController = CartController();
+
   List<ProductModel> produkList = [];
   bool isLoading = true;
-  Duration _flashCountdown = const Duration(hours: 6);
 
   Map<String, String> storeMap = {};
 
-  // Daftar gambar untuk banner.
+  Duration _flashCountdown = const Duration(hours: 6);
+
   final List<String> bannerImages = [
     "assets/images/banner1.jpg",
     "assets/images/banner2.jpg",
@@ -42,7 +46,6 @@ class _HomeScreenState extends State<HomeScreen> {
     "assets/images/banner5.jpg",
   ];
 
-  // Daftar kategori.
   final List<CategoryItem> categoryItems = const [
     CategoryItem(
       label: "Elektronik",
@@ -103,7 +106,6 @@ class _HomeScreenState extends State<HomeScreen> {
     _loadProduk();
   }
 
-  // Pre-cache gambar banner
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -112,7 +114,6 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  // Membersihkan controller dan timer
   @override
   void dispose() {
     _bannerTimer?.cancel();
@@ -121,7 +122,6 @@ class _HomeScreenState extends State<HomeScreen> {
     super.dispose();
   }
 
-  // Memuat data semua produk
   Future<void> _loadProduk() async {
     setState(() {
       isLoading = true;
@@ -130,8 +130,11 @@ class _HomeScreenState extends State<HomeScreen> {
     final products = await _produkController.getAllProduct();
     final storeController = StoreController();
 
-    // Ambil semua store unik
-    final storeUids = products.map((p) => p.storeUid).toList();
+    final storeUids = products
+        .map((p) => p.storeUid)
+        .whereType<String>()
+        .toSet()
+        .toList();
 
     Map<String, String> tempStoreMap = {};
 
@@ -153,7 +156,6 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
-  // Memulai timer yang mengganti halaman banner
   void _startAutoPlay() {
     _bannerTimer = Timer.periodic(const Duration(seconds: 3), (timer) {
       if (_currentBannerIndex < bannerImages.length - 1) {
@@ -264,7 +266,14 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               const SizedBox(width: 8),
               IconButton(
-                onPressed: () {},
+                onPressed: () async {
+                  await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const ChatListScreen(),
+                    ),
+                  );
+                },
                 padding: EdgeInsets.zero,
                 constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
                 visualDensity: VisualDensity.compact,

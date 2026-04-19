@@ -11,7 +11,6 @@ class CartService {
         .get();
     return snapshot.docs.map((doc) {
       final data = doc.data() as Map<String, dynamic>;
-      // Pastikan uid selalu sama dengan doc.id
       return CartModel.fromMap({...data, 'uid': doc.id});
     }).toList();
   }
@@ -21,9 +20,7 @@ class CartService {
       'userUid': userUid,
       ...cartItem.toMap(),
     });
-    // Update field uid di Firestore agar sync dengan doc id
     await cartsCollection.doc(docRef.id).update({'uid': docRef.id});
-    // JANGAN lupa update juga cartItem.uid di objek lokal jika perlu (di controller)
   }
 
   Future<void> updateCart(String cartId, CartModel cartItem) async {

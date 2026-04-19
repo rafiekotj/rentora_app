@@ -1,14 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:material_symbols_icons/symbols.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:rentora_app/controllers/cart_controller.dart';
 import 'package:rentora_app/controllers/store_controller.dart';
 import 'package:rentora_app/controllers/user_controller.dart';
+import 'package:rentora_app/controllers/chat_controller.dart';
 import 'package:rentora_app/core/constants/app_color.dart';
 import 'package:rentora_app/core/utils/app_formatters.dart';
 import 'package:rentora_app/models/cart_model.dart';
 import 'package:rentora_app/models/product_model.dart';
 import 'package:rentora_app/models/store_model.dart';
 import 'package:rentora_app/views/cart/cart_screen.dart';
+import 'package:rentora_app/views/chat/chat_screen.dart';
+import 'package:rentora_app/services/database/user_service.dart';
+import 'package:rentora_app/models/user_model.dart';
 
 class DetailProductScreen extends StatefulWidget {
   final ProductModel produk;
@@ -26,20 +32,15 @@ class DetailProductScreen extends StatefulWidget {
 
 class _DetailProductScreenState extends State<DetailProductScreen> {
   late PageController _pageController;
+
   int _currentImageIndex = 0;
 
   final StoreController _storeController = StoreController();
   final CartController _cartController = CartController();
   final UserController _userController = UserController();
+  final ChatController _chatController = ChatController();
 
   StoreModel? _store;
-
-  @override
-  void initState() {
-    super.initState();
-    _pageController = PageController();
-    _loadStore();
-  }
 
   void _loadStore() async {
     try {
@@ -50,6 +51,13 @@ class _DetailProductScreenState extends State<DetailProductScreen> {
     } catch (_) {
       setState(() {});
     }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _pageController = PageController();
+    _loadStore();
   }
 
   @override
@@ -225,18 +233,13 @@ class _DetailProductScreenState extends State<DetailProductScreen> {
 
                     const SizedBox(height: 8),
 
-                    // ----- BAGIAN ULASAN PRODUK -----
-                    const ReviewsSection(),
-
-                    const SizedBox(height: 8),
-
                     // ----- BAGIAN INFORMASI TOKO -----
                     StoreInfoSection(store: _store!),
 
                     const SizedBox(height: 8),
 
                     // ----- BAGIAN LOKASI PENGAMBILAN -----
-                    const PickupLocationSection(),
+                    PickupLocationSection(store: _store!),
 
                     const SizedBox(height: 8),
                   ],
@@ -262,7 +265,74 @@ class _DetailProductScreenState extends State<DetailProductScreen> {
                     children: [
                       Expanded(
                         child: GestureDetector(
-                          onTap: () {},
+                          onTap: () async {
+                            try {
+                              final currentUser = await _userController
+                                  .getCurrentUser();
+                              if (currentUser == null) {
+                                if (!context.mounted) return;
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text(
+                                      'Silakan login untuk mengirim pesan',
+                                    ),
+                                  ),
+                                );
+                                return;
+                              }
+
+                              if (_store == null) return;
+
+                              if (_store!.userUid == currentUser.uid) {
+                                if (!context.mounted) return;
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text(
+                                      'Tidak dapat mengirim pesan ke toko sendiri',
+                                    ),
+                                  ),
+                                );
+                                return;
+                              }
+
+                              final threadId = await _chatController
+                                  .createOrGetThreadWith(_store!.userUid);
+                              final owner =
+                                  await UserFirestoreService.getUserByUid(
+                                    _store!.userUid,
+                                  );
+
+                              if (!context.mounted) return;
+                              await Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => ChatScreen(
+                                    threadId: threadId,
+                                    otherUser:
+                                        owner ??
+                                        UserModel(
+                                          uid: _store!.userUid,
+                                          email: '',
+                                          phone: '',
+                                        ),
+                                    otherStore: _store,
+                                  ),
+                                ),
+                              );
+                            } catch (e) {
+                              if (!context.mounted) return;
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    e.toString().replaceFirst(
+                                      'Exception: ',
+                                      '',
+                                    ),
+                                  ),
+                                ),
+                              );
+                            }
+                          },
                           behavior: HitTestBehavior.opaque,
                           child: Center(
                             child: Icon(Symbols.chat, color: AppColor.primary),
@@ -358,7 +428,6 @@ class _DetailProductScreenState extends State<DetailProductScreen> {
   }
 }
 
-// Menampilkan bagian informasi produk (harga, nama)
 class ProductInfoSection extends StatelessWidget {
   const ProductInfoSection({super.key, required this.produk});
 
@@ -415,131 +484,6 @@ class ProductInfoSection extends StatelessWidget {
   }
 }
 
-// Menampilkan bagian ulasan produk (dummy)
-class ReviewsSection extends StatelessWidget {
-  const ReviewsSection({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      decoration: const BoxDecoration(color: AppColor.surface),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text(
-                "Ulasan",
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-              ),
-              GestureDetector(
-                child: Text(
-                  "Lihat Semua",
-                  style: TextStyle(
-                    color: AppColor.textHint,
-                    fontSize: 10,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          const Row(
-            children: [
-              Icon(Symbols.star, fill: 1, size: 20, color: Colors.amber),
-              SizedBox(width: 4),
-              Text(
-                "5.0",
-                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
-              ),
-              SizedBox(width: 4),
-              Text(
-                "Penilaian Produk ",
-                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
-              ),
-              Text("(60)", style: TextStyle(fontSize: 12)),
-            ],
-          ),
-          const SizedBox(height: 8),
-          const Row(
-            children: [
-              CircleAvatar(
-                radius: 12,
-                backgroundColor: AppColor.primarySoft,
-                child: Icon(Icons.person, size: 16, color: AppColor.primary),
-              ),
-              SizedBox(width: 12),
-              Text(
-                "user1234",
-                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          const Row(
-            children: [
-              Icon(Symbols.star, fill: 1, size: 16, color: Colors.amber),
-              Icon(Symbols.star, fill: 1, size: 16, color: Colors.amber),
-              Icon(Symbols.star, fill: 1, size: 16, color: Colors.amber),
-              Icon(Symbols.star, fill: 1, size: 16, color: Colors.amber),
-              Icon(Symbols.star, fill: 1, size: 16, color: Colors.amber),
-            ],
-          ),
-          const SizedBox(height: 8),
-          const Text(
-            "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.",
-            style: TextStyle(fontSize: 14),
-          ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              Expanded(
-                child: AspectRatio(
-                  aspectRatio: 1,
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: AppColor.border,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: AspectRatio(
-                  aspectRatio: 1,
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: AppColor.border,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: AspectRatio(
-                  aspectRatio: 1,
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: AppColor.border,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// Menampilkan informasi toko (nama, lokasi, rating, dll)
 class StoreInfoSection extends StatelessWidget {
   const StoreInfoSection({super.key, required this.store});
 
@@ -586,12 +530,9 @@ class StoreInfoSection extends StatelessWidget {
                           fontWeight: FontWeight.w700,
                         ),
                       ),
-                      const Text(
-                        "Aktif 2 menit lalu",
-                        style: TextStyle(fontSize: 14),
-                      ),
+                      const SizedBox(height: 4),
                       Text(
-                        store.location?.toUpperCase() ?? "Lokasi tidak ada",
+                        store.district?.toUpperCase() ?? "Lokasi tidak ada",
                         style: const TextStyle(fontSize: 14),
                       ),
                     ],
@@ -691,9 +632,10 @@ class StoreInfoSection extends StatelessWidget {
   }
 }
 
-// Menampilkan lokasi pengambilan barang (dummy)
 class PickupLocationSection extends StatelessWidget {
-  const PickupLocationSection({super.key});
+  final StoreModel store;
+
+  const PickupLocationSection({super.key, required this.store});
 
   @override
   Widget build(BuildContext context) {
@@ -708,13 +650,44 @@ class PickupLocationSection extends StatelessWidget {
             style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
           ),
           const SizedBox(height: 8),
-          Container(height: 132, color: AppColor.border),
+          (store.latitude != null && store.longitude != null)
+              ? SizedBox(
+                  height: 162,
+                  child: AbsorbPointer(
+                    child: GoogleMap(
+                      initialCameraPosition: CameraPosition(
+                        target: LatLng(store.latitude!, store.longitude!),
+                        zoom: 16,
+                      ),
+                      markers: {
+                        Marker(
+                          markerId: MarkerId('store'),
+                          position: LatLng(store.latitude!, store.longitude!),
+                          infoWindow: InfoWindow(title: store.name),
+                        ),
+                      },
+                      onMapCreated: (_) {},
+                      myLocationButtonEnabled: false,
+                      zoomControlsEnabled: false,
+                      scrollGesturesEnabled: false,
+                      zoomGesturesEnabled: false,
+                      rotateGesturesEnabled: false,
+                      tiltGesturesEnabled: false,
+                      mapToolbarEnabled: true,
+                    ),
+                  ),
+                )
+              : Container(
+                  height: 162,
+                  decoration: BoxDecoration(color: AppColor.textHint),
+                  child: const Center(child: Text('Lokasi tidak tersedia')),
+                ),
           const SizedBox(height: 8),
-          const Row(
+          Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Icon(Symbols.location_pin, size: 18),
-              SizedBox(width: 8),
+              Icon(Symbols.location_pin, size: 18, color: AppColor.textHint),
+              const SizedBox(width: 8),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -722,22 +695,52 @@ class PickupLocationSection extends StatelessWidget {
                     Row(
                       children: [
                         Text(
-                          "Rafie",
-                          style: TextStyle(fontWeight: FontWeight.w700),
-                        ),
-                        SizedBox(width: 8),
-                        Text(
-                          "(+62) 888-8888-8888",
-                          style: TextStyle(
-                            color: AppColor.textHint,
-                            fontSize: 12,
-                          ),
+                          store.name,
+                          style: const TextStyle(fontWeight: FontWeight.w700),
                         ),
                       ],
                     ),
-                    Text(
-                      "Jl. Jalan Ks Tubun II C, RW 01, Slipi, Palmerah, West Jakarta, Special Capital Region of Jakarta, Java, 10260, Indonesia",
-                    ),
+                    if (store.fullAddress != null) Text(store.fullAddress!),
+                    if (store.latitude != null && store.longitude != null)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 8.0),
+                        child: SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton.icon(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColor.primary,
+                              foregroundColor: AppColor.surface,
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                            ),
+                            icon: const Icon(Icons.directions),
+                            label: const Text('Lihat di Google Maps'),
+                            onPressed: () async {
+                              final lat = store.latitude!;
+                              final lng = store.longitude!;
+                              final url =
+                                  'https://www.google.com/maps/dir/?api=1&destination=$lat,$lng';
+                              final uri = Uri.parse(url);
+                              if (await canLaunchUrl(uri)) {
+                                await launchUrl(
+                                  uri,
+                                  mode: LaunchMode.externalApplication,
+                                );
+                              } else {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text(
+                                      'Tidak dapat membuka Google Maps',
+                                    ),
+                                  ),
+                                );
+                              }
+                            },
+                          ),
+                        ),
+                      ),
                   ],
                 ),
               ),
@@ -749,7 +752,6 @@ class PickupLocationSection extends StatelessWidget {
   }
 }
 
-// Menampilkan deskripsi produk
 class DescriptionSection extends StatelessWidget {
   const DescriptionSection({super.key, required this.description});
 

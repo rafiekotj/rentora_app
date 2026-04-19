@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:rentora_app/core/constants/app_color.dart';
 import 'package:rentora_app/core/extensions/navigator.dart';
 import 'package:rentora_app/services/local_storage/preference_handler.dart';
-import 'package:rentora_app/services/onesignal_legacy.dart';
+import 'package:rentora_app/services/notification/onesignal_legacy.dart';
 import 'package:rentora_app/views/auth/login_screen.dart';
 import 'package:rentora_app/views/user_account/account_setting_screen.dart';
 import 'package:rentora_app/widgets/custom_button.dart';

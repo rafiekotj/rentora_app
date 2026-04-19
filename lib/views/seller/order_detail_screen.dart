@@ -1,14 +1,13 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
+import 'package:rentora_app/controllers/transaction_controller.dart';
 import 'package:rentora_app/core/constants/app_color.dart';
 import 'package:rentora_app/core/utils/app_formatters.dart';
 import 'package:rentora_app/models/cart_model.dart';
 import 'package:rentora_app/models/product_model.dart';
 import 'package:rentora_app/models/transaction_model.dart';
-import 'package:rentora_app/controllers/transaction_controller.dart';
 import 'package:rentora_app/widgets/custom_button.dart';
 
 class OrderDetailScreen extends StatefulWidget {
@@ -22,8 +21,27 @@ class OrderDetailScreen extends StatefulWidget {
 
 class _OrderDetailScreenState extends State<OrderDetailScreen> {
   final TransactionController _transactionController = TransactionController();
+
   late TransactionModel _tx;
+
   bool _updating = false;
+
+  final Map<String, String> _nextStatusMap = {
+    'Diproses': 'Disewa',
+    'Disewa': 'Dikembalikan',
+  };
+
+  final Map<String, String> _actionLabelMap = {
+    'Diproses': 'Diserahkan',
+    'Disewa': 'Dikembalikan',
+  };
+
+  @override
+  void initState() {
+    super.initState();
+    _tx = widget.transaction;
+  }
+
   String _formatDate(String iso) {
     try {
       final dt = DateTime.parse(iso).toLocal();
@@ -144,6 +162,60 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     );
   }
 
+  Future<void> _updateStatus(String newStatus) async {
+    setState(() {
+      _updating = true;
+    });
+    try {
+      await _transactionController.transactionService.updateTransactionStatus(
+        _tx.uid,
+        newStatus,
+      );
+      if (!mounted) return;
+      setState(() {
+        _tx = _tx.copyWith(status: newStatus);
+        _updating = false;
+      });
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Status diperbarui: $newStatus')));
+    } catch (e, st) {
+      debugPrint('updateStatus error: $e\n$st');
+      if (!mounted) return;
+      setState(() {
+        _updating = false;
+      });
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Gagal memperbarui status')));
+    }
+  }
+
+  void _onActionPressed() {
+    final next = _nextStatusMap[_tx.status];
+    if (next != null) {
+      _updateStatus(next);
+    }
+  }
+
+  Widget? _buildBottomActionBar() {
+    final next = _nextStatusMap[_tx.status];
+    if (next == null) return null;
+    final label = _actionLabelMap[_tx.status] ?? 'Lanjutkan';
+    return SafeArea(
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        color: Colors.white,
+        child: CustomButton(
+          text: label,
+          height: 48,
+          isLoading: _updating,
+          onPressed: _onActionPressed,
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final tx = _tx;
@@ -173,12 +245,11 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
               padding: const EdgeInsets.all(12),
               child: Column(
                 children: [
-                  // Products
                   Column(
                     children: tx.items.map((e) => _buildProductRow(e)).toList(),
                   ),
                   const Divider(height: 24),
-                  // Summary
+
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -253,8 +324,6 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                     ],
                   ),
                   const SizedBox(height: 8),
-
-                  // additional meta rows could go here
                 ],
               ),
             ),
@@ -263,65 +332,6 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
         ),
       ),
       bottomNavigationBar: _buildBottomActionBar(),
-    );
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    _tx = widget.transaction;
-  }
-
-  Future<void> _updateStatus(String newStatus) async {
-    setState(() {
-      _updating = true;
-    });
-    try {
-      await _transactionController.transactionService.updateTransactionStatus(
-        _tx.uid,
-        newStatus,
-      );
-      if (!mounted) return;
-      setState(() {
-        _tx = _tx.copyWith(status: newStatus);
-        _updating = false;
-      });
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Status diperbarui: $newStatus')));
-    } catch (e) {
-      if (!mounted) return;
-      setState(() {
-        _updating = false;
-      });
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Gagal memperbarui status: $e')));
-    }
-  }
-
-  void _onActionPressed() {
-    if (_tx.status == 'Diproses') {
-      _updateStatus('Disewa');
-    } else if (_tx.status == 'Disewa') {
-      _updateStatus('Dikembalikan');
-    }
-  }
-
-  Widget? _buildBottomActionBar() {
-    if (!(_tx.status == 'Diproses' || _tx.status == 'Disewa')) return null;
-    final label = _tx.status == 'Diproses' ? 'Diserahkan' : 'Dikembalikan';
-    return SafeArea(
-      child: Container(
-        padding: const EdgeInsets.all(12),
-        color: Colors.white,
-        child: CustomButton(
-          text: label,
-          height: 48,
-          isLoading: _updating,
-          onPressed: _onActionPressed,
-        ),
-      ),
     );
   }
 }

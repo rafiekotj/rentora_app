@@ -9,6 +9,7 @@ import 'package:rentora_app/models/user_model.dart';
 import 'package:rentora_app/views/seller/seller_order_screen.dart';
 import 'package:rentora_app/views/seller/seller_product_screen.dart';
 import 'package:rentora_app/views/seller/seller_settings_screen.dart';
+import 'package:rentora_app/views/chat/chat_list_screen.dart';
 
 class SellerHomeScreen extends StatefulWidget {
   const SellerHomeScreen({super.key});
@@ -34,196 +35,6 @@ class _SellerHomeScreenState extends State<SellerHomeScreen> {
     _loadData();
   }
 
-  // Memuat data pengguna dan toko
-  Future<void> _loadData() async {
-    final user = await _userController.getCurrentUser();
-
-    if (user != null) {
-      final store = await _storeController.getStoreByUserId(user.uid);
-
-      if (!mounted) return;
-
-      setState(() {
-        _user = user;
-        _store = store;
-      });
-
-      await _loadSellerStats();
-      _checkStoreProfile();
-    }
-  }
-
-  Future<void> _loadSellerStats() async {
-    final pendingCount = await _transactionController
-        .getPendingShipmentCountForCurrentSeller();
-    final rentedCount = await _transactionController
-        .getRentedItemCountForCurrentSeller();
-    final returnedCount = await _transactionController
-        .getReturnedItemCountForCurrentSeller();
-
-    if (!mounted) return;
-    setState(() {
-      _pendingShipmentCount = pendingCount;
-      _rentedItemCount = rentedCount;
-      _returnedItemCount = returnedCount;
-    });
-  }
-
-  // Memeriksa apakah profil toko sudah lengkap
-  Future<void> _checkStoreProfile() async {
-    final store = _store;
-
-    if (store == null ||
-        store.name.isEmpty ||
-        store.location == null ||
-        store.location!.isEmpty ||
-        store.image == null ||
-        store.image!.isEmpty) {
-      _showProfileSetupAlert();
-    }
-  }
-
-  // Menampilkan dialog untuk mengingatkan penjual melengkapi profil tokonya
-  void _showProfileSetupAlert() {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-        return PopScope(
-          canPop: false,
-          onPopInvokedWithResult: (didPop, result) {
-            if (!didPop) {
-              Navigator.of(context).pop();
-              Navigator.of(context).pop();
-            }
-          },
-          child: Dialog(
-            elevation: 0,
-            backgroundColor: Colors.transparent,
-            child: Container(
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                color: AppColor.surface,
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withAlpha(18),
-                    blurRadius: 24,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    width: 56,
-                    height: 56,
-                    decoration: BoxDecoration(
-                      color: AppColor.warningSoft,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: const Icon(
-                      Symbols.store,
-                      size: 28,
-                      color: AppColor.warning,
-                      weight: 700,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  const Text(
-                    'Lengkapi Profil Toko',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w700,
-                      color: AppColor.textPrimary,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    'Anda perlu melengkapi nama, lokasi, dan gambar profil toko Anda untuk dapat menambahkan produk.',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: AppColor.textSecondary,
-                      height: 1.5,
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: OutlinedButton(
-                          onPressed: () {
-                            Navigator.of(context).pop();
-                            Navigator.of(context).pop();
-                          },
-                          style: OutlinedButton.styleFrom(
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            side: const BorderSide(
-                              color: AppColor.border,
-                              width: 1,
-                            ),
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                          ),
-                          child: const Text(
-                            'Batal',
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                              color: AppColor.textPrimary,
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: ElevatedButton(
-                          onPressed: () async {
-                            Navigator.of(context).pop();
-                            await Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (context) =>
-                                    const SellerSettingsScreen(),
-                              ),
-                            );
-
-                            if (mounted) {
-                              _loadData();
-                            }
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColor.primary,
-                            foregroundColor: AppColor.textOnPrimary,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                            elevation: 2,
-                          ),
-                          child: const Text(
-                            'Ke Pengaturan',
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final String displayName = (_store?.name ?? '').isNotEmpty
@@ -246,7 +57,12 @@ class _SellerHomeScreenState extends State<SellerHomeScreen> {
         ),
         actions: [
           IconButton(
-            onPressed: () {},
+            onPressed: () async {
+              await Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const ChatListScreen()),
+              );
+            },
             icon: const Icon(Symbols.chat, weight: 650),
           ),
           Stack(
@@ -562,6 +378,193 @@ class _SellerHomeScreenState extends State<SellerHomeScreen> {
           ),
         ),
       ),
+    );
+  }
+
+  Future<void> _loadData() async {
+    final user = await _userController.getCurrentUser();
+
+    if (user != null) {
+      final store = await _storeController.getStoreByUserId(user.uid);
+
+      if (!mounted) return;
+
+      setState(() {
+        _user = user;
+        _store = store;
+      });
+
+      await _loadSellerStats();
+      _checkStoreProfile();
+    }
+  }
+
+  Future<void> _loadSellerStats() async {
+    final pendingCount = await _transactionController
+        .getPendingShipmentCountForCurrentSeller();
+    final rentedCount = await _transactionController
+        .getRentedItemCountForCurrentSeller();
+    final returnedCount = await _transactionController
+        .getReturnedItemCountForCurrentSeller();
+
+    if (!mounted) return;
+    setState(() {
+      _pendingShipmentCount = pendingCount;
+      _rentedItemCount = rentedCount;
+      _returnedItemCount = returnedCount;
+    });
+  }
+
+  Future<void> _checkStoreProfile() async {
+    final store = _store;
+
+    if (store == null ||
+        store.name.isEmpty ||
+        store.location == null ||
+        store.location!.isEmpty ||
+        store.image == null ||
+        store.image!.isEmpty) {
+      _showProfileSetupAlert();
+    }
+  }
+
+  void _showProfileSetupAlert() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return PopScope(
+          canPop: false,
+          onPopInvokedWithResult: (didPop, result) {
+            if (!didPop) {
+              Navigator.of(context).pop();
+              Navigator.of(context).pop();
+            }
+          },
+          child: Dialog(
+            elevation: 0,
+            backgroundColor: Colors.transparent,
+            child: Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: AppColor.surface,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withAlpha(18),
+                    blurRadius: 24,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 56,
+                    height: 56,
+                    decoration: BoxDecoration(
+                      color: AppColor.warningSoft,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Icon(
+                      Symbols.store,
+                      size: 28,
+                      color: AppColor.warning,
+                      weight: 700,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'Lengkapi Profil Toko',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                      color: AppColor.textPrimary,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    'Anda perlu melengkapi nama, lokasi, dan gambar profil toko Anda untuk dapat menambahkan produk.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: AppColor.textSecondary,
+                      height: 1.5,
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton(
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                            Navigator.of(context).pop();
+                          },
+                          style: OutlinedButton.styleFrom(
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            side: const BorderSide(
+                              color: AppColor.border,
+                              width: 1,
+                            ),
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                          ),
+                          child: const Text(
+                            'Batal',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: AppColor.textPrimary,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: () async {
+                            Navigator.of(context).pop();
+                            await Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    const SellerSettingsScreen(),
+                              ),
+                            );
+
+                            if (mounted) {
+                              _loadData();
+                            }
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColor.primary,
+                            foregroundColor: AppColor.textOnPrimary,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            elevation: 2,
+                          ),
+                          child: const Text(
+                            'Ke Pengaturan',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 }

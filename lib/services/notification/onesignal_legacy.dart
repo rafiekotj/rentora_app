@@ -6,20 +6,14 @@ void setupOneSignal() {
   OneSignal.Debug.setLogLevel(OSLogLevel.verbose);
 
   OneSignal.initialize(AppConfig.appIdOneSignal);
-  // if (UserDataService.idUser != null) {
-  //   setOneSignalExternalId(UserDataService.idUser.toString());
-  // }
 
-  // Meminta izin notifikasi (untuk iOS)
   OneSignal.Notifications.requestPermission(true);
 
-  // Tangani notifikasi saat diklik (notification opened)
   OneSignal.Notifications.addClickListener((event) {
     final additionalData = event.notification.additionalData ?? {};
     final title = event.notification.title ?? '';
     final body = event.notification.body ?? '';
 
-    // Simpan notifikasi ke local storage agar muncul di NotificationScreen
     PreferenceHandler().addNotification(
       title: title,
       body: body,
@@ -40,13 +34,11 @@ void setupOneSignal() {
     // }
   });
 
-  // Tangani notifikasi yang masuk saat aplikasi sedang di-foreground
   OneSignal.Notifications.addForegroundWillDisplayListener((event) {
     final additionalData = event.notification.additionalData ?? {};
     final title = event.notification.title ?? '';
     final body = event.notification.body ?? '';
 
-    // Simpan notifikasi agar muncul di NotificationScreen
     PreferenceHandler().addNotification(
       title: title,
       body: body,
@@ -61,15 +53,12 @@ void setupOneSignal() {
   });
 }
 
-/// Set the external user id for OneSignal so you can target this device from
-/// the OneSignal dashboard or REST API. Call this after the user logs in.
 Future<void> setOneSignalExternalId(String externalId) async {
   try {
     await OneSignal.login(externalId);
   } catch (_) {}
 }
 
-/// Remove the external user id previously set for this device.
 Future<void> removeOneSignalExternalId() async {
   try {
     await OneSignal.logout();

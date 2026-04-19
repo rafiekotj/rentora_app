@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:material_symbols_icons/symbols.dart';
 import 'package:intl/intl.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import 'package:rentora_app/core/constants/app_color.dart';
 import 'package:rentora_app/services/local_storage/preference_handler.dart';
 

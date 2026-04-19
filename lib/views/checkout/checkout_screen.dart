@@ -6,6 +6,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:rentora_app/config/config.dart';
 import 'package:rentora_app/config/onesignal_secrets.dart';
 import 'package:rentora_app/controllers/cart_controller.dart';
 import 'package:rentora_app/controllers/transaction_controller.dart';
@@ -42,6 +43,40 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   String selectedBankLabel = 'BCA';
   bool _isPaying = false;
   static const int _serviceFee = 1000;
+  static final http.Client _oneSignalClient = http.Client();
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchStore();
+  }
+
+  Future<void> _fetchStore() async {
+    if (widget.cartItems.isEmpty) return;
+    final storeUid = widget.cartItems.first.product.storeUid;
+    final store = await _storeController.getStoreById(storeUid);
+    setState(() {
+      _store = store;
+      _isLoadingStore = false;
+    });
+  }
+
+  void _applyPaymentSelection(String methodCode) {
+    if (_isBankMethodCode(methodCode)) {
+      setState(() {
+        selectedMethod = 'bank';
+        selectedBankCode = methodCode;
+        selectedBankLabel = _bankLabelFromCode(methodCode);
+      });
+      return;
+    }
+
+    if (methodCode == 'qris' || methodCode == 'cod') {
+      setState(() {
+        selectedMethod = methodCode;
+      });
+    }
+  }
 
   bool _isBankMethodCode(String methodCode) {
     return methodCode == 'bca' ||
@@ -62,23 +97,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         return 'BRI';
       default:
         return methodCode;
-    }
-  }
-
-  void _applyPaymentSelection(String methodCode) {
-    if (_isBankMethodCode(methodCode)) {
-      setState(() {
-        selectedMethod = 'bank';
-        selectedBankCode = methodCode;
-        selectedBankLabel = _bankLabelFromCode(methodCode);
-      });
-      return;
-    }
-
-    if (methodCode == 'qris' || methodCode == 'cod') {
-      setState(() {
-        selectedMethod = methodCode;
-      });
     }
   }
 
@@ -136,139 +154,30 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     });
 
     try {
-      final txnId = await _transactionController.createTransaction(
-        cartItems: widget.cartItems,
-        paymentMethod: _effectivePaymentMethod,
-        paymentLabel: _effectivePaymentLabel,
-        serviceFee: _serviceFee,
+      final buyerUser = await _userController.getCurrentUser();
+      final buyerId = buyerUser?.uid;
+
+      final txnId = await _createTransaction(
+        userUid: buyerId,
+        storeName: _store?.name,
       );
 
-      for (final item in widget.cartItems) {
-        await _cartController.removeFromCart(item.uid);
-      }
+      _clearCartAndSaveNotification(txnId);
 
-      // Prepare notification content
-      const title = 'Pesanan Sedang Diproses';
-      const body = 'Pesanan Anda sedang diproses oleh penjual.';
-
-      // Save notification record locally so it appears on Notification screen.
-      // The system notification itself will be sent via OneSignal (remote push).
-      await PreferenceHandler().addNotification(
-        title: title,
-        body: body,
-        data: {'transactionId': txnId},
-      );
-
-      // Send push to the store owner and buyer via OneSignal REST API.
-      // NOTE: This uses a local REST API key (insecure for production).
-      try {
-        final sellerExternalId = _store?.userUid;
-        // Resolve buyer external id (current logged in user)
-        final buyerUser = await _userController.getCurrentUser();
-        final buyerExternalId = buyerUser?.uid;
-        if (sellerExternalId != null && sellerExternalId.isNotEmpty) {
-          // Build targets list (seller + buyer if available)
-          final targets = <String>[sellerExternalId];
-          if (buyerExternalId != null &&
-              buyerExternalId.isNotEmpty &&
-              buyerExternalId != sellerExternalId) {
-            targets.add(buyerExternalId);
-          }
-
-          final uri = Uri.parse('https://onesignal.com/api/v1/notifications');
-
-          Future<http.Response> doPost() {
-            return http.post(
-              uri,
-              headers: {
-                'Content-Type': 'application/json; charset=utf-8',
-                'Authorization':
-                    'Basic ${OneSignalSecrets.onesignalRestApiKey}',
-              },
-              body: jsonEncode({
-                'app_id': OneSignalSecrets.onesignalAppId,
-                'include_external_user_ids': targets,
-                'headings': {'en': title},
-                'contents': {'en': body},
-                'data': {'transactionId': txnId},
-              }),
-            );
-          }
-
-          http.Response resp = await doPost();
-
-          int recipients = -1;
-          String? errorMsg;
-          try {
-            final Map<String, dynamic> jsonResp = jsonDecode(resp.body);
-            if (jsonResp.containsKey('recipients')) {
-              recipients = (jsonResp['recipients'] is int)
-                  ? jsonResp['recipients'] as int
-                  : -1;
-            }
-            if (jsonResp.containsKey('errors')) {
-              final e = jsonResp['errors'];
-              if (e is List && e.isNotEmpty) {
-                errorMsg = e.first.toString();
-              } else if (e is String) {
-                errorMsg = e;
-              }
-            }
-          } catch (_) {}
-
-          // If no recipients or explicit not-subscribed error, retry once after short delay
-          if ((recipients == 0) ||
-              (errorMsg != null && errorMsg.contains('not subscribed'))) {
-            await Future.delayed(const Duration(milliseconds: 900));
-            resp = await doPost();
-
-            try {
-              final Map<String, dynamic> jsonResp2 = jsonDecode(resp.body);
-              if (jsonResp2.containsKey('recipients')) {
-                recipients = (jsonResp2['recipients'] is int)
-                    ? jsonResp2['recipients'] as int
-                    : recipients;
-              }
-              if (jsonResp2.containsKey('errors')) {
-                final e2 = jsonResp2['errors'];
-                if (e2 is List && e2.isNotEmpty) {
-                  errorMsg = e2.first.toString();
-                } else if (e2 is String) {
-                  errorMsg = e2;
-                }
-              }
-            } catch (_) {}
-          }
-
-          if (recipients == 0 ||
-              (errorMsg != null && errorMsg.contains('not subscribed'))) {
-            if (mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text(
-                    'Push dikirim, tapi tidak ada penerima (recipient=0).',
-                  ),
-                ),
-              );
-            }
-          }
-
-          if (resp.statusCode != 200 && resp.statusCode != 201) {}
-        } else {}
-      } catch (_) {}
+      _schedulePush(txnId, buyerExternalId: buyerId);
 
       if (!mounted) return;
 
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const PaymentSuccessScreen()),
-      );
-    } catch (e) {
+      _goToSuccessScreen();
+    } catch (e, st) {
+      debugPrint('Checkout payment error: $e\n$st');
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(e.toString().replaceFirst('Exception: ', '')),
-          duration: const Duration(seconds: 2),
+        const SnackBar(
+          content: Text(
+            'Terjadi kesalahan saat memproses pembayaran. Silakan coba lagi.',
+          ),
+          duration: Duration(seconds: 2),
         ),
       );
     } finally {
@@ -280,20 +189,145 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     }
   }
 
-  @override
-  void initState() {
-    super.initState();
-    _fetchStore();
+  Future<String> _createTransaction({
+    String? userUid,
+    String? storeName,
+  }) async {
+    return await _transactionController.createTransactionAndClearCarts(
+      cartItems: widget.cartItems,
+      paymentMethod: _effectivePaymentMethod,
+      paymentLabel: _effectivePaymentLabel,
+      serviceFee: _serviceFee,
+      userUid: userUid,
+      storeName: storeName,
+    );
   }
 
-  Future<void> _fetchStore() async {
-    if (widget.cartItems.isEmpty) return;
-    final storeUid = widget.cartItems.first.product.storeUid;
-    final store = await _storeController.getStoreById(storeUid);
-    setState(() {
-      _store = store;
-      _isLoadingStore = false;
+  Future<void> _clearCartAndSaveNotification(String txnId) async {
+    final cartIds = widget.cartItems
+        .map((e) => e.uid)
+        .whereType<String>()
+        .toList();
+    _cartController.removeMultipleLocally(cartIds);
+
+    Future.microtask(() {
+      PreferenceHandler().addNotification(
+        title: 'Pesanan Sedang Diproses',
+        body: 'Pesanan Anda sedang diproses oleh penjual.',
+        data: {'transactionId': txnId},
+      );
     });
+  }
+
+  void _schedulePush(String txnId, {String? buyerExternalId}) {
+    final sellerExternalId = _store?.userUid;
+    if (sellerExternalId == null || sellerExternalId.isEmpty) return;
+    if (AppConfig.useServerSideNotifications) return;
+    Future.microtask(
+      () => _sendOneSignalPush(txnId, sellerExternalId, buyerExternalId),
+    );
+  }
+
+  void _goToSuccessScreen() {
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => const PaymentSuccessScreen()),
+    );
+  }
+
+  Future<void> _sendOneSignalPush(
+    String txnId,
+    String? sellerExternalId,
+    String? buyerExternalId,
+  ) async {
+    if (sellerExternalId == null || sellerExternalId.isEmpty) return;
+    try {
+      final targets = <String>[sellerExternalId];
+      if (buyerExternalId != null &&
+          buyerExternalId.isNotEmpty &&
+          buyerExternalId != sellerExternalId) {
+        targets.add(buyerExternalId);
+      }
+
+      final uri = Uri.parse('https://onesignal.com/api/v1/notifications');
+
+      Future<http.Response> doPost() {
+        return _oneSignalClient
+            .post(
+              uri,
+              headers: {
+                'Content-Type': 'application/json; charset=utf-8',
+                'Authorization':
+                    'Basic ${OneSignalSecrets.onesignalRestApiKey}',
+              },
+              body: jsonEncode({
+                'app_id': AppConfig.appIdOneSignal,
+                'include_external_user_ids': targets,
+                'headings': {'en': 'Pesanan Sedang Diproses'},
+                'contents': {
+                  'en': 'Pesanan Anda sedang diproses oleh penjual.',
+                },
+                'data': {'transactionId': txnId},
+              }),
+            )
+            .timeout(const Duration(seconds: 6));
+      }
+
+      http.Response resp = await doPost();
+
+      int recipients = -1;
+      String? errorMsg;
+      try {
+        final Map<String, dynamic> jsonResp = jsonDecode(resp.body);
+        if (jsonResp.containsKey('recipients')) {
+          recipients = (jsonResp['recipients'] is int)
+              ? jsonResp['recipients'] as int
+              : -1;
+        }
+        if (jsonResp.containsKey('errors')) {
+          final e = jsonResp['errors'];
+          if (e is List && e.isNotEmpty) {
+            errorMsg = e.first.toString();
+          } else if (e is String) {
+            errorMsg = e;
+          }
+        }
+      } catch (_) {}
+
+      if ((recipients == 0) ||
+          (errorMsg != null && errorMsg.contains('not subscribed'))) {
+        await Future.delayed(const Duration(milliseconds: 900));
+        resp = await doPost();
+
+        try {
+          final Map<String, dynamic> jsonResp2 = jsonDecode(resp.body);
+          if (jsonResp2.containsKey('recipients')) {
+            recipients = (jsonResp2['recipients'] is int)
+                ? jsonResp2['recipients'] as int
+                : recipients;
+          }
+          if (jsonResp2.containsKey('errors')) {
+            final e2 = jsonResp2['errors'];
+            if (e2 is List && e2.isNotEmpty) {
+              errorMsg = e2.first.toString();
+            } else if (e2 is String) {
+              errorMsg = e2;
+            }
+          }
+        } catch (_) {}
+      }
+
+      if (recipients == 0 ||
+          (errorMsg != null && errorMsg.contains('not subscribed'))) {
+        debugPrint('OneSignal: no recipients or not subscribed for txn $txnId');
+      }
+
+      if (resp.statusCode != 200 && resp.statusCode != 201) {
+        debugPrint('OneSignal push failed (${resp.statusCode}): ${resp.body}');
+      }
+    } catch (e, st) {
+      debugPrint('OneSignal push error: $e\n$st');
+    }
   }
 
   @override
@@ -312,7 +346,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         padding: EdgeInsets.all(8),
         child: Column(
           children: [
-            // ----- PICKUP LOCATION -----
+            // ----- LOKASI PENGAMBILAN -----
             Container(
               padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               width: double.infinity,
@@ -469,7 +503,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
             const SizedBox(height: 8),
 
-            // ----- CHECKOUT DETAILS -----
+            // ----- RINCIAN PESANAN -----
             Container(
               width: double.infinity,
               decoration: BoxDecoration(
@@ -621,7 +655,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
             const SizedBox(height: 8),
 
-            // ----- PAYMENT METHOD -----
+            // ----- METODE PEMBAYARAN -----
             Container(
               padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
               width: double.infinity,
@@ -756,7 +790,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
             const SizedBox(height: 8),
 
-            // ----- PAYMENT SUMMARY -----
+            // ----- RINCIAN PEMBAYARAN -----
             Container(
               width: double.infinity,
               decoration: BoxDecoration(

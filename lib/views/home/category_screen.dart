@@ -31,19 +31,11 @@ class _CategoryScreenState extends State<CategoryScreen> {
 
   Map<String, String> storeMap = {};
 
-  @override
-  void initState() {
-    super.initState();
-    _loadProducts();
-  }
-
-  // Mengambil data produk dari controller berdasarkan kategori
   Future<void> _loadProducts() async {
     setState(() {
       isLoading = true;
     });
 
-    // Ambil semua produk berdasarkan kategori
     final data = await _produkController.getProductByKategori(
       widget.categoryValue,
     );
@@ -51,8 +43,11 @@ class _CategoryScreenState extends State<CategoryScreen> {
     final storeController = StoreController();
     Map<String, String> tempStoreMap = {};
 
-    // Ambil lokasi store untuk semua produk
-    final storeUids = data.map((p) => p.storeUid).toList();
+    final storeUids = data
+        .map((p) => p.storeUid)
+        .whereType<String>()
+        .toSet()
+        .toList();
     final storesList = await storeController.getStoresByIds(storeUids);
     final storesMap = {for (var s in storesList) s.uid: s};
 
@@ -69,6 +64,12 @@ class _CategoryScreenState extends State<CategoryScreen> {
       storeMap = tempStoreMap;
       isLoading = false;
     });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _loadProducts();
   }
 
   @override
@@ -199,7 +200,6 @@ class _CategoryScreenState extends State<CategoryScreen> {
                                   ),
                                 ),
                               ),
-                              // Grid untuk menampilkan produk.
                               Container(
                                 padding: const EdgeInsets.all(8),
                                 child: LayoutBuilder(

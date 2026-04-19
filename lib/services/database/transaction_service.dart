@@ -5,10 +5,51 @@ class TransactionService {
   final CollectionReference transactionsCollection = FirebaseFirestore.instance
       .collection('transactions');
 
+  final CollectionReference cartsCollection = FirebaseFirestore.instance
+      .collection('carts');
+
+  final CollectionReference notificationsCollection = FirebaseFirestore.instance
+      .collection('outgoing_notifications');
+
   Future<String> createTransaction(TransactionModel transaction) async {
-    final docRef = await transactionsCollection.add(transaction.toMap());
-    // Update field uid di dokumen agar sesuai dengan doc id
-    await transactionsCollection.doc(docRef.id).update({'uid': docRef.id});
+    final docRef = transactionsCollection.doc();
+    final data = transaction.toMap();
+    data['uid'] = docRef.id;
+    await docRef.set(data);
+    return docRef.id;
+  }
+
+  Future<String> createTransactionAndClearCarts(
+    TransactionModel transaction,
+    List<String> cartIds,
+  ) async {
+    final batch = FirebaseFirestore.instance.batch();
+
+    final docRef = transactionsCollection.doc();
+    final data = transaction.toMap();
+    data['uid'] = docRef.id;
+    batch.set(docRef, data);
+
+    for (final cartId in cartIds) {
+      batch.delete(cartsCollection.doc(cartId));
+    }
+
+    try {
+      final noteRef = notificationsCollection.doc();
+      batch.set(noteRef, {
+        'uid': noteRef.id,
+        'type': 'transaction_created',
+        'transaction_uid': docRef.id,
+        'store_uid': transaction.storeUid,
+        'buyer_uid': transaction.userUid,
+        'title': 'Pesanan Baru',
+        'body': 'Pesanan Anda sedang diproses oleh penjual.',
+        'created_at': FieldValue.serverTimestamp(),
+        'processed': false,
+      });
+    } catch (_) {}
+
+    await batch.commit();
     return docRef.id;
   }
 

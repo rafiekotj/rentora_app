@@ -6,15 +6,33 @@ class StoreService {
       .collection('stores');
 
   Future<List<StoreModel>> getStoresByIds(List<String> storeIds) async {
-    // Filter: hanya id yang tidak kosong dan unik
     final filteredIds = storeIds.where((id) => id.isNotEmpty).toSet().toList();
     if (filteredIds.isEmpty) return [];
-    final snapshot = await storesCollection
-        .where(FieldPath.documentId, whereIn: filteredIds)
-        .get();
-    return snapshot.docs
-        .map((doc) => StoreModel.fromMap(doc.data() as Map<String, dynamic>))
-        .toList();
+
+    const int chunkSize = 10;
+    final chunks = <List<String>>[];
+    for (var i = 0; i < filteredIds.length; i += chunkSize) {
+      chunks.add(
+        filteredIds.sublist(
+          i,
+          i + chunkSize > filteredIds.length
+              ? filteredIds.length
+              : i + chunkSize,
+        ),
+      );
+    }
+
+    final futures = chunks.map((c) async {
+      final snapshot = await storesCollection
+          .where(FieldPath.documentId, whereIn: c)
+          .get();
+      return snapshot.docs
+          .map((doc) => StoreModel.fromMap(doc.data() as Map<String, dynamic>))
+          .toList();
+    });
+
+    final results = await Future.wait(futures);
+    return results.expand((r) => r).toList();
   }
 
   Future<List<StoreModel>> getStoresByUser(String userUid) async {
@@ -79,13 +97,9 @@ class StoreService {
         .get();
     if (snapshot.docs.isNotEmpty) {
       final docId = snapshot.docs.first.id;
-      await storesCollection.doc(docId).update({
-        ...data,
-        'uid': docId, // pastikan field uid selalu terisi
-      });
+      await storesCollection.doc(docId).update({...data, 'uid': docId});
     } else {
       final docRef = await storesCollection.add(data);
-      // update field uid setelah dokumen berhasil dibuat
       await storesCollection.doc(docRef.id).update({'uid': docRef.id});
     }
   }

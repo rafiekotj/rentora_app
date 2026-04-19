@@ -22,8 +22,8 @@ class AppColor {
   static const Color divider = Color(0xFFCBD5E1);
 
   // Shadow
-  static const Color shadowLight = Color(0x0D000000); // 5% black
-  static const Color shadowMedium = Color(0x1A000000); // 10% black
+  static const Color shadowLight = Color(0x0D000000);
+  static const Color shadowMedium = Color(0x1A000000);
 
   // Status
   static const Color success = Color(0xFF16A34A);

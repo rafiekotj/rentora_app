@@ -4,7 +4,6 @@ import 'package:rentora_app/services/database/user_service.dart';
 import 'package:rentora_app/services/local_storage/preference_handler.dart';
 
 class UserController {
-  // Ambil user by uid (untuk seller melihat peminjam)
   Future<UserModel?> getUserByUid(String uid) async {
     return await UserFirestoreService.getUserByUid(uid);
   }
@@ -51,14 +50,12 @@ class UserController {
     PreferenceHandler().storingUserEmail(email);
   }
 
-  // Mengambil detail data user yang sedang login
   Future<UserModel?> getCurrentUser() async {
     final email = await PreferenceHandler.getUserEmail();
     if (email == null) return null;
     return await UserFirestoreService.getUserByEmail(email);
   }
 
-  /// Update the currently logged in user's profile information.
   Future<void> updateCurrentUser({
     String? username,
     String? phone,

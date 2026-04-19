@@ -23,7 +23,6 @@ class CartController {
   final ValueNotifier<String?> selectedStoreUid = ValueNotifier(null);
   final ValueNotifier<List<String>> selectedProductUids = ValueNotifier([]);
 
-  // Memuat data keranjang dari Firestore
   Future<void> loadCartFromDB() async {
     final user = await _userController.getCurrentUser();
     if (user?.uid == null) {
@@ -36,7 +35,6 @@ class CartController {
     cartItemsNotifier.value = cartList;
   }
 
-  // Memilih semua item dari toko tertentu di keranjang
   void selectStore(String storeUid) {
     if (selectedStoreUid.value == storeUid) {
       selectedStoreUid.value = null;
@@ -52,7 +50,6 @@ class CartController {
     }
   }
 
-  // Memilih atau membatalkan pilihan satu item produk di keranjang
   void selectProduct(String productUid) {
     final newSelectedProductUids = List<String>.from(selectedProductUids.value);
     if (newSelectedProductUids.contains(productUid)) {
@@ -76,7 +73,6 @@ class CartController {
     }
   }
 
-  // Menambahkan produk ke keranjang Firestore
   Future<void> addToCart(CartModel cartItem) async {
     final user = await _userController.getCurrentUser();
     final userUid = user?.uid;
@@ -91,16 +87,12 @@ class CartController {
       throw Exception('Tidak bisa menambahkan produk sendiri ke keranjang');
     }
 
-    // Cek apakah produk sudah ada di cart
     final existingIndex = cartItemsNotifier.value.indexWhere(
       (element) => element.product.uid == cartItem.product.uid,
     );
     if (existingIndex >= 0) {
       cartItemsNotifier.value[existingIndex].quantity += cartItem.quantity;
-      // Update Firestore
-      // Perlu simpan id dokumen Firestore di CartModel jika ingin update
     } else {
-      // Setelah add, ambil doc id dan update uid lokal
       final docRef = await _cartService.cartsCollection.add({
         'userUid': userUid,
         ...cartItem.toMap(),
@@ -118,7 +110,6 @@ class CartController {
     }
   }
 
-  // Menghapus satu item dari keranjang Firestore
   Future<void> removeFromCart(String cartUid) async {
     await _cartService.deleteCart(cartUid);
     cartItemsNotifier.value = cartItemsNotifier.value
@@ -126,7 +117,6 @@ class CartController {
         .toList();
   }
 
-  // Memperbarui jumlah kuantitas dari sebuah item di keranjang Firestore
   Future<void> updateCartQuantity(
     String cartUid,
     CartModel cartItem,
@@ -137,7 +127,6 @@ class CartController {
     cartItemsNotifier.value = List.from(cartItemsNotifier.value);
   }
 
-  // Memperbarui jumlah hari sewa dari sebuah item di keranjang Firestore
   Future<void> updateRentalDays(
     String cartUid,
     CartModel cartItem,
@@ -146,5 +135,11 @@ class CartController {
     cartItem.rentalDays = days;
     await _cartService.updateCart(cartUid, cartItem);
     cartItemsNotifier.value = List.from(cartItemsNotifier.value);
+  }
+
+  void removeMultipleLocally(List<String> cartUids) {
+    cartItemsNotifier.value = cartItemsNotifier.value
+        .where((e) => !cartUids.contains(e.uid))
+        .toList();
   }
 }

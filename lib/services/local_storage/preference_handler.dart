@@ -17,48 +17,38 @@ class PreferenceHandler {
   static const String _userEmail = 'userEmail';
   static const String _notificationsKey = 'notifications_list';
 
-  // ===============================
-  // CREATE / SAVE DATA
-  // ===============================
-
-  // menyimpan status login
   Future<void> storingIsLogin(bool isLogin) async {
     _preferences.setBool(_isLogin, isLogin);
   }
 
-  // menyimpan email user yang login
   Future<void> storingUserEmail(String? email) async {
     _preferences.setString(_userEmail, email ?? "");
   }
 
-  // ===============================
-  // GET DATA
-  // ===============================
-
-  // mengambil status login
   static Future<bool?> getIsLogin() async {
     final prefs = await SharedPreferences.getInstance();
     var data = prefs.getBool(_isLogin);
     return data;
   }
 
-  // mengambil email user yang login
   static Future<String?> getUserEmail() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString(_userEmail);
   }
-
-  // ===============================
-  // Notifications (stored locally)
-  // Stored as a String list of JSON-encoded maps
-  // ===============================
 
   Future<void> addNotification({
     required String title,
     required String body,
     Map<String, dynamic>? data,
   }) async {
-    final prefs = await SharedPreferences.getInstance();
+    SharedPreferences prefs;
+    try {
+      prefs = _preferences;
+    } catch (_) {
+      // fallback if init() hasn't been called yet
+      prefs = await SharedPreferences.getInstance();
+    }
+
     final list = prefs.getStringList(_notificationsKey) ?? <String>[];
     final entry = {
       'title': title,
@@ -81,16 +71,10 @@ class PreferenceHandler {
     await prefs.remove(_notificationsKey);
   }
 
-  // ===============================
-  // DELETE DATA
-  // ===============================
-
-  // menghapus status login
   Future<void> deleteIsLogin() async {
     await _preferences.remove(_isLogin);
   }
 
-  // menghapus email user
   Future<void> deleteUserEmail() async {
     await _preferences.remove(_userEmail);
   }

@@ -7,7 +7,7 @@ import 'package:rentora_app/core/constants/app_color.dart';
 import 'package:rentora_app/firebase_options.dart';
 import 'package:rentora_app/services/local_storage/preference_handler.dart';
 import 'package:rentora_app/views/splash/splash_screen.dart';
-import 'package:rentora_app/services/onesignal_legacy.dart';
+import 'package:rentora_app/services/notification/onesignal_legacy.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();

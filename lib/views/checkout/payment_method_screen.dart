@@ -13,52 +13,48 @@ class PaymentMethodScreen extends StatefulWidget {
 }
 
 class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
-  bool get _hasChanged => selectedMethod != widget.initialSelectedMethod;
-
-  Future<bool> _onWillPop() async {
-    if (_hasChanged) {
-      final shouldLeave = await showDialog<bool>(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: const Text('Simpan Perubahan?'),
-          content: const Text(
-            'Anda belum menyimpan perubahan metode pembayaran. Apakah ingin menyimpan sebelum keluar?',
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(null),
-              child: const Text(
-                'Batal Simpan',
-                style: TextStyle(color: AppColor.error),
-              ),
-            ),
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(true),
-              child: const Text(
-                'Simpan',
-                style: TextStyle(color: AppColor.primary),
-              ),
-            ),
-          ],
-        ),
-      );
-      if (shouldLeave == true) {
-        return false;
-      } else if (shouldLeave == null) {
-        return false;
-      } else {
-        return false;
-      }
-    }
-    return true;
-  }
-
   late String selectedMethod;
 
   @override
   void initState() {
     super.initState();
     selectedMethod = widget.initialSelectedMethod;
+  }
+
+  bool get _hasChanged => selectedMethod != widget.initialSelectedMethod;
+
+  Future<bool?> _showSaveDialog() async {
+    return showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Simpan Perubahan?'),
+        content: const Text(
+          'Anda belum menyimpan perubahan metode pembayaran. Apakah ingin menyimpan sebelum keluar?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(null),
+            child: const Text(
+              'Batal Simpan',
+              style: TextStyle(color: AppColor.error),
+            ),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text(
+              'Simpan',
+              style: TextStyle(color: AppColor.primary),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<bool> _onWillPop() async {
+    if (!_hasChanged) return true;
+    await _showSaveDialog();
+    return false;
   }
 
   void _selectAndClose(String method) {
