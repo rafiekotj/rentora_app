@@ -6,6 +6,7 @@ import 'package:rentora_app/controllers/cart_controller.dart';
 import 'package:rentora_app/controllers/store_controller.dart';
 import 'package:rentora_app/controllers/user_controller.dart';
 import 'package:rentora_app/controllers/chat_controller.dart';
+import 'package:rentora_app/controllers/transaction_controller.dart';
 import 'package:rentora_app/core/constants/app_color.dart';
 import 'package:rentora_app/core/utils/app_formatters.dart';
 import 'package:rentora_app/models/cart_model.dart';
@@ -39,8 +40,10 @@ class _DetailProductScreenState extends State<DetailProductScreen> {
   final CartController _cartController = CartController();
   final UserController _userController = UserController();
   final ChatController _chatController = ChatController();
+  final TransactionController _transactionController = TransactionController();
 
   StoreModel? _store;
+  int _completedRentCount = 0;
 
   void _loadStore() async {
     try {
@@ -58,6 +61,30 @@ class _DetailProductScreenState extends State<DetailProductScreen> {
     super.initState();
     _pageController = PageController();
     _loadStore();
+    _loadProductReturnedCount();
+  }
+
+  Future<void> _loadProductReturnedCount() async {
+    try {
+      final transactions = await _transactionController.transactionService
+          .getTransactionsByStore(widget.produk.storeUid, ['Dikembalikan']);
+
+      int count = 0;
+      for (final tx in transactions) {
+        for (final item in tx.items) {
+          try {
+            if (item.product.uid == widget.produk.uid) {
+              count += item.quantity;
+            }
+          } catch (_) {}
+        }
+      }
+
+      if (!mounted) return;
+      setState(() {
+        _completedRentCount = count;
+      });
+    } catch (_) {}
   }
 
   @override
@@ -68,370 +95,381 @@ class _DetailProductScreenState extends State<DetailProductScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return _store == null
-        ? const Center(
-            child: CircularProgressIndicator(color: AppColor.primary),
-          )
-        : Scaffold(
-            backgroundColor: AppColor.backgroundLight,
-            appBar: AppBar(
-              toolbarHeight: 58,
-              backgroundColor: AppColor.primary,
-              foregroundColor: AppColor.textOnPrimary,
-              titleSpacing: 0,
-              title: Container(
-                padding: const EdgeInsets.only(right: 8),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Container(
-                        height: 42,
-                        decoration: BoxDecoration(
-                          color: AppColor.textOnPrimary,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: TextField(
-                          cursorColor: AppColor.textSecondary,
-                          textAlignVertical: TextAlignVertical.center,
-                          style: const TextStyle(
-                            fontSize: 14,
-                            color: AppColor.textPrimary,
-                          ),
-                          decoration: const InputDecoration(
-                            isDense: true,
-                            hintText: "Search",
-                            hintStyle: TextStyle(
-                              color: AppColor.textSecondary,
-                              fontSize: 14,
-                            ),
-                            border: InputBorder.none,
-                            contentPadding: EdgeInsets.symmetric(vertical: 10),
-                            prefixIcon: Icon(
-                              Symbols.search,
-                              weight: 600,
-                              color: AppColor.textSecondary,
-                              size: 20,
-                            ),
-                            prefixIconConstraints: BoxConstraints(
-                              minWidth: 42,
-                              minHeight: 42,
-                            ),
-                          ),
-                        ),
-                      ),
+    return Scaffold(
+      backgroundColor: AppColor.backgroundLight,
+      appBar: AppBar(
+        toolbarHeight: 58,
+        backgroundColor: AppColor.primary,
+        foregroundColor: AppColor.textOnPrimary,
+        titleSpacing: 0,
+        title: Container(
+          padding: const EdgeInsets.only(right: 8),
+          child: Row(
+            children: [
+              Expanded(
+                child: Container(
+                  height: 42,
+                  decoration: BoxDecoration(
+                    color: AppColor.textOnPrimary,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: TextField(
+                    cursorColor: AppColor.textSecondary,
+                    textAlignVertical: TextAlignVertical.center,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      color: AppColor.textPrimary,
                     ),
-                    const SizedBox(width: 8),
-                    IconButton(
-                      onPressed: () {},
-                      icon: Icon(
-                        Symbols.forward,
-                        color: AppColor.textOnPrimary,
-                        size: 24,
+                    decoration: const InputDecoration(
+                      isDense: true,
+                      hintText: "Search",
+                      hintStyle: TextStyle(
+                        color: AppColor.textSecondary,
+                        fontSize: 14,
+                      ),
+                      border: InputBorder.none,
+                      contentPadding: EdgeInsets.symmetric(vertical: 10),
+                      prefixIcon: Icon(
+                        Symbols.search,
                         weight: 600,
+                        color: AppColor.textSecondary,
+                        size: 20,
+                      ),
+                      prefixIconConstraints: BoxConstraints(
+                        minWidth: 42,
+                        minHeight: 42,
                       ),
                     ),
-                    IconButton(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const CartScreen(),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              IconButton(
+                onPressed: () {},
+                icon: Icon(
+                  Symbols.forward,
+                  color: AppColor.textOnPrimary,
+                  size: 24,
+                  weight: 600,
+                ),
+              ),
+              IconButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const CartScreen()),
+                  );
+                },
+                icon: Icon(
+                  Symbols.shopping_cart,
+                  color: AppColor.textOnPrimary,
+                  size: 24,
+                  weight: 600,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              // ----- BAGIAN GAMBAR PRODUK -----
+              AspectRatio(
+                aspectRatio: 1,
+                child: Stack(
+                  children: [
+                    PageView.builder(
+                      controller: _pageController,
+                      itemCount: widget.produk.images.length,
+                      onPageChanged: (index) {
+                        setState(() {
+                          _currentImageIndex = index;
+                        });
+                      },
+                      itemBuilder: (context, index) {
+                        return Container(
+                          decoration: BoxDecoration(
+                            image: widget.produk.images.isNotEmpty
+                                ? DecorationImage(
+                                    image: NetworkImage(
+                                      widget.produk.images[index].trim(),
+                                    ),
+                                    fit: BoxFit.cover,
+                                  )
+                                : null,
+                            color: widget.produk.images.isEmpty
+                                ? AppColor.border
+                                : null,
                           ),
+                          child: widget.produk.images.isEmpty
+                              ? const Icon(
+                                  Icons.image,
+                                  color: AppColor.textHint,
+                                )
+                              : null,
                         );
                       },
-                      icon: Icon(
-                        Symbols.shopping_cart,
-                        color: AppColor.textOnPrimary,
-                        size: 24,
-                        weight: 600,
-                      ),
                     ),
-                  ],
-                ),
-              ),
-            ),
-            body: SafeArea(
-              child: SingleChildScrollView(
-                child: Column(
-                  children: [
-                    // ----- BAGIAN GAMBAR PRODUK -----
-                    AspectRatio(
-                      aspectRatio: 1,
-                      child: Stack(
-                        children: [
-                          PageView.builder(
-                            controller: _pageController,
-                            itemCount: widget.produk.images.length,
-                            onPageChanged: (index) {
-                              setState(() {
-                                _currentImageIndex = index;
-                              });
-                            },
-                            itemBuilder: (context, index) {
-                              return Container(
-                                decoration: BoxDecoration(
-                                  image: widget.produk.images.isNotEmpty
-                                      ? DecorationImage(
-                                          image: NetworkImage(
-                                            widget.produk.images[index].trim(),
-                                          ),
-                                          fit: BoxFit.cover,
-                                        )
-                                      : null,
-                                  color: widget.produk.images.isEmpty
-                                      ? AppColor.border
-                                      : null,
-                                ),
-                                child: widget.produk.images.isEmpty
-                                    ? const Icon(
-                                        Icons.image,
-                                        color: AppColor.textHint,
-                                      )
-                                    : null,
-                              );
-                            },
-                          ),
-                          if (widget.produk.images.length > 1)
-                            Positioned(
-                              bottom: 8,
-                              left: 0,
-                              right: 0,
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: List.generate(
-                                  widget.produk.images.length,
-                                  (index) => AnimatedContainer(
-                                    duration: const Duration(milliseconds: 300),
-                                    margin: const EdgeInsets.symmetric(
-                                      horizontal: 4,
-                                    ),
-                                    width: _currentImageIndex == index ? 24 : 8,
-                                    height: 8,
-                                    decoration: BoxDecoration(
-                                      color: _currentImageIndex == index
-                                          ? AppColor.primary
-                                          : AppColor.surface.withAlpha(150),
-                                      borderRadius: BorderRadius.circular(4),
-                                    ),
-                                  ),
-                                ),
+                    if (widget.produk.images.length > 1)
+                      Positioned(
+                        bottom: 8,
+                        left: 0,
+                        right: 0,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: List.generate(
+                            widget.produk.images.length,
+                            (index) => AnimatedContainer(
+                              duration: const Duration(milliseconds: 300),
+                              margin: const EdgeInsets.symmetric(horizontal: 4),
+                              width: _currentImageIndex == index ? 24 : 8,
+                              height: 8,
+                              decoration: BoxDecoration(
+                                color: _currentImageIndex == index
+                                    ? AppColor.primary
+                                    : AppColor.surface.withAlpha(150),
+                                borderRadius: BorderRadius.circular(4),
                               ),
                             ),
-                        ],
+                          ),
+                        ),
                       ),
-                    ),
-
-                    // ----- BAGIAN INFORMASI PRODUK (Harga dan Nama) -----
-                    ProductInfoSection(produk: widget.produk),
-
-                    const SizedBox(height: 8),
-
-                    // ----- BAGIAN DESKRIPSI PRODUK -----
-                    DescriptionSection(
-                      description: widget.produk.deskripsiProduk,
-                    ),
-
-                    const SizedBox(height: 8),
-
-                    // ----- BAGIAN INFORMASI TOKO -----
-                    StoreInfoSection(store: _store!),
-
-                    const SizedBox(height: 8),
-
-                    // ----- BAGIAN LOKASI PENGAMBILAN -----
-                    PickupLocationSection(store: _store!),
-
-                    const SizedBox(height: 8),
                   ],
                 ),
               ),
-            ),
-            bottomNavigationBar: Container(
-              decoration: BoxDecoration(
-                color: AppColor.surface,
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColor.shadowMedium,
-                    blurRadius: 10,
-                    offset: Offset(0, -4),
-                  ),
-                ],
+
+              // ----- BAGIAN INFORMASI PRODUK (Harga dan Nama) -----
+              ProductInfoSection(
+                produk: widget.produk,
+                completedCount: _completedRentCount,
               ),
-              child: SafeArea(
-                child: SizedBox(
-                  height: kBottomNavigationBarHeight,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Expanded(
-                        child: GestureDetector(
-                          onTap: () async {
-                            try {
-                              final currentUser = await _userController
-                                  .getCurrentUser();
-                              if (currentUser == null) {
-                                if (!context.mounted) return;
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text(
-                                      'Silakan login untuk mengirim pesan',
-                                    ),
+
+              const SizedBox(height: 8),
+
+              // ----- BAGIAN DESKRIPSI PRODUK -----
+              DescriptionSection(description: widget.produk.deskripsiProduk),
+
+              const SizedBox(height: 8),
+
+              // ----- BAGIAN INFORMASI TOKO -----
+              StoreInfoSection(store: _store),
+
+              const SizedBox(height: 8),
+
+              // ----- BAGIAN LOKASI PENGAMBILAN -----
+              PickupLocationSection(store: _store),
+
+              const SizedBox(height: 8),
+            ],
+          ),
+        ),
+      ),
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          color: AppColor.surface,
+          boxShadow: [
+            BoxShadow(
+              color: AppColor.shadowMedium,
+              blurRadius: 10,
+              offset: Offset(0, -4),
+            ),
+          ],
+        ),
+        child: SafeArea(
+          child: SizedBox(
+            height: kBottomNavigationBarHeight,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () async {
+                      try {
+                        final currentUser = await _userController
+                            .getCurrentUser();
+                        if (currentUser == null) {
+                          if (!context.mounted) return;
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text(
+                                'Silakan login untuk mengirim pesan',
+                              ),
+                            ),
+                          );
+                          return;
+                        }
+
+                        if (_store == null) {
+                          if (!context.mounted) return;
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Toko masih dimuat')),
+                          );
+                          return;
+                        }
+
+                        if (_store!.userUid == currentUser.uid) {
+                          if (!context.mounted) return;
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text(
+                                'Tidak dapat mengirim pesan ke toko sendiri',
+                              ),
+                            ),
+                          );
+                          return;
+                        }
+
+                        final threadId = await _chatController
+                            .createOrGetThreadWith(_store!.userUid);
+                        final owner = await UserFirestoreService.getUserByUid(
+                          _store!.userUid,
+                        );
+
+                        if (!context.mounted) return;
+                        await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => ChatScreen(
+                              threadId: threadId,
+                              otherUser:
+                                  owner ??
+                                  UserModel(
+                                    uid: _store!.userUid,
+                                    email: '',
+                                    phone: '',
                                   ),
-                                );
-                                return;
-                              }
-
-                              if (_store == null) return;
-
-                              if (_store!.userUid == currentUser.uid) {
-                                if (!context.mounted) return;
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text(
-                                      'Tidak dapat mengirim pesan ke toko sendiri',
-                                    ),
-                                  ),
-                                );
-                                return;
-                              }
-
-                              final threadId = await _chatController
-                                  .createOrGetThreadWith(_store!.userUid);
-                              final owner =
-                                  await UserFirestoreService.getUserByUid(
-                                    _store!.userUid,
-                                  );
-
-                              if (!context.mounted) return;
-                              await Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => ChatScreen(
-                                    threadId: threadId,
-                                    otherUser:
-                                        owner ??
-                                        UserModel(
-                                          uid: _store!.userUid,
-                                          email: '',
-                                          phone: '',
-                                        ),
-                                    otherStore: _store,
-                                  ),
-                                ),
-                              );
-                            } catch (e) {
-                              if (!context.mounted) return;
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text(
-                                    e.toString().replaceFirst(
-                                      'Exception: ',
-                                      '',
-                                    ),
-                                  ),
-                                ),
-                              );
-                            }
-                          },
-                          behavior: HitTestBehavior.opaque,
-                          child: Center(
-                            child: Icon(Symbols.chat, color: AppColor.primary),
-                          ),
-                        ),
-                      ),
-
-                      Container(width: 1, height: 24, color: AppColor.divider),
-
-                      Expanded(
-                        child: GestureDetector(
-                          onTap: () async {
-                            try {
-                              final currentUser = await _userController
-                                  .getCurrentUser();
-
-                              if (currentUser != null &&
-                                  _store != null &&
-                                  _store!.uid == widget.produk.storeUid &&
-                                  _store!.userUid == currentUser.uid) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text(
-                                      'Tidak bisa menambahkan produk sendiri ke keranjang',
-                                    ),
-                                    duration: Duration(seconds: 2),
-                                  ),
-                                );
-                                return;
-                              }
-
-                              await _cartController.addToCart(
-                                CartModel(uid: '', product: widget.produk),
-                              );
-
-                              if (!context.mounted) return;
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text(
-                                    'Produk ditambahkan ke keranjang',
-                                  ),
-                                  duration: Duration(seconds: 1),
-                                ),
-                              );
-                            } catch (e) {
-                              if (!context.mounted) return;
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text(
-                                    e.toString().replaceFirst(
-                                      'Exception: ',
-                                      '',
-                                    ),
-                                  ),
-                                  duration: const Duration(seconds: 2),
-                                ),
-                              );
-                            }
-                          },
-                          behavior: HitTestBehavior.opaque,
-                          child: Center(
-                            child: Icon(
-                              Symbols.add_shopping_cart,
-                              color: AppColor.primary,
+                              otherStore: _store,
                             ),
                           ),
-                        ),
-                      ),
-
-                      GestureDetector(
-                        onTap: () {},
-                        child: Container(
-                          width: 200,
-                          height: double.infinity,
-                          alignment: Alignment.center,
-                          color: AppColor.primary,
-                          child: const Text(
-                            "Sewa",
-                            style: TextStyle(
-                              color: AppColor.surface,
-                              fontSize: 16,
-                              fontWeight: FontWeight.w700,
+                        );
+                      } catch (e) {
+                        if (!context.mounted) return;
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              e.toString().replaceFirst('Exception: ', ''),
                             ),
                           ),
-                        ),
-                      ),
-                    ],
+                        );
+                      }
+                    },
+                    behavior: HitTestBehavior.opaque,
+                    child: Center(
+                      child: Icon(Symbols.chat, color: AppColor.primary),
+                    ),
                   ),
                 ),
-              ),
+
+                Container(width: 1, height: 24, color: AppColor.divider),
+
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () async {
+                      try {
+                        if (_store == null) {
+                          if (!context.mounted) return;
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Toko masih dimuat')),
+                          );
+                          return;
+                        }
+
+                        final currentUser = await _userController
+                            .getCurrentUser();
+
+                        if (currentUser != null &&
+                            _store != null &&
+                            _store!.uid == widget.produk.storeUid &&
+                            _store!.userUid == currentUser.uid) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text(
+                                'Tidak bisa menambahkan produk sendiri ke keranjang',
+                              ),
+                              duration: Duration(seconds: 2),
+                            ),
+                          );
+                          return;
+                        }
+
+                        await _cartController.addToCart(
+                          CartModel(uid: '', product: widget.produk),
+                        );
+
+                        if (!context.mounted) return;
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Produk ditambahkan ke keranjang'),
+                            duration: Duration(seconds: 1),
+                          ),
+                        );
+                      } catch (e) {
+                        if (!context.mounted) return;
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              e.toString().replaceFirst('Exception: ', ''),
+                            ),
+                            duration: const Duration(seconds: 2),
+                          ),
+                        );
+                      }
+                    },
+                    behavior: HitTestBehavior.opaque,
+                    child: Center(
+                      child: Icon(
+                        Symbols.add_shopping_cart,
+                        color: AppColor.primary,
+                      ),
+                    ),
+                  ),
+                ),
+
+                GestureDetector(
+                  onTap: () {
+                    if (_store == null) {
+                      if (!context.mounted) return;
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Toko masih dimuat')),
+                      );
+                      return;
+                    }
+                  },
+                  child: Container(
+                    width: 200,
+                    height: double.infinity,
+                    alignment: Alignment.center,
+                    color: AppColor.primary,
+                    child: const Text(
+                      "Sewa",
+                      style: TextStyle(
+                        color: AppColor.surface,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
-          );
+          ),
+        ),
+      ),
+    );
   }
 }
 
 class ProductInfoSection extends StatelessWidget {
-  const ProductInfoSection({super.key, required this.produk});
+  const ProductInfoSection({
+    super.key,
+    required this.produk,
+    this.completedCount = 0,
+  });
 
   final ProductModel produk;
+  final int completedCount;
 
   @override
   Widget build(BuildContext context) {
@@ -470,7 +508,7 @@ class ProductInfoSection extends StatelessWidget {
                   ),
                 ],
               ),
-              const Text("2x Disewa"),
+              Text('${completedCount}x Disewa'),
             ],
           ),
           const SizedBox(height: 8),
@@ -487,10 +525,11 @@ class ProductInfoSection extends StatelessWidget {
 class StoreInfoSection extends StatelessWidget {
   const StoreInfoSection({super.key, required this.store});
 
-  final StoreModel store;
+  final StoreModel? store;
 
   @override
   Widget build(BuildContext context) {
+    final isLoading = store == null;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: const BoxDecoration(color: AppColor.surface),
@@ -501,46 +540,75 @@ class StoreInfoSection extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  store.image != null
-                      ? ClipOval(
-                          child: Image.network(
-                            store.image!,
-                            width: 56,
-                            height: 56,
-                            fit: BoxFit.cover,
-                          ),
-                        )
-                      : const CircleAvatar(
+                  isLoading
+                      ? CircleAvatar(
                           radius: 28,
                           backgroundColor: AppColor.primarySoft,
-                          child: Icon(
-                            Icons.person,
-                            size: 32,
-                            color: AppColor.primary,
-                          ),
-                        ),
+                        )
+                      : (store!.image != null
+                            ? ClipOval(
+                                child: Image.network(
+                                  store!.image!,
+                                  width: 56,
+                                  height: 56,
+                                  fit: BoxFit.cover,
+                                ),
+                              )
+                            : const CircleAvatar(
+                                radius: 28,
+                                backgroundColor: AppColor.primarySoft,
+                                child: Icon(
+                                  Icons.person,
+                                  size: 32,
+                                  color: AppColor.primary,
+                                ),
+                              )),
                   const SizedBox(width: 12),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        store.name,
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
+                  isLoading
+                      ? Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Container(
+                              height: 18,
+                              width: 140,
+                              decoration: BoxDecoration(
+                                color: AppColor.textHint.withOpacity(0.12),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Container(
+                              height: 12,
+                              width: 100,
+                              decoration: BoxDecoration(
+                                color: AppColor.textHint.withOpacity(0.12),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                            ),
+                          ],
+                        )
+                      : Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              store!.name,
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              store!.district?.toUpperCase() ??
+                                  "Lokasi tidak ada",
+                              style: const TextStyle(fontSize: 14),
+                            ),
+                          ],
                         ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        store.district?.toUpperCase() ?? "Lokasi tidak ada",
-                        style: const TextStyle(fontSize: 14),
-                      ),
-                    ],
-                  ),
                 ],
               ),
               OutlinedButton(
-                onPressed: () {},
+                onPressed: isLoading ? null : () {},
                 style: OutlinedButton.styleFrom(
                   minimumSize: const Size(0, 28),
                   padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -557,75 +625,136 @@ class StoreInfoSection extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 12),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Expanded(
-                child: Center(
-                  child: Column(
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            "4.8",
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w500,
+          isLoading
+              ? Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Expanded(
+                      child: Center(
+                        child: Column(
+                          children: [
+                            Container(
+                              height: 14,
+                              width: 36,
+                              decoration: BoxDecoration(
+                                color: AppColor.textHint.withOpacity(0.12),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
                             ),
-                          ),
-                          SizedBox(width: 4),
-                          Icon(
-                            Symbols.star,
-                            fill: 1,
-                            size: 16,
-                            color: Colors.amber,
-                          ),
-                        ],
-                      ),
-                      Text(
-                        "Penilaian",
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w500,
+                            const SizedBox(height: 8),
+                            Container(
+                              height: 12,
+                              width: 60,
+                              decoration: BoxDecoration(
+                                color: AppColor.textHint.withOpacity(0.12),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                    ],
-                  ),
-                ),
-              ),
-              Container(width: 1, height: 24, color: AppColor.divider),
-              const Expanded(
-                child: Center(
-                  child: Column(
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            "16",
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w500,
+                    ),
+                    Container(width: 1, height: 24, color: AppColor.divider),
+                    Expanded(
+                      child: Center(
+                        child: Column(
+                          children: [
+                            Container(
+                              height: 14,
+                              width: 36,
+                              decoration: BoxDecoration(
+                                color: AppColor.textHint.withOpacity(0.12),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
                             ),
-                          ),
-                          SizedBox(width: 4),
-                          Icon(Symbols.box, size: 16, color: Colors.brown),
-                        ],
-                      ),
-                      Text(
-                        "Produk",
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w500,
+                            const SizedBox(height: 8),
+                            Container(
+                              height: 12,
+                              width: 60,
+                              decoration: BoxDecoration(
+                                color: AppColor.textHint.withOpacity(0.12),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
+                )
+              : Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Expanded(
+                      child: Center(
+                        child: Column(
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  "4.8",
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                                SizedBox(width: 4),
+                                Icon(
+                                  Symbols.star,
+                                  fill: 1,
+                                  size: 16,
+                                  color: Colors.amber,
+                                ),
+                              ],
+                            ),
+                            Text(
+                              "Penilaian",
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    Container(width: 1, height: 24, color: AppColor.divider),
+                    const Expanded(
+                      child: Center(
+                        child: Column(
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  "16",
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                                SizedBox(width: 4),
+                                Icon(
+                                  Symbols.box,
+                                  size: 16,
+                                  color: Colors.brown,
+                                ),
+                              ],
+                            ),
+                            Text(
+                              "Produk",
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-              ),
-            ],
-          ),
         ],
       ),
     );
@@ -633,12 +762,13 @@ class StoreInfoSection extends StatelessWidget {
 }
 
 class PickupLocationSection extends StatelessWidget {
-  final StoreModel store;
+  final StoreModel? store;
 
   const PickupLocationSection({super.key, required this.store});
 
   @override
   Widget build(BuildContext context) {
+    final isLoading = store == null;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: const BoxDecoration(color: AppColor.surface),
@@ -650,20 +780,20 @@ class PickupLocationSection extends StatelessWidget {
             style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
           ),
           const SizedBox(height: 8),
-          (store.latitude != null && store.longitude != null)
+          (!isLoading && store!.latitude != null && store!.longitude != null)
               ? SizedBox(
                   height: 162,
                   child: AbsorbPointer(
                     child: GoogleMap(
                       initialCameraPosition: CameraPosition(
-                        target: LatLng(store.latitude!, store.longitude!),
+                        target: LatLng(store!.latitude!, store!.longitude!),
                         zoom: 16,
                       ),
                       markers: {
                         Marker(
                           markerId: MarkerId('store'),
-                          position: LatLng(store.latitude!, store.longitude!),
-                          infoWindow: InfoWindow(title: store.name),
+                          position: LatLng(store!.latitude!, store!.longitude!),
+                          infoWindow: InfoWindow(title: store!.name),
                         ),
                       },
                       onMapCreated: (_) {},
@@ -679,8 +809,35 @@ class PickupLocationSection extends StatelessWidget {
                 )
               : Container(
                   height: 162,
-                  decoration: BoxDecoration(color: AppColor.textHint),
-                  child: const Center(child: Text('Lokasi tidak tersedia')),
+                  decoration: BoxDecoration(
+                    color: AppColor.textHint.withOpacity(0.12),
+                  ),
+                  child: Center(
+                    child: isLoading
+                        ? Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Container(
+                                height: 12,
+                                width: 140,
+                                decoration: BoxDecoration(
+                                  color: AppColor.textHint.withOpacity(0.12),
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Container(
+                                height: 12,
+                                width: 100,
+                                decoration: BoxDecoration(
+                                  color: AppColor.textHint.withOpacity(0.12),
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                              ),
+                            ],
+                          )
+                        : const Text('Lokasi tidak tersedia'),
+                  ),
                 ),
           const SizedBox(height: 8),
           Row(
@@ -692,16 +849,29 @@ class PickupLocationSection extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      children: [
-                        Text(
-                          store.name,
-                          style: const TextStyle(fontWeight: FontWeight.w700),
+                    if (isLoading)
+                      Container(
+                        height: 18,
+                        width: 160,
+                        decoration: BoxDecoration(
+                          color: AppColor.textHint.withOpacity(0.12),
+                          borderRadius: BorderRadius.circular(6),
                         ),
-                      ],
-                    ),
-                    if (store.fullAddress != null) Text(store.fullAddress!),
-                    if (store.latitude != null && store.longitude != null)
+                      )
+                    else
+                      Row(
+                        children: [
+                          Text(
+                            store!.name,
+                            style: const TextStyle(fontWeight: FontWeight.w700),
+                          ),
+                        ],
+                      ),
+                    if (!isLoading && store!.fullAddress != null)
+                      Text(store!.fullAddress!),
+                    if (!isLoading &&
+                        store!.latitude != null &&
+                        store!.longitude != null)
                       Padding(
                         padding: const EdgeInsets.only(top: 8.0),
                         child: SizedBox(
@@ -718,8 +888,8 @@ class PickupLocationSection extends StatelessWidget {
                             icon: const Icon(Icons.directions),
                             label: const Text('Lihat di Google Maps'),
                             onPressed: () async {
-                              final lat = store.latitude!;
-                              final lng = store.longitude!;
+                              final lat = store!.latitude!;
+                              final lng = store!.longitude!;
                               final url =
                                   'https://www.google.com/maps/dir/?api=1&destination=$lat,$lng';
                               final uri = Uri.parse(url);
@@ -729,6 +899,7 @@ class PickupLocationSection extends StatelessWidget {
                                   mode: LaunchMode.externalApplication,
                                 );
                               } else {
+                                if (!context.mounted) return;
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(
                                     content: Text(
