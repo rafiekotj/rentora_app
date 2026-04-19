@@ -245,6 +245,8 @@ class _ChatListScreenState extends State<ChatListScreen> {
                                   ),
                                 ),
                               );
+                              if (!mounted) return;
+                              setState(() {});
                             },
                             child: Container(
                               padding: const EdgeInsets.symmetric(

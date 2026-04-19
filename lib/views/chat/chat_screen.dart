@@ -30,6 +30,7 @@ class _ChatScreenState extends State<ChatScreen> {
   final ScrollController _scrollController = ScrollController();
 
   UserModel? _currentUser;
+  bool _scrolledToBottomOnOpen = false;
 
   @override
   void initState() {
@@ -53,13 +54,19 @@ class _ChatScreenState extends State<ChatScreen> {
     _scrollToBottom();
   }
 
-  void _scrollToBottom() {
+  void _scrollToBottom({bool animate = true}) {
     try {
-      _scrollController.animateTo(
-        _scrollController.position.maxScrollExtent,
-        duration: const Duration(milliseconds: 200),
-        curve: Curves.easeOut,
-      );
+      if (!_scrollController.hasClients) return;
+      final pos = _scrollController.position.maxScrollExtent;
+      if (animate) {
+        _scrollController.animateTo(
+          pos,
+          duration: const Duration(milliseconds: 200),
+          curve: Curves.easeOut,
+        );
+      } else {
+        _scrollController.jumpTo(pos);
+      }
     } catch (_) {}
   }
 
@@ -162,6 +169,12 @@ class _ChatScreenState extends State<ChatScreen> {
                       ),
                     )
                     .toList();
+                if (!_scrolledToBottomOnOpen && messages.isNotEmpty) {
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    _scrollToBottom(animate: false);
+                  });
+                  _scrolledToBottomOnOpen = true;
+                }
                 return ListView.builder(
                   controller: _scrollController,
                   padding: const EdgeInsets.all(12),

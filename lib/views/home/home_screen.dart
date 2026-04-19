@@ -2,6 +2,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:rentora_app/controllers/cart_controller.dart';
+import 'package:rentora_app/controllers/user_controller.dart';
+import 'package:rentora_app/services/database/chat_service.dart';
 import 'package:rentora_app/controllers/product_controller.dart';
 import 'package:rentora_app/controllers/store_controller.dart';
 import 'package:rentora_app/core/constants/app_color.dart';
@@ -32,6 +34,10 @@ class _HomeScreenState extends State<HomeScreen> {
   final ProductController _produkController = ProductController();
   final CartController _cartController = CartController();
   final TextEditingController _searchController = TextEditingController();
+
+  final UserController _userController = UserController();
+  final ChatService _chatService = ChatService();
+  Stream<int>? _chatUnreadStream;
 
   List<ProductModel> produkList = [];
   bool isLoading = true;
@@ -106,6 +112,19 @@ class _HomeScreenState extends State<HomeScreen> {
     _startAutoPlay();
     _startFlashCountdown();
     _loadProduk();
+    _initChatUnreadStream();
+  }
+
+  Future<void> _initChatUnreadStream() async {
+    final user = await _userController.getCurrentUser();
+    if (!mounted) return;
+    if (user != null) {
+      setState(() {
+        _chatUnreadStream = _chatService.streamUnreadThreadsCountForUser(
+          user.uid,
+        );
+      });
+    }
   }
 
   @override
@@ -259,7 +278,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     decoration: InputDecoration(
                       isDense: true,
-                      hintText: "Cari produk sewaan...",
+                      hintText: "Cari produk sewaan ...",
                       hintStyle: const TextStyle(
                         color: AppColor.textSecondary,
                         fontSize: 14,
@@ -272,12 +291,12 @@ class _HomeScreenState extends State<HomeScreen> {
                         color: AppColor.textSecondary,
                         size: 20,
                       ),
-                      suffixIcon: IconButton(
-                        onPressed: () =>
-                            _openSearchResults(_searchController.text),
-                        icon: const Icon(Symbols.search),
-                        color: AppColor.primary,
-                      ),
+                      // suffixIcon: IconButton(
+                      //   onPressed: () =>
+                      //       _openSearchResults(_searchController.text),
+                      //   icon: const Icon(Symbols.search),
+                      //   color: AppColor.primary,
+                      // ),
                       prefixIconConstraints: const BoxConstraints(
                         minWidth: 42,
                         minHeight: 42,
@@ -288,25 +307,72 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
               const SizedBox(width: 8),
-              IconButton(
-                onPressed: () async {
-                  await Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const ChatListScreen(),
-                    ),
+              StreamBuilder<int>(
+                stream: _chatUnreadStream,
+                builder: (context, snap) {
+                  final chatCount = snap.data ?? 0;
+                  return Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      IconButton(
+                        onPressed: () async {
+                          await Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const ChatListScreen(),
+                            ),
+                          );
+                          if (!mounted) return;
+                          await _initChatUnreadStream();
+                        },
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(
+                          minWidth: 32,
+                          minHeight: 32,
+                        ),
+                        visualDensity: VisualDensity.compact,
+                        splashRadius: 28,
+                        icon: Icon(
+                          Symbols.chat,
+                          color: AppColor.textOnPrimary,
+                          size: 24,
+                          weight: 700,
+                        ),
+                      ),
+                      if (chatCount > 0)
+                        Positioned(
+                          top: -2,
+                          right: -1,
+                          child: Container(
+                            alignment: Alignment.center,
+                            padding: const EdgeInsets.symmetric(horizontal: 4),
+                            constraints: const BoxConstraints(
+                              minWidth: 20,
+                              minHeight: 20,
+                            ),
+                            decoration: BoxDecoration(
+                              color: AppColor.error,
+                              borderRadius: BorderRadius.circular(999),
+                              border: Border.all(
+                                color: AppColor.primary,
+                                width: 1.2,
+                              ),
+                            ),
+                            child: Text(
+                              chatCount > 99 ? '99+' : '$chatCount',
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(
+                                color: AppColor.textOnPrimary,
+                                fontSize: 10,
+                                fontWeight: FontWeight.w700,
+                                height: 1,
+                              ),
+                            ),
+                          ),
+                        ),
+                    ],
                   );
                 },
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-                visualDensity: VisualDensity.compact,
-                splashRadius: 28,
-                icon: Icon(
-                  Symbols.chat,
-                  color: AppColor.textOnPrimary,
-                  size: 24,
-                  weight: 700,
-                ),
               ),
               ValueListenableBuilder<List<CartModel>>(
                 valueListenable: _cartController.cartItemsNotifier,

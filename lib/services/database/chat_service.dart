@@ -1,4 +1,11 @@
+import 'dart:convert';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:http/http.dart' as http;
+import 'package:rentora_app/config/config.dart';
+import 'package:flutter/foundation.dart';
+import 'package:rentora_app/config/onesignal_secrets.dart';
+import 'package:rentora_app/services/database/user_service.dart';
 
 class ChatService {
   final CollectionReference chatsCollection = FirebaseFirestore.instance
@@ -56,14 +63,93 @@ class ChatService {
       'last_message_sender': senderUid,
       'last_updated': FieldValue.serverTimestamp(),
     });
+
+    // Send OneSignal notification to other participants (client-side push).
+    // If server-side notifications are enabled, Cloud Functions or server should handle notifications.
+    if (!AppConfig.useServerSideNotifications) {
+      Future.microtask(() async {
+        try {
+          final threadDoc = await chatsCollection.doc(threadId).get();
+          if (!threadDoc.exists) return;
+          final threadData = threadDoc.data() as Map<String, dynamic>;
+          final participants = List<String>.from(
+            threadData['participants'] ?? <String>[],
+          );
+          final targets = participants.where((p) => p != senderUid).toList();
+          if (targets.isEmpty) return;
+
+          String subtitle = '';
+          try {
+            final senderUser = await UserFirestoreService.getUserByUid(
+              senderUid,
+            );
+            if (senderUser != null) {
+              subtitle = (senderUser.username ?? senderUser.email);
+            }
+          } catch (_) {}
+
+          final payload = {
+            'app_id': AppConfig.appIdOneSignal,
+            'include_external_user_ids': targets,
+            'headings': {'en': 'Pesan Baru'},
+            'subtitle': {'en': subtitle},
+            'contents': {
+              'en': text.isNotEmpty ? text : 'Anda menerima pesan baru.',
+            },
+            'data': {'threadId': threadId, 'senderUid': senderUid},
+          };
+
+          final uri = Uri.parse('https://onesignal.com/api/v1/notifications');
+          try {
+            final resp = await http
+                .post(
+                  uri,
+                  headers: {
+                    'Content-Type': 'application/json; charset=utf-8',
+                    'Authorization':
+                        'Basic ${OneSignalSecrets.onesignalRestApiKey}',
+                  },
+                  body: jsonEncode(payload),
+                )
+                .timeout(const Duration(seconds: 6));
+
+            if (kDebugMode) {
+              debugPrint(
+                '[OneSignal] sendMessage status=${resp.statusCode} body=${resp.body}',
+              );
+            }
+
+            if (resp.statusCode != 200 && resp.statusCode != 201) {
+              // retry once after short delay if no recipients or not subscribed
+              await Future.delayed(const Duration(milliseconds: 900));
+              final resp2 = await http
+                  .post(
+                    uri,
+                    headers: {
+                      'Content-Type': 'application/json; charset=utf-8',
+                      'Authorization':
+                          'Basic ${OneSignalSecrets.onesignalRestApiKey}',
+                    },
+                    body: jsonEncode(payload),
+                  )
+                  .timeout(const Duration(seconds: 6));
+              if (kDebugMode) {
+                debugPrint(
+                  '[OneSignal] retry status=${resp2.statusCode} body=${resp2.body}',
+                );
+              }
+            }
+          } catch (e, st) {
+            if (kDebugMode) debugPrint('[OneSignal] send error: $e\n$st');
+          }
+        } catch (_) {}
+      });
+    }
   }
 
   Future<void> markThreadRead(String threadId, String userUid) async {
-    final snapshot = await chatsCollection
-        .doc(threadId)
-        .collection('messages')
-        .where('read', isEqualTo: false)
-        .get();
+    final msgsRef = chatsCollection.doc(threadId).collection('messages');
+    final snapshot = await msgsRef.where('read', isEqualTo: false).get();
 
     final toUpdate = snapshot.docs.where((d) {
       final data = d.data();
@@ -71,12 +157,20 @@ class ChatService {
       return sender != userUid;
     }).toList();
 
-    if (toUpdate.isEmpty) return;
-
     final batch = FirebaseFirestore.instance.batch();
+
     for (final d in toUpdate) {
       batch.update(d.reference, {'read': true});
     }
+
+    // Also update thread-level unread maps so UI badges relying on doc fields clear.
+    final threadRef = chatsCollection.doc(threadId);
+    final updates = <String, dynamic>{};
+    updates['unread.$userUid'] = 0;
+    updates['unread_counts.$userUid'] = 0;
+    updates['unreadCounts.$userUid'] = 0;
+    batch.update(threadRef, updates);
+
     await batch.commit();
   }
 
@@ -97,5 +191,35 @@ class ChatService {
     } catch (_) {
       return 0;
     }
+  }
+
+  Stream<int> streamUnreadThreadsCountForUser(String uid) {
+    return chatsCollection
+        .where('participants', arrayContains: uid)
+        .snapshots()
+        .asyncMap((query) async {
+          try {
+            final futures = query.docs.map((d) async {
+              try {
+                final msgs = await chatsCollection
+                    .doc(d.id)
+                    .collection('messages')
+                    .where('read', isEqualTo: false)
+                    .get();
+                for (final m in msgs.docs) {
+                  final data = m.data();
+                  final sender = data['sender_uid'] as String? ?? '';
+                  if (sender != uid) return 1;
+                }
+              } catch (_) {}
+              return 0;
+            }).toList();
+
+            final results = await Future.wait(futures);
+            return results.where((r) => r == 1).length;
+          } catch (_) {
+            return 0;
+          }
+        });
   }
 }
