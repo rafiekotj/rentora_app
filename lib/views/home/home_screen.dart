@@ -12,6 +12,8 @@ import 'package:rentora_app/views/cart/cart_screen.dart';
 import 'package:rentora_app/views/detail_product/detail_product_screen.dart';
 import 'package:rentora_app/views/home/category_screen.dart';
 import 'package:rentora_app/views/chat/chat_list_screen.dart';
+import 'package:rentora_app/views/search/search_results_screen.dart';
+import 'package:rentora_app/widgets/product_card.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -30,6 +32,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   final ProductController _produkController = ProductController();
   final CartController _cartController = CartController();
+  final TextEditingController _searchController = TextEditingController();
 
   List<ProductModel> produkList = [];
   bool isLoading = true;
@@ -119,6 +122,7 @@ class _HomeScreenState extends State<HomeScreen> {
     _bannerTimer?.cancel();
     _countdownTimer?.cancel();
     _pageController.dispose();
+    _searchController.dispose();
     super.dispose();
   }
 
@@ -154,6 +158,15 @@ class _HomeScreenState extends State<HomeScreen> {
       storeMap = tempStoreMap;
       isLoading = false;
     });
+  }
+
+  void _openSearchResults(String query) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => SearchResultsScreen(initialQuery: query),
+      ),
+    );
   }
 
   void _startAutoPlay() {
@@ -237,30 +250,41 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ],
                   ),
-                  child: const TextField(
+                  child: TextField(
+                    controller: _searchController,
                     cursorColor: AppColor.textSecondary,
                     textAlignVertical: TextAlignVertical.center,
-                    style: TextStyle(fontSize: 14, color: AppColor.textPrimary),
+                    style: const TextStyle(
+                      fontSize: 14,
+                      color: AppColor.textPrimary,
+                    ),
                     decoration: InputDecoration(
                       isDense: true,
                       hintText: "Cari produk sewaan...",
-                      hintStyle: TextStyle(
+                      hintStyle: const TextStyle(
                         color: AppColor.textSecondary,
                         fontSize: 14,
                       ),
                       border: InputBorder.none,
-                      contentPadding: EdgeInsets.symmetric(vertical: 10),
-                      prefixIcon: Icon(
+                      contentPadding: const EdgeInsets.symmetric(vertical: 10),
+                      prefixIcon: const Icon(
                         Symbols.search,
                         weight: 600,
                         color: AppColor.textSecondary,
                         size: 20,
                       ),
-                      prefixIconConstraints: BoxConstraints(
+                      suffixIcon: IconButton(
+                        onPressed: () =>
+                            _openSearchResults(_searchController.text),
+                        icon: const Icon(Symbols.search),
+                        color: AppColor.primary,
+                      ),
+                      prefixIconConstraints: const BoxConstraints(
                         minWidth: 42,
                         minHeight: 42,
                       ),
                     ),
+                    onSubmitted: (v) => _openSearchResults(v),
                   ),
                 ),
               ),
@@ -629,152 +653,6 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-class ProductCard extends StatelessWidget {
-  final ProductModel produk;
-  final String location;
-  final int maxTitleLines;
-
-  const ProductCard({
-    super.key,
-    required this.produk,
-    required this.location,
-    this.maxTitleLines = 2,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColor.surface,
-        borderRadius: BorderRadius.circular(4),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withAlpha(8),
-            blurRadius: 14,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          AspectRatio(
-            aspectRatio: 1,
-            child: Stack(
-              children: [
-                Container(
-                  decoration: BoxDecoration(
-                    borderRadius: const BorderRadius.only(
-                      topLeft: Radius.circular(4),
-                      topRight: Radius.circular(4),
-                    ),
-                    image: produk.images.isNotEmpty
-                        ? DecorationImage(
-                            image: NetworkImage(produk.images.first),
-                            fit: BoxFit.cover,
-                          )
-                        : null,
-                    color: produk.images.isEmpty ? AppColor.border : null,
-                  ),
-                  child: produk.images.isEmpty
-                      ? const Icon(Icons.image, color: AppColor.textHint)
-                      : null,
-                ),
-              ],
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(10, 8, 10, 10),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  produk.namaProduk,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 13,
-                  ),
-                  maxLines: maxTitleLines,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 4),
-                Row(
-                  children: [
-                    Text(
-                      "Rp",
-                      style: TextStyle(
-                        color: AppColor.secondary,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    Text(
-                      AppFormatters.formatRupiah(produk.hargaPerHari),
-                      style: const TextStyle(
-                        color: AppColor.secondary,
-                        fontWeight: FontWeight.w700,
-                        fontSize: 14,
-                      ),
-                    ),
-                    const Text(
-                      "/hari",
-                      style: TextStyle(color: AppColor.textHint, fontSize: 12),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 6),
-                Row(
-                  children: [
-                    const Icon(
-                      Symbols.calendar_month,
-                      color: AppColor.textHint,
-                      size: 12,
-                    ),
-                    const SizedBox(width: 4),
-                    Expanded(
-                      child: Text(
-                        "${produk.minJumlahPinjam}-${produk.maxHariPinjam} hari",
-                        style: const TextStyle(
-                          color: AppColor.textHint,
-                          fontSize: 10,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 4),
-                Row(
-                  children: [
-                    const Icon(
-                      Symbols.location_pin,
-                      color: AppColor.textHint,
-                      size: 12,
-                    ),
-                    const SizedBox(width: 4),
-                    Expanded(
-                      child: Text(
-                        location,
-                        style: const TextStyle(
-                          color: AppColor.textHint,
-                          fontSize: 10,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ],
       ),
     );
   }

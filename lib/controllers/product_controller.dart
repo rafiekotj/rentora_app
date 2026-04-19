@@ -33,4 +33,47 @@ class ProductController {
   Future<List<ProductModel>> getAllProduct() async {
     return await _productService.getAllProduct();
   }
+
+  Future<List<ProductModel>> searchProducts({
+    String? query,
+    String? district,
+    String? priceOrder, // 'asc' or 'desc'
+  }) async {
+    final all = await _productService.getAllProduct();
+    var results = all;
+
+    if (query != null && query.trim().isNotEmpty) {
+      final q = query.trim().toLowerCase();
+      results = results.where((p) {
+        final nama = p.namaProduk.toLowerCase();
+        final des = p.deskripsiProduk.toLowerCase();
+        final kat = p.kategori.toLowerCase();
+        return nama.contains(q) || des.contains(q) || kat.contains(q);
+      }).toList();
+    }
+
+    if (district != null && district.trim().isNotEmpty) {
+      final storeUids = results
+          .map((p) => p.storeUid)
+          .whereType<String>()
+          .toSet()
+          .toList();
+      final stores = await _storeController.getStoresByIds(storeUids);
+      final storeDistrictMap = {for (var s in stores) s.uid: s.district ?? ''};
+      results = results.where((p) {
+        final sd = storeDistrictMap[p.storeUid]?.toLowerCase() ?? '';
+        return sd == district.toLowerCase();
+      }).toList();
+    }
+
+    if (priceOrder != null && priceOrder.isNotEmpty) {
+      if (priceOrder == 'asc') {
+        results.sort((a, b) => a.hargaPerHari.compareTo(b.hargaPerHari));
+      } else if (priceOrder == 'desc') {
+        results.sort((a, b) => b.hargaPerHari.compareTo(a.hargaPerHari));
+      }
+    }
+
+    return results;
+  }
 }

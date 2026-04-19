@@ -6,7 +6,7 @@ import 'package:rentora_app/controllers/store_controller.dart';
 import 'package:rentora_app/core/constants/app_color.dart';
 import 'package:rentora_app/models/product_model.dart';
 import 'package:rentora_app/views/detail_product/detail_product_screen.dart';
-import 'package:rentora_app/views/home/home_screen.dart';
+import 'package:rentora_app/widgets/product_card.dart';
 
 class CategoryScreen extends StatefulWidget {
   final String title;
