@@ -176,12 +176,8 @@ class _LoginScreenState extends State<LoginScreen> {
                                     }
                                   } catch (_) {}
 
-                                  Navigator.of(context).pushAndRemoveUntil(
-                                    MaterialPageRoute(
-                                      builder: (context) =>
-                                          const BottomNavbar(),
-                                    ),
-                                    (route) => false,
+                                  context.pushAndRemoveAll(
+                                    const BottomNavbar(),
                                   );
                                 } else {
                                   ScaffoldMessenger.of(context).showSnackBar(

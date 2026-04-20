@@ -14,6 +14,7 @@ import 'package:rentora_app/views/detail_product/detail_product_screen.dart';
 import 'package:rentora_app/views/home/category_screen.dart';
 import 'package:rentora_app/views/chat/chat_list_screen.dart';
 import 'package:rentora_app/views/search/search_results_screen.dart';
+import 'package:rentora_app/core/extensions/navigator.dart';
 import 'package:rentora_app/widgets/product_card.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -179,12 +180,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _openSearchResults(String query) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => SearchResultsScreen(initialQuery: query),
-      ),
-    );
+    context.push(SearchResultsScreen(initialQuery: query));
   }
 
   void _startAutoPlay() {
@@ -316,12 +312,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     children: [
                       IconButton(
                         onPressed: () async {
-                          await Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const ChatListScreen(),
-                            ),
-                          );
+                          await context.push(const ChatListScreen());
                           if (!mounted) return;
                           await _initChatUnreadStream();
                         },
@@ -388,12 +379,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     children: [
                       IconButton(
                         onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const CartScreen(),
-                            ),
-                          );
+                          context.push(const CartScreen());
                         },
                         padding: EdgeInsets.zero,
                         constraints: const BoxConstraints(
@@ -569,13 +555,10 @@ class _HomeScreenState extends State<HomeScreen> {
                   final item = categoryItems[index];
                   return GestureDetector(
                     onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => CategoryScreen(
-                            title: item.label,
-                            categoryValue: item.value,
-                          ),
+                      context.push(
+                        CategoryScreen(
+                          title: item.label,
+                          categoryValue: item.value,
                         ),
                       );
                     },
@@ -684,14 +667,10 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ),
                                 child: GestureDetector(
                                   onTap: () {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) =>
-                                            DetailProductScreen(
-                                              produk: produk,
-                                              storeUid: produk.storeUid,
-                                            ),
+                                    context.push(
+                                      DetailProductScreen(
+                                        produk: produk,
+                                        storeUid: produk.storeUid,
                                       ),
                                     );
                                   },

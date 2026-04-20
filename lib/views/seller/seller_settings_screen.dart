@@ -36,12 +36,13 @@ class _SellerSettingsScreenState extends State<SellerSettingsScreen> {
   double? _longitude;
 
   Future<void> _updateAddressFromLatLng(LatLng latLng) async {
-    setState(() => isMapSectionLoading = true);
+    if (mounted) setState(() => isMapSectionLoading = true);
     try {
       final placemarks = await geocoding.placemarkFromCoordinates(
         latLng.latitude,
         latLng.longitude,
       );
+      if (!mounted) return;
       if (placemarks.isNotEmpty) {
         final p = placemarks.first;
         final address = [
@@ -52,33 +53,42 @@ class _SellerSettingsScreenState extends State<SellerSettingsScreen> {
           p.administrativeArea,
           p.postalCode,
         ].where((e) => e != null && e.isNotEmpty).join(', ');
-        setState(() {
-          _address = address;
-          _locationController.text = address;
-          _province = p.administrativeArea;
-          _city = p.locality;
-          _district = p.subAdministrativeArea;
-          _postalCode = p.postalCode;
-          _latitude = latLng.latitude;
-          _longitude = latLng.longitude;
-          // Gunakan _mapController untuk animasi ke lokasi baru
-          if (_mapController != null) {
-            _mapController!.animateCamera(CameraUpdate.newLatLng(latLng));
-          }
-        });
+        if (mounted) {
+          setState(() {
+            _address = address;
+            _locationController.text = address;
+            _province = p.administrativeArea;
+            _city = p.locality;
+            _district = p.subAdministrativeArea;
+            _postalCode = p.postalCode;
+            _latitude = latLng.latitude;
+            _longitude = latLng.longitude;
+            if (_mapController != null) {
+              _mapController!.animateCamera(CameraUpdate.newLatLng(latLng));
+            }
+          });
+        }
+      } else {
+        if (mounted) {
+          setState(() {
+            _address = null;
+          });
+        }
       }
     } catch (_) {
-      setState(() {
-        _address = null;
-      });
+      if (mounted) {
+        setState(() {
+          _address = null;
+        });
+      }
     } finally {
-      setState(() => isMapSectionLoading = false);
+      if (mounted) setState(() => isMapSectionLoading = false);
     }
   }
 
   // Mendapatkan lokasi saat ini
   Future<void> _getCurrentLocation() async {
-    setState(() => isMapSectionLoading = true);
+    if (mounted) setState(() => isMapSectionLoading = true);
     try {
       bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
       if (!serviceEnabled) {
@@ -96,14 +106,17 @@ class _SellerSettingsScreenState extends State<SellerSettingsScreen> {
         return;
       }
       final position = await Geolocator.getCurrentPosition();
-      setState(() {
-        _currentLatLng = LatLng(position.latitude, position.longitude);
-      });
+      if (!mounted) return;
+      if (mounted) {
+        setState(() {
+          _currentLatLng = LatLng(position.latitude, position.longitude);
+        });
+      }
       if (_currentLatLng != null) {
         await _updateAddressFromLatLng(_currentLatLng!);
       }
     } finally {
-      setState(() => isMapSectionLoading = false);
+      if (mounted) setState(() => isMapSectionLoading = false);
     }
   }
 
@@ -129,9 +142,10 @@ class _SellerSettingsScreenState extends State<SellerSettingsScreen> {
 
   // Memuat data toko
   Future<void> _loadStoreData() async {
-    setState(() => _isLoading = true);
+    if (mounted) setState(() => _isLoading = true);
     try {
       final store = await _storeController.getStore();
+      if (!mounted) return;
       if (store != null) {
         _nameController.text = store.name;
         _locationController.text = store.location ?? '';
@@ -152,7 +166,7 @@ class _SellerSettingsScreenState extends State<SellerSettingsScreen> {
       source: ImageSource.gallery,
     );
     if (pickedFile != null) {
-      setState(() => _isLoading = true);
+      if (mounted) setState(() => _isLoading = true);
       try {
         // Kompres gambar
         final compressed = await FlutterImageCompress.compressWithFile(
@@ -170,9 +184,11 @@ class _SellerSettingsScreenState extends State<SellerSettingsScreen> {
         await ref.putData(compressed);
         final url = await ref.getDownloadURL();
 
-        setState(() {
-          _imageUrl = url;
-        });
+        if (mounted) {
+          setState(() {
+            _imageUrl = url;
+          });
+        }
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -425,17 +441,21 @@ class _SellerSettingsScreenState extends State<SellerSettingsScreen> {
                                       position: _currentLatLng!,
                                       draggable: true,
                                       onDragEnd: (newPos) async {
-                                        setState(() {
-                                          _currentLatLng = newPos;
-                                        });
+                                        if (mounted) {
+                                          setState(() {
+                                            _currentLatLng = newPos;
+                                          });
+                                        }
                                         await _updateAddressFromLatLng(newPos);
                                       },
                                     ),
                                   },
                                   onTap: (latLng) async {
-                                    setState(() {
-                                      _currentLatLng = latLng;
-                                    });
+                                    if (mounted) {
+                                      setState(() {
+                                        _currentLatLng = latLng;
+                                      });
+                                    }
                                     await _updateAddressFromLatLng(latLng);
                                   },
                                 ),

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
 import 'package:rentora_app/core/constants/app_color.dart';
 import 'package:rentora_app/views/auth/login_screen.dart';
+import 'package:rentora_app/core/extensions/navigator.dart';
 import 'package:rentora_app/widgets/custom_button.dart';
 
 class BoardingScreen extends StatefulWidget {
@@ -76,11 +77,7 @@ class _BoardingScreenState extends State<BoardingScreen> {
                   child: CustomButton(
                     text: "Masuk Sekarang",
                     onPressed: () {
-                      Navigator.of(context).pushReplacement(
-                        MaterialPageRoute(
-                          builder: (context) => const LoginScreen(),
-                        ),
-                      );
+                      context.pushReplacement(const LoginScreen());
                     },
                   ),
                 ),

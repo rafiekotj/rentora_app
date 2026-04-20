@@ -11,6 +11,7 @@ import 'package:rentora_app/core/utils/app_formatters.dart';
 import 'package:rentora_app/models/cart_model.dart';
 import 'package:rentora_app/models/store_model.dart';
 import 'package:rentora_app/views/checkout/checkout_screen.dart';
+import 'package:rentora_app/core/extensions/navigator.dart';
 
 class CartScreen extends StatefulWidget {
   const CartScreen({super.key});
@@ -382,12 +383,8 @@ class _CartScreenState extends State<CartScreen> {
                             return;
                           }
 
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) =>
-                                  CheckoutScreen(cartItems: selectedItems),
-                            ),
+                          context.push(
+                            CheckoutScreen(cartItems: selectedItems),
                           );
                         },
                         child: Container(

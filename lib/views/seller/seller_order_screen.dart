@@ -9,6 +9,7 @@ import 'package:rentora_app/controllers/transaction_controller.dart';
 import 'package:rentora_app/controllers/user_controller.dart';
 import 'package:rentora_app/models/transaction_model.dart';
 import 'order_detail_screen.dart';
+import 'package:rentora_app/core/extensions/navigator.dart';
 
 class SellerOrderScreen extends StatefulWidget {
   const SellerOrderScreen({super.key});
@@ -356,13 +357,7 @@ class _OrderProductsCardState extends State<OrderProductsCard> {
     return GestureDetector(
       onTap: () {
         if (_suppressNavigationTap) return;
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) =>
-                OrderDetailScreen(transaction: widget.transaction),
-          ),
-        );
+        context.push(OrderDetailScreen(transaction: widget.transaction));
       },
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),

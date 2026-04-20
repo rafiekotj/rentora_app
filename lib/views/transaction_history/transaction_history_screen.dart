@@ -8,7 +8,8 @@ import 'package:rentora_app/widgets/custom_button.dart';
 import 'dart:io';
 
 class TransactionHistoryScreen extends StatefulWidget {
-  const TransactionHistoryScreen({super.key});
+  final int initialIndex;
+  const TransactionHistoryScreen({super.key, this.initialIndex = 0});
 
   @override
   State<TransactionHistoryScreen> createState() =>
@@ -234,6 +235,7 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
   Widget build(BuildContext context) {
     return DefaultTabController(
       length: _tabTitles.length,
+      initialIndex: widget.initialIndex,
       child: Scaffold(
         backgroundColor: AppColor.backgroundLight,
         appBar: AppBar(

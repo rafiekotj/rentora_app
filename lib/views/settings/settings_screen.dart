@@ -37,11 +37,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               text: "Pengaturan Akun",
               isOutlined: true,
               onPressed: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (context) => const AccountSettingScreen(),
-                  ),
-                );
+                context.push(const AccountSettingScreen());
               },
             ),
             const SizedBox(height: 8),

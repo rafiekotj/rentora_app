@@ -19,6 +19,7 @@ import 'package:rentora_app/models/store_model.dart';
 import 'package:rentora_app/services/local_storage/preference_handler.dart';
 import 'package:rentora_app/views/checkout/payment_method_screen.dart';
 import 'package:rentora_app/views/checkout/payment_success_screen.dart';
+import 'package:rentora_app/core/extensions/navigator.dart';
 
 class CheckoutScreen extends StatefulWidget {
   final List<CartModel> cartItems;
@@ -229,10 +230,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   }
 
   void _goToSuccessScreen() {
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => const PaymentSuccessScreen()),
-    );
+    context.pushReplacement(const PaymentSuccessScreen());
   }
 
   Future<void> _sendOneSignalPush(
@@ -681,14 +679,13 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                               ? selectedBankCode
                               : selectedMethod;
 
-                          final selected = await Navigator.push<String>(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => PaymentMethodScreen(
-                                initialSelectedMethod: currentMethod,
-                              ),
-                            ),
-                          );
+                          final selected =
+                              await context.push(
+                                    PaymentMethodScreen(
+                                      initialSelectedMethod: currentMethod,
+                                    ),
+                                  )
+                                  as String?;
                           if (selected == null) return;
                           _applyPaymentSelection(selected);
                         },

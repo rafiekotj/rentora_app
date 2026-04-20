@@ -14,6 +14,7 @@ import 'package:rentora_app/models/product_model.dart';
 import 'package:rentora_app/models/store_model.dart';
 import 'package:rentora_app/views/cart/cart_screen.dart';
 import 'package:rentora_app/views/chat/chat_screen.dart';
+import 'package:rentora_app/core/extensions/navigator.dart';
 import 'package:rentora_app/services/database/user_service.dart';
 import 'package:rentora_app/models/user_model.dart';
 
@@ -155,10 +156,7 @@ class _DetailProductScreenState extends State<DetailProductScreen> {
               ),
               IconButton(
                 onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => const CartScreen()),
-                  );
+                  context.push(const CartScreen());
                 },
                 icon: Icon(
                   Symbols.shopping_cart,
@@ -328,20 +326,17 @@ class _DetailProductScreenState extends State<DetailProductScreen> {
                         );
 
                         if (!context.mounted) return;
-                        await Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => ChatScreen(
-                              threadId: threadId,
-                              otherUser:
-                                  owner ??
-                                  UserModel(
-                                    uid: _store!.userUid,
-                                    email: '',
-                                    phone: '',
-                                  ),
-                              otherStore: _store,
-                            ),
+                        await context.push(
+                          ChatScreen(
+                            threadId: threadId,
+                            otherUser:
+                                owner ??
+                                UserModel(
+                                  uid: _store!.userUid,
+                                  email: '',
+                                  phone: '',
+                                ),
+                            otherStore: _store,
                           ),
                         );
                       } catch (e) {

@@ -175,11 +175,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                   ),
                                 );
 
-                                Navigator.of(context).pushAndRemoveUntil(
-                                  MaterialPageRoute(
-                                    builder: (context) => const BottomNavbar(),
-                                  ),
-                                  (route) => false,
+                                await context.pushAndRemoveAll(
+                                  const BottomNavbar(),
                                 );
                               }
                             },

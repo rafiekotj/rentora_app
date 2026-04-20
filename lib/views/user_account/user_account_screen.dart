@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:rentora_app/controllers/user_controller.dart';
 import 'package:rentora_app/core/constants/app_color.dart';
+import 'package:rentora_app/core/extensions/navigator.dart';
 import 'package:rentora_app/views/seller/seller_home_screen.dart';
 import 'package:rentora_app/views/settings/settings_screen.dart';
 import 'package:rentora_app/views/transaction_history/transaction_history_screen.dart';
@@ -67,10 +68,7 @@ class _UserAccountScreenState extends State<UserAccountScreen> {
         actions: [
           IconButton(
             onPressed: () async {
-              await Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const SettingsScreen()),
-              );
+              await context.push(const SettingsScreen());
               if (mounted) {
                 _loadUserData();
               }
@@ -84,7 +82,7 @@ class _UserAccountScreenState extends State<UserAccountScreen> {
         child: Column(
           children: [
             SizedBox(
-              height: 190,
+              height: 182,
               child: Stack(
                 clipBehavior: Clip.none,
                 children: [
@@ -217,13 +215,7 @@ class _UserAccountScreenState extends State<UserAccountScreen> {
                     title: "Peminjaman Saya",
                     actionLabel: "Lihat Semua",
                     onActionTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) =>
-                              const TransactionHistoryScreen(),
-                        ),
-                      );
+                      context.push(const TransactionHistoryScreen());
                     },
                     child: Row(
                       children: [
@@ -231,25 +223,41 @@ class _UserAccountScreenState extends State<UserAccountScreen> {
                           icon: Symbols.receipt_long,
                           label: "Belum Bayar",
                           badge: '0',
-                          onTap: () {},
+                          onTap: () {
+                            context.push(
+                              const TransactionHistoryScreen(initialIndex: 1),
+                            );
+                          },
                         ),
                         OrderStatusItem(
                           icon: Symbols.inventory_2,
-                          label: "Diambil",
+                          label: "Disewa",
                           badge: '0',
-                          onTap: () {},
+                          onTap: () {
+                            context.push(
+                              const TransactionHistoryScreen(initialIndex: 3),
+                            );
+                          },
                         ),
                         OrderStatusItem(
                           icon: Symbols.assignment_return,
-                          label: "Pengembalian",
+                          label: "Dikembalikan",
                           badge: '0',
-                          onTap: () {},
+                          onTap: () {
+                            context.push(
+                              const TransactionHistoryScreen(initialIndex: 4),
+                            );
+                          },
                         ),
                         OrderStatusItem(
                           icon: Symbols.star,
                           label: "Ulasan",
                           badge: '0',
-                          onTap: () {},
+                          onTap: () {
+                            context.push(
+                              const TransactionHistoryScreen(initialIndex: 4),
+                            );
+                          },
                         ),
                       ],
                     ),
@@ -296,12 +304,7 @@ class _UserAccountScreenState extends State<UserAccountScreen> {
                           // badge: 'Pro',
                           iconColor: Colors.blue,
                           onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => const SellerHomeScreen(),
-                              ),
-                            );
+                            context.push(const SellerHomeScreen());
                           },
                         ),
                       ],

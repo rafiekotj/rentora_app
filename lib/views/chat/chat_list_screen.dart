@@ -8,6 +8,7 @@ import 'package:rentora_app/services/database/user_service.dart';
 import 'package:rentora_app/services/database/store_service.dart';
 import 'package:rentora_app/views/chat/chat_screen.dart';
 import 'package:rentora_app/core/constants/app_color.dart';
+import 'package:rentora_app/core/extensions/navigator.dart';
 
 class ChatListScreen extends StatefulWidget {
   const ChatListScreen({super.key});
@@ -235,14 +236,11 @@ class _ChatListScreenState extends State<ChatListScreen> {
                                     username: null,
                                     image: null,
                                   );
-                              await Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => ChatScreen(
-                                    threadId: threadId,
-                                    otherUser: targetUser,
-                                    otherStore: store,
-                                  ),
+                              await context.push(
+                                ChatScreen(
+                                  threadId: threadId,
+                                  otherUser: targetUser,
+                                  otherStore: store,
                                 ),
                               );
                               if (!mounted) return;

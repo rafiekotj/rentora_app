@@ -6,6 +6,7 @@ import 'package:rentora_app/core/constants/app_color.dart';
 import 'package:rentora_app/core/utils/app_formatters.dart';
 import 'package:rentora_app/models/product_model.dart';
 import 'package:rentora_app/views/seller/seller_cu_product_screen.dart';
+import 'package:rentora_app/core/extensions/navigator.dart';
 import 'package:rentora_app/widgets/custom_button.dart';
 
 class SellerProductScreen extends StatefulWidget {
@@ -152,12 +153,8 @@ class _SellerProductScreenState extends State<SellerProductScreen> {
                         return _ProductCard(
                           product: produk,
                           onEdit: () async {
-                            await Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) =>
-                                    SellerCuProductScreen(produk: produk),
-                              ),
+                            await context.push(
+                              SellerCuProductScreen(produk: produk),
                             );
                             loadProduk();
                           },
@@ -231,12 +228,7 @@ class _SellerProductScreenState extends State<SellerProductScreen> {
           child: CustomButton(
             text: "Tambah Produk",
             onPressed: () async {
-              await Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const SellerCuProductScreen(),
-                ),
-              );
+              await context.push(const SellerCuProductScreen());
               loadProduk();
             },
           ),

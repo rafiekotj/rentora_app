@@ -10,6 +10,7 @@ import 'package:rentora_app/views/seller/seller_order_screen.dart';
 import 'package:rentora_app/views/seller/seller_product_screen.dart';
 import 'package:rentora_app/views/seller/seller_settings_screen.dart';
 import 'package:rentora_app/views/chat/chat_list_screen.dart';
+import 'package:rentora_app/core/extensions/navigator.dart';
 
 class SellerHomeScreen extends StatefulWidget {
   const SellerHomeScreen({super.key});
@@ -58,10 +59,7 @@ class _SellerHomeScreenState extends State<SellerHomeScreen> {
         actions: [
           IconButton(
             onPressed: () async {
-              await Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const ChatListScreen()),
-              );
+              await context.push(const ChatListScreen());
             },
             icon: const Icon(Symbols.chat, weight: 650),
           ),
@@ -296,13 +294,7 @@ class _SellerHomeScreenState extends State<SellerHomeScreen> {
                                 "Tambah, edit, dan atur stok katalog sewa",
                             iconColor: AppColor.primary,
                             onTap: () async {
-                              await Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) =>
-                                      const SellerProductScreen(),
-                                ),
-                              );
+                              await context.push(const SellerProductScreen());
                               if (mounted) {
                                 _loadData();
                               }
@@ -321,13 +313,7 @@ class _SellerHomeScreenState extends State<SellerHomeScreen> {
                                 : null,
                             iconColor: AppColor.warning,
                             onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) =>
-                                      const SellerOrderScreen(),
-                                ),
-                              );
+                              context.push(const SellerOrderScreen());
                             },
                           ),
                           const SizedBox(height: 8),
@@ -356,13 +342,7 @@ class _SellerHomeScreenState extends State<SellerHomeScreen> {
                                 "Lengkapi profil toko, alamat, dan informasi operasional",
                             iconColor: AppColor.secondary,
                             onTap: () async {
-                              await Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) =>
-                                      const SellerSettingsScreen(),
-                                ),
-                              );
+                              await context.push(const SellerSettingsScreen());
                               if (mounted) {
                                 _loadData();
                               }
@@ -528,12 +508,7 @@ class _SellerHomeScreenState extends State<SellerHomeScreen> {
                         child: ElevatedButton(
                           onPressed: () async {
                             Navigator.of(context).pop();
-                            await Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (context) =>
-                                    const SellerSettingsScreen(),
-                              ),
-                            );
+                            await context.push(const SellerSettingsScreen());
 
                             if (mounted) {
                               _loadData();
