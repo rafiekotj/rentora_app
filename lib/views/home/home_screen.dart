@@ -110,12 +110,14 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     _pageController = PageController(initialPage: 0);
+    // Mulai banner otomatis, countdown, dan ambil data produk serta chat
     _startAutoPlay();
     _startFlashCountdown();
     _loadProduk();
     _initChatUnreadStream();
   }
 
+  // Inisialisasi stream jumlah chat belum dibaca
   Future<void> _initChatUnreadStream() async {
     final user = await _userController.getCurrentUser();
     if (!mounted) return;
@@ -131,6 +133,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+    // Preload gambar banner agar lebih cepat
     for (final image in bannerImages) {
       precacheImage(AssetImage(image), context);
     }
@@ -145,33 +148,27 @@ class _HomeScreenState extends State<HomeScreen> {
     super.dispose();
   }
 
+  // Ambil semua produk dan data lokasi toko
   Future<void> _loadProduk() async {
     setState(() {
       isLoading = true;
     });
-
     final products = await _produkController.getAllProduct();
     final storeController = StoreController();
-
     final storeUids = products
         .map((p) => p.storeUid)
         .whereType<String>()
         .toSet()
         .toList();
-
-    Map<String, String> tempStoreMap = {};
-
     final storesList = await storeController.getStoresByIds(storeUids);
     final storesMap = {for (var s in storesList) s.uid: s};
-
+    Map<String, String> tempStoreMap = {};
     for (var storeUid in storeUids) {
       final store = storesMap[storeUid];
       tempStoreMap[storeUid] =
           store?.district?.toUpperCase() ?? "LOKASI TIDAK ADA";
     }
-
     if (!mounted) return;
-
     setState(() {
       produkList = products;
       storeMap = tempStoreMap;
@@ -179,10 +176,12 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
+  // Navigasi ke hasil pencarian
   void _openSearchResults(String query) {
     context.push(SearchResultsScreen(initialQuery: query));
   }
 
+  // Banner otomatis berpindah tiap 3 detik
   void _startAutoPlay() {
     _bannerTimer = Timer.periodic(const Duration(seconds: 3), (timer) {
       if (_currentBannerIndex < bannerImages.length - 1) {
@@ -190,7 +189,6 @@ class _HomeScreenState extends State<HomeScreen> {
       } else {
         _currentBannerIndex = 0;
       }
-
       if (_pageController.hasClients) {
         _pageController.animateToPage(
           _currentBannerIndex,
@@ -201,6 +199,7 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
+  // Mulai timer countdown flash rent
   void _startFlashCountdown() {
     _updateFlashCountdown();
     _countdownTimer = Timer.periodic(const Duration(seconds: 1), (_) {
@@ -208,6 +207,7 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
+  // Update countdown flash rent
   void _updateFlashCountdown() {
     if (!mounted) return;
     setState(() {
@@ -215,6 +215,7 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
+  // Hitung waktu menuju reset flash rent berikutnya
   Duration _timeUntilNextReset(DateTime now) {
     final int nextBoundaryHour = ((now.hour ~/ 6) + 1) * 6;
     final DateTime nextReset = nextBoundaryHour < 24
@@ -223,15 +224,14 @@ class _HomeScreenState extends State<HomeScreen> {
     return nextReset.difference(now);
   }
 
+  // Format countdown ke string jam:menit:detik
   String _formatCountdown(Duration duration) {
     final int hours = duration.inHours;
     final int minutes = duration.inMinutes.remainder(60);
     final int seconds = duration.inSeconds.remainder(60);
-
     final String h = hours.toString().padLeft(2, '0');
     final String m = minutes.toString().padLeft(2, '0');
     final String s = seconds.toString().padLeft(2, '0');
-
     return '$h:$m:$s';
   }
 

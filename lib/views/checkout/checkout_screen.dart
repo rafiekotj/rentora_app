@@ -49,9 +49,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   @override
   void initState() {
     super.initState();
+    // Urutan benar: fetch data toko saat init
     _fetchStore();
   }
 
+  // Ambil data toko dari cart
   Future<void> _fetchStore() async {
     if (widget.cartItems.isEmpty) return;
     final storeUid = widget.cartItems.first.product.storeUid;
@@ -62,6 +64,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     });
   }
 
+  // Pilih metode pembayaran
   void _applyPaymentSelection(String methodCode) {
     if (_isBankMethodCode(methodCode)) {
       setState(() {
@@ -71,7 +74,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       });
       return;
     }
-
     if (methodCode == 'qris' || methodCode == 'cod') {
       setState(() {
         selectedMethod = methodCode;
@@ -79,6 +81,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     }
   }
 
+  // Cek apakah kode metode adalah bank
   bool _isBankMethodCode(String methodCode) {
     return methodCode == 'bca' ||
         methodCode == 'mandiri' ||
@@ -86,6 +89,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         methodCode == 'bri';
   }
 
+  // Label bank dari kode
   String _bankLabelFromCode(String methodCode) {
     switch (methodCode) {
       case 'mandiri':
@@ -101,6 +105,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     }
   }
 
+  // Hitung subtotal
   int get _subtotal {
     int total = 0;
     for (final item in widget.cartItems) {
@@ -109,6 +114,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     return total;
   }
 
+  // Hitung total produk
   int get _totalProducts {
     int total = 0;
     for (final item in widget.cartItems) {
@@ -117,17 +123,21 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     return total;
   }
 
+  // Ambil lama sewa
   int get _rentalDays {
     if (widget.cartItems.isEmpty) return 0;
     return widget.cartItems.first.rentalDays;
   }
 
+  // Hitung total pembayaran
   int get _totalPayment => _subtotal + _serviceFee;
 
+  // Metode pembayaran efektif
   String get _effectivePaymentMethod {
     return selectedMethod == 'bank' ? selectedBankCode : selectedMethod;
   }
 
+  // Label pembayaran efektif
   String get _effectivePaymentLabel {
     switch (_effectivePaymentMethod) {
       case 'bca':
@@ -147,28 +157,22 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     }
   }
 
+  // Proses pembayaran
   Future<void> _processPayment() async {
     if (_isPaying) return;
-
     setState(() {
       _isPaying = true;
     });
-
     try {
       final buyerUser = await _userController.getCurrentUser();
       final buyerId = buyerUser?.uid;
-
       final txnId = await _createTransaction(
         userUid: buyerId,
         storeName: _store?.name,
       );
-
       _clearCartAndSaveNotification(txnId);
-
       _schedulePush(txnId, buyerExternalId: buyerId);
-
       if (!mounted) return;
-
       _goToSuccessScreen();
     } catch (e, st) {
       debugPrint('Checkout payment error: $e\n$st');
@@ -190,6 +194,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     }
   }
 
+  // Buat transaksi baru
   Future<String> _createTransaction({
     String? userUid,
     String? storeName,
@@ -204,13 +209,13 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     );
   }
 
+  // Bersihkan cart dan simpan notifikasi lokal
   Future<void> _clearCartAndSaveNotification(String txnId) async {
     final cartIds = widget.cartItems
         .map((e) => e.uid)
         .whereType<String>()
         .toList();
     _cartController.removeMultipleLocally(cartIds);
-
     Future.microtask(() {
       PreferenceHandler().addNotification(
         title: 'Pesanan Sedang Diproses',
@@ -220,6 +225,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     });
   }
 
+  // Kirim push notification ke penjual dan pembeli
   void _schedulePush(String txnId, {String? buyerExternalId}) {
     final sellerExternalId = _store?.userUid;
     if (sellerExternalId == null || sellerExternalId.isEmpty) return;
@@ -229,10 +235,12 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     );
   }
 
+  // Navigasi ke halaman sukses
   void _goToSuccessScreen() {
     context.pushReplacement(const PaymentSuccessScreen());
   }
 
+  // Kirim push notification OneSignal
   Future<void> _sendOneSignalPush(
     String txnId,
     String? sellerExternalId,
@@ -246,9 +254,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           buyerExternalId != sellerExternalId) {
         targets.add(buyerExternalId);
       }
-
       final uri = Uri.parse('https://onesignal.com/api/v1/notifications');
-
       Future<http.Response> doPost() {
         return _oneSignalClient
             .post(
@@ -272,7 +278,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       }
 
       http.Response resp = await doPost();
-
       int recipients = -1;
       String? errorMsg;
       try {
@@ -291,12 +296,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           }
         }
       } catch (_) {}
-
       if ((recipients == 0) ||
           (errorMsg != null && errorMsg.contains('not subscribed'))) {
         await Future.delayed(const Duration(milliseconds: 900));
         resp = await doPost();
-
         try {
           final Map<String, dynamic> jsonResp2 = jsonDecode(resp.body);
           if (jsonResp2.containsKey('recipients')) {
@@ -314,12 +317,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           }
         } catch (_) {}
       }
-
       if (recipients == 0 ||
           (errorMsg != null && errorMsg.contains('not subscribed'))) {
         debugPrint('OneSignal: no recipients or not subscribed for txn $txnId');
       }
-
       if (resp.statusCode != 200 && resp.statusCode != 201) {
         debugPrint('OneSignal push failed (${resp.statusCode}): ${resp.body}');
       }

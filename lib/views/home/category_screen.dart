@@ -32,18 +32,17 @@ class _CategoryScreenState extends State<CategoryScreen> {
 
   Map<String, String> storeMap = {};
 
+  // Ambil produk berdasarkan kategori dan lokasi toko
   Future<void> _loadProducts() async {
     setState(() {
       isLoading = true;
     });
-
+    // Ambil produk berdasarkan kategori
     final data = await _produkController.getProductByKategori(
       widget.categoryValue,
     );
-
+    // Ambil data toko sekaligus
     final storeController = StoreController();
-    Map<String, String> tempStoreMap = {};
-
     final storeUids = data
         .map((p) => p.storeUid)
         .whereType<String>()
@@ -51,15 +50,14 @@ class _CategoryScreenState extends State<CategoryScreen> {
         .toList();
     final storesList = await storeController.getStoresByIds(storeUids);
     final storesMap = {for (var s in storesList) s.uid: s};
-
+    // Buat map lokasi toko
+    Map<String, String> tempStoreMap = {};
     for (var storeUid in storeUids) {
       final store = storesMap[storeUid];
       tempStoreMap[storeUid] =
           store?.district?.toUpperCase() ?? "LOKASI TIDAK ADA";
     }
-
     if (!mounted) return;
-
     setState(() {
       produkList = data;
       storeMap = tempStoreMap;
@@ -70,6 +68,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
   @override
   void initState() {
     super.initState();
+    // Ambil data produk saat pertama kali dibuka
     _loadProducts();
   }
 

@@ -35,9 +35,11 @@ class _SellerOrderScreenState extends State<SellerOrderScreen> {
   @override
   void initState() {
     super.initState();
+    // Ambil data pesanan saat widget dibuat
     _loadTransactions();
   }
 
+  // Ambil data transaksi toko
   Future<void> _loadTransactions() async {
     setState(() {
       _loading = true;
@@ -52,7 +54,7 @@ class _SellerOrderScreenState extends State<SellerOrderScreen> {
         });
         return;
       }
-
+      // Ambil transaksi sekaligus
       final transactions = await _transactionController.transactionService
           .getTransactionsByStore(store.uid, [
             'Diproses',
@@ -60,7 +62,6 @@ class _SellerOrderScreenState extends State<SellerOrderScreen> {
             'Dikembalikan',
             'Dibatalkan',
           ]);
-
       if (!mounted) return;
       setState(() {
         _transactions = transactions;
@@ -75,13 +76,13 @@ class _SellerOrderScreenState extends State<SellerOrderScreen> {
     }
   }
 
+  // Filter transaksi berdasarkan tab
   List<TransactionModel> _transactionsByTab(String tab) {
     if (tab == 'Semua') return _transactions;
     if (tab == 'Diproses') {
       final set = {'Belum Bayar', 'Diproses', 'Dikemas', 'Dikirim'};
       return _transactions.where((t) => set.contains(t.status)).toList();
-    }
-    if (tab == 'Disewa') {
+    } else if (tab == 'Disewa') {
       return _transactions
           .where(
             (t) =>
@@ -89,17 +90,16 @@ class _SellerOrderScreenState extends State<SellerOrderScreen> {
                 t.status == 'Sedang Disewa',
           )
           .toList();
-    }
-    if (tab == 'Dikembalikan') {
+    } else if (tab == 'Dikembalikan') {
       final set = {'Selesai', 'Dikembalikan'};
       return _transactions.where((t) => set.contains(t.status)).toList();
-    }
-    if (tab == 'Dibatalkan') {
+    } else if (tab == 'Dibatalkan') {
       return _transactions.where((t) => t.status == 'Dibatalkan').toList();
     }
     return [];
   }
 
+  // Widget isi tab pesanan
   Widget _buildTabContent(String tab) {
     if (_loading) {
       return const Center(
@@ -109,12 +109,10 @@ class _SellerOrderScreenState extends State<SellerOrderScreen> {
     if (_error != null) {
       return Center(child: Text(_error!));
     }
-
     final filtered = _transactionsByTab(tab);
     if (filtered.isEmpty) {
       return const Center(child: Text('Belum ada pesanan'));
     }
-
     return RefreshIndicator(
       onRefresh: _loadTransactions,
       child: ListView.separated(

@@ -17,9 +17,11 @@ class _NotificationScreenState extends State<NotificationScreen> {
   @override
   void initState() {
     super.initState();
+    // Ambil notifikasi saat pertama kali dibuka
     _futureNotifications = PreferenceHandler.getNotifications();
   }
 
+  // Refresh notifikasi
   Future<void> _refresh() async {
     setState(() {
       _futureNotifications = PreferenceHandler.getNotifications();

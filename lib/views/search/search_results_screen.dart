@@ -46,6 +46,7 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
   @override
   void initState() {
     super.initState();
+    // Set query awal, ambil opsi distrik, dan lakukan pencarian
     _searchController.text = widget.initialQuery;
     _loadDistrictOptions();
     _performSearch();
@@ -639,6 +640,7 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
     );
   }
 
+  // Ambil daftar distrik dari semua produk
   Future<void> _loadDistrictOptions() async {
     final all = await _productController.getAllProduct();
     final storeUids = all
@@ -659,17 +661,16 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
     });
   }
 
+  // Lakukan pencarian produk berdasarkan query, distrik, dan urutan harga
   Future<void> _performSearch() async {
     setState(() {
       isLoading = true;
     });
-
     final results = await _productController.searchProducts(
       query: _searchController.text,
       district: selectedDistrict,
       priceOrder: priceOrder,
     );
-
     final storeUids = results
         .map((p) => p.storeUid)
         .whereType<String>()
@@ -680,7 +681,6 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
       for (var s in storesList)
         s.uid: s.district?.toUpperCase() ?? 'LOKASI TIDAK ADA',
     };
-
     if (!mounted) return;
     setState(() {
       produkList = results;

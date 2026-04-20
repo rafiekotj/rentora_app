@@ -33,6 +33,7 @@ class _SellerHomeScreenState extends State<SellerHomeScreen> {
   @override
   void initState() {
     super.initState();
+    // Ambil data user dan toko saat widget dibuat
     _loadData();
   }
 
@@ -361,43 +362,38 @@ class _SellerHomeScreenState extends State<SellerHomeScreen> {
     );
   }
 
+  // Ambil data user, toko, dan statistik seller
   Future<void> _loadData() async {
     final user = await _userController.getCurrentUser();
-
-    if (user != null) {
-      final store = await _storeController.getStoreByUserId(user.uid);
-
-      if (!mounted) return;
-
-      setState(() {
-        _user = user;
-        _store = store;
-      });
-
-      await _loadSellerStats();
-      _checkStoreProfile();
-    }
-  }
-
-  Future<void> _loadSellerStats() async {
-    final pendingCount = await _transactionController
-        .getPendingShipmentCountForCurrentSeller();
-    final rentedCount = await _transactionController
-        .getRentedItemCountForCurrentSeller();
-    final returnedCount = await _transactionController
-        .getReturnedItemCountForCurrentSeller();
-
+    if (user == null) return;
+    final store = await _storeController.getStoreByUserId(user.uid);
     if (!mounted) return;
     setState(() {
-      _pendingShipmentCount = pendingCount;
-      _rentedItemCount = rentedCount;
-      _returnedItemCount = returnedCount;
+      _user = user;
+      _store = store;
+    });
+    // Ambil statistik seller dan cek profil toko
+    await Future.wait([_loadSellerStats(), Future(() => _checkStoreProfile())]);
+  }
+
+  // Ambil statistik pesanan seller
+  Future<void> _loadSellerStats() async {
+    final results = await Future.wait([
+      _transactionController.getPendingShipmentCountForCurrentSeller(),
+      _transactionController.getRentedItemCountForCurrentSeller(),
+      _transactionController.getReturnedItemCountForCurrentSeller(),
+    ]);
+    if (!mounted) return;
+    setState(() {
+      _pendingShipmentCount = results[0];
+      _rentedItemCount = results[1];
+      _returnedItemCount = results[2];
     });
   }
 
+  // Cek apakah profil toko sudah lengkap
   Future<void> _checkStoreProfile() async {
     final store = _store;
-
     if (store == null ||
         store.name.isEmpty ||
         store.location == null ||
@@ -408,6 +404,7 @@ class _SellerHomeScreenState extends State<SellerHomeScreen> {
     }
   }
 
+  // Tampilkan dialog jika profil toko belum lengkap
   void _showProfileSetupAlert() {
     showDialog(
       context: context,
@@ -509,7 +506,6 @@ class _SellerHomeScreenState extends State<SellerHomeScreen> {
                           onPressed: () async {
                             Navigator.of(context).pop();
                             await context.push(const SellerSettingsScreen());
-
                             if (mounted) {
                               _loadData();
                             }

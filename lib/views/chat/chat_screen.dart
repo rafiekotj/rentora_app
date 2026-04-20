@@ -35,9 +35,11 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   void initState() {
     super.initState();
+    // Urutan benar: inisialisasi user lalu tandai thread terbaca
     _init();
   }
 
+  // Inisialisasi: ambil user, lalu tandai thread terbaca
   Future<void> _init() async {
     final u = await _userController.getCurrentUser();
     if (!mounted) return;
@@ -45,6 +47,7 @@ class _ChatScreenState extends State<ChatScreen> {
     await _chatController.markThreadRead(widget.threadId);
   }
 
+  // Kirim pesan
   void _send() async {
     final text = _textController.text.trim();
     if (text.isEmpty) return;
@@ -54,6 +57,7 @@ class _ChatScreenState extends State<ChatScreen> {
     _scrollToBottom();
   }
 
+  // Scroll ke bawah chat
   void _scrollToBottom({bool animate = true}) {
     try {
       if (!_scrollController.hasClients) return;
@@ -70,12 +74,14 @@ class _ChatScreenState extends State<ChatScreen> {
     } catch (_) {}
   }
 
+  // Format waktu pesan
   String _formatTime(DateTime dt) {
     final h = dt.hour.toString().padLeft(2, '0');
     final m = dt.minute.toString().padLeft(2, '0');
     return '$h:$m';
   }
 
+  // Format header tanggal pesan
   String _dateHeaderText(DateTime dt) {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
@@ -98,7 +104,7 @@ class _ChatScreenState extends State<ChatScreen> {
         ? sName
         : (uName.isNotEmpty ? uName : (eMail.isNotEmpty ? eMail : 'Pengguna'));
     return Scaffold(
-      backgroundColor: AppColor.primary,
+      backgroundColor: AppColor.backgroundLight,
       appBar: AppBar(
         backgroundColor: AppColor.primary,
         foregroundColor: AppColor.textOnPrimary,

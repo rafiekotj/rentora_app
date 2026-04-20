@@ -21,12 +21,10 @@ class _SellerProductScreenState extends State<SellerProductScreen> {
 
   final ProductController _productController = ProductController();
 
-  /// Memuat daftar produk
+  // Memuat daftar produk dari controller
   Future<void> loadProduk() async {
     final data = await _productController.getMyProducts();
-
     if (!mounted) return;
-
     setState(() {
       produkList = data;
     });
@@ -35,11 +33,13 @@ class _SellerProductScreenState extends State<SellerProductScreen> {
   @override
   void initState() {
     super.initState();
+    // Ambil data produk saat widget dibuat
     loadProduk();
   }
 
   @override
   Widget build(BuildContext context) {
+    // Widget utama halaman produk
     return Scaffold(
       backgroundColor: AppColor.backgroundLight,
       appBar: AppBar(
@@ -129,7 +129,6 @@ class _SellerProductScreenState extends State<SellerProductScreen> {
               ),
             ),
             const SizedBox(height: 8),
-
             // Daftar produk
             Expanded(
               child: produkList.isEmpty
@@ -189,7 +188,6 @@ class _SellerProductScreenState extends State<SellerProductScreen> {
                                 ],
                               ),
                             );
-
                             if (confirm == true) {
                               await _productController.deleteProduct(
                                 produk.uid,
@@ -211,7 +209,6 @@ class _SellerProductScreenState extends State<SellerProductScreen> {
           ],
         ),
       ),
-
       bottomNavigationBar: Container(
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(

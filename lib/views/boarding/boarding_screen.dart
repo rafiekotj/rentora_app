@@ -31,7 +31,6 @@ class _BoardingScreenState extends State<BoardingScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // ----- IMAGE -----
                 Expanded(
                   flex: 5,
                   child: Center(
@@ -39,8 +38,6 @@ class _BoardingScreenState extends State<BoardingScreen> {
                   ),
                 ),
                 const SizedBox(height: 24),
-
-                // ----- TEXT -----
                 Expanded(
                   flex: 2,
                   child: Column(
@@ -56,7 +53,7 @@ class _BoardingScreenState extends State<BoardingScreen> {
                           ),
                         ),
                       ),
-                      SizedBox(height: 12),
+                      const SizedBox(height: 12),
                       FadeInUp(
                         child: Text(
                           "Mulai sewa sekarang, temukan berbagai produk favoritmu!",
@@ -71,8 +68,6 @@ class _BoardingScreenState extends State<BoardingScreen> {
                   ),
                 ),
                 const SizedBox(height: 32),
-
-                // ----- BUTTON -----
                 FadeInUp(
                   child: CustomButton(
                     text: "Masuk Sekarang",

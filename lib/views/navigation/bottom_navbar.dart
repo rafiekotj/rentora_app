@@ -16,19 +16,20 @@ class BottomNavbar extends StatefulWidget {
 class _BottomNavbarState extends State<BottomNavbar> {
   int _selectedIndex = 0;
 
+  // Tampilkan halaman sesuai tab yang dipilih
   Widget _buildBody() {
-    switch (_selectedIndex) {
-      case 0:
-        return HomeScreen();
-      case 1:
-        return NotificationScreen();
-      case 2:
-        return TransactionHistoryScreen();
-      default:
-        return UserAccountScreen();
+    if (_selectedIndex == 0) {
+      return HomeScreen();
+    } else if (_selectedIndex == 1) {
+      return NotificationScreen();
+    } else if (_selectedIndex == 2) {
+      return TransactionHistoryScreen();
+    } else {
+      return UserAccountScreen();
     }
   }
 
+  // Handler saat tab dipilih
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;

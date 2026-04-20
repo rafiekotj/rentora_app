@@ -25,8 +25,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
   bool _isLoading = false;
 
   void visibilityOnOff() {
-    isVisibility = !isVisibility;
-    setState(() {});
+    setState(() {
+      isVisibility = !isVisibility;
+    });
   }
 
   @override
@@ -49,18 +50,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           const Spacer(),
-
-                          // ----- LOGO -----
                           Center(
                             child: Image.asset(
                               "assets/icons/rentora_logo.png",
                               width: 200,
                             ),
                           ),
-
                           const SizedBox(height: 64),
-
-                          // ----- JUDUL -----
                           const Text(
                             "Daftar di Rentora",
                             style: TextStyle(
@@ -68,10 +64,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-
                           const SizedBox(height: 16),
-
-                          // ----- EMAIL -----
                           CustomTextField(
                             controller: emailController,
                             hintText: "Email",
@@ -86,10 +79,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               return null;
                             },
                           ),
-
                           const SizedBox(height: 8),
-
-                          // ----- PASSWORD -----
                           CustomTextField(
                             controller: passwordController,
                             hintText: "Kata Sandi",
@@ -115,17 +105,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 return "Minimal 1 angka";
                               }
                               if (!RegExp(
-                                r'[!@#$%^&*(),.?":{}|<>_\-\\/\[\];\`~+=]',
+                                r'[!@#\$%^&*(),.?":{}|<>_\-\\/\[\];\`~+=]',
                               ).hasMatch(password)) {
                                 return "Minimal 1 karakter spesial";
                               }
                               return null;
                             },
                           ),
-
                           const SizedBox(height: 8),
-
-                          // ----- NOMOR TELEPON -----
                           CustomTextField(
                             controller: phoneController,
                             hintText: "Nomor Telepon",
@@ -148,43 +135,34 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               return null;
                             },
                           ),
-
                           const SizedBox(height: 24),
-
-                          // ----- BUTTON DAFTAR -----
                           CustomButton(
                             text: "Daftar",
                             isLoading: _isLoading,
                             onPressed: () async {
+                              // Validasi form
                               if (_formKey.currentState!.validate()) {
-                                setState(() {
-                                  _isLoading = true;
-                                });
-
+                                setState(() => _isLoading = true);
+                                // Proses register
                                 await _userController.register(
                                   email: emailController.text,
                                   password: passwordController.text,
                                   phone: phoneController.text,
                                 );
-
                                 if (!mounted) return;
-
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(
                                     content: Text("Pendaftaran Berhasil"),
                                   ),
                                 );
-
                                 await context.pushAndRemoveAll(
                                   const BottomNavbar(),
                                 );
                               }
+                              setState(() => _isLoading = false);
                             },
                           ),
-
                           const SizedBox(height: 16),
-
-                          // ----- ATAU TEXT -----
                           const SizedBox(
                             width: double.infinity,
                             child: Text(
@@ -197,20 +175,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               ),
                             ),
                           ),
-
                           const SizedBox(height: 16),
-
-                          // ----- GOOGLE -----
                           CustomButton(
                             text: "Google",
                             isOutlined: true,
                             iconAsset: "assets/icons/google.png",
                             onPressed: () {},
                           ),
-
                           const Spacer(),
-
-                          // ----- LOGIN -----
                           Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [

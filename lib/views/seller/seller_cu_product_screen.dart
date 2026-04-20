@@ -80,8 +80,9 @@ class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
   @override
   void initState() {
     super.initState();
+    // Ambil data toko user
     _loadCurrentUser();
-
+    // Jika edit produk, isi form dengan data produk
     if (widget.produk != null) {
       _namaProdukController.text = widget.produk!.namaProduk;
       _deskripsiProdukController.text = widget.produk!.deskripsiProduk;
@@ -96,11 +97,14 @@ class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
     }
   }
 
+  // Parsing string ke int untuk harga/denda
   int _parseCurrency(String? formatted) =>
       int.tryParse(formatted?.replaceAll('.', '') ?? '') ?? 0;
 
+  // Validasi denda tidak lebih dari 50% harga
   bool _isDendaValid(int harga, int denda) => denda <= (harga * 0.5);
 
+  // Membuat objek produk dari form
   ProductModel _productFromForm({String? uid}) {
     return ProductModel(
       uid: uid ?? widget.produk?.uid ?? '',
@@ -117,6 +121,7 @@ class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
     );
   }
 
+  // Validasi form produk
   bool _isFormValid() {
     if (_imageUrls.isEmpty) return false;
     if (_namaProdukController.text.isEmpty) return false;
@@ -127,18 +132,16 @@ class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
     return true;
   }
 
+  // Ambil gambar dari galeri dan upload ke storage
   Future<void> _pickImage() async {
     if (_imageUrls.length >= _maxImages) return;
-
     final XFile? pickedImage = await _picker.pickImage(
       source: ImageSource.gallery,
     );
     if (pickedImage == null) return;
-
     setState(() {
       _isUploadingImage = true;
     });
-
     try {
       final compressed = await FlutterImageCompress.compressWithFile(
         pickedImage.path,
@@ -147,13 +150,11 @@ class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
         quality: _imageQuality,
       );
       if (compressed == null) throw Exception('Gagal kompres gambar');
-
       final ref = FirebaseStorage.instance.ref().child(
         '$_storagePathPrefix/${DateTime.now().millisecondsSinceEpoch}.jpg',
       );
       await ref.putData(compressed);
       final url = await ref.getDownloadURL();
-
       setState(() {
         _imageUrls.add(url);
       });
@@ -172,29 +173,29 @@ class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
     }
   }
 
+  // Hapus gambar dari list
   void _removeImage(int index) {
     setState(() {
       _imageUrls.removeAt(index);
     });
   }
 
+  // Ambil data toko user saat ini
   Future<void> _loadCurrentUser() async {
     final email = await PreferenceHandler.getUserEmail();
     if (email == null) return;
-
     final user = await _userController.getCurrentUser();
     if (user == null) return;
-
     final store = await _storeController.getStoreByUserId(user.uid);
     if (store == null || !mounted) {
       return;
     }
-
     setState(() {
       _currentStoreId = store.uid;
     });
   }
 
+  // Simpan produk baru atau update produk
   Future<void> _simpanProduk() async {
     if (!_isFormValid()) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -202,7 +203,6 @@ class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
       );
       return;
     }
-
     if (_currentStoreId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -213,12 +213,9 @@ class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
       );
       return;
     }
-
     setState(() => _isSaving = true);
-
     try {
       final produk = _productFromForm(uid: widget.produk?.uid ?? '');
-
       if (widget.produk != null) {
         await _productController.updateProduct(produk.uid, produk);
         ScaffoldMessenger.of(context).showSnackBar(
@@ -232,7 +229,6 @@ class _SellerCuProductScreenState extends State<SellerCuProductScreen> {
           const SnackBar(content: Text("Produk berhasil disimpan")),
         );
       }
-
       Navigator.pop(context);
     } catch (_) {
       ScaffoldMessenger.of(context).showSnackBar(

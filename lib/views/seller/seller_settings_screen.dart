@@ -35,6 +35,7 @@ class _SellerSettingsScreenState extends State<SellerSettingsScreen> {
   double? _latitude;
   double? _longitude;
 
+  // Update alamat berdasarkan koordinat
   Future<void> _updateAddressFromLatLng(LatLng latLng) async {
     if (mounted) setState(() => isMapSectionLoading = true);
     try {
@@ -63,9 +64,7 @@ class _SellerSettingsScreenState extends State<SellerSettingsScreen> {
             _postalCode = p.postalCode;
             _latitude = latLng.latitude;
             _longitude = latLng.longitude;
-            if (_mapController != null) {
-              _mapController!.animateCamera(CameraUpdate.newLatLng(latLng));
-            }
+            _mapController?.animateCamera(CameraUpdate.newLatLng(latLng));
           });
         }
       } else {
@@ -87,6 +86,7 @@ class _SellerSettingsScreenState extends State<SellerSettingsScreen> {
   }
 
   // Mendapatkan lokasi saat ini
+  // Mendapatkan lokasi saat ini
   Future<void> _getCurrentLocation() async {
     if (mounted) setState(() => isMapSectionLoading = true);
     try {
@@ -107,11 +107,9 @@ class _SellerSettingsScreenState extends State<SellerSettingsScreen> {
       }
       final position = await Geolocator.getCurrentPosition();
       if (!mounted) return;
-      if (mounted) {
-        setState(() {
-          _currentLatLng = LatLng(position.latitude, position.longitude);
-        });
-      }
+      setState(() {
+        _currentLatLng = LatLng(position.latitude, position.longitude);
+      });
       if (_currentLatLng != null) {
         await _updateAddressFromLatLng(_currentLatLng!);
       }
@@ -141,6 +139,7 @@ class _SellerSettingsScreenState extends State<SellerSettingsScreen> {
   }
 
   // Memuat data toko
+  // Memuat data toko
   Future<void> _loadStoreData() async {
     if (mounted) setState(() => _isLoading = true);
     try {
@@ -161,47 +160,44 @@ class _SellerSettingsScreenState extends State<SellerSettingsScreen> {
   }
 
   // Membuka galeri, kompres, dan upload gambar ke Firebase Storage
+  // Ambil gambar dari galeri, kompres, dan upload ke storage
   Future<void> _pickImage() async {
     final pickedFile = await _imagePicker.pickImage(
       source: ImageSource.gallery,
     );
-    if (pickedFile != null) {
-      if (mounted) setState(() => _isLoading = true);
-      try {
-        // Kompres gambar
-        final compressed = await FlutterImageCompress.compressWithFile(
-          pickedFile.path,
-          minWidth: 800,
-          minHeight: 800,
-          quality: 75,
-        );
-        if (compressed == null) throw Exception('Gagal kompres gambar');
-
-        // Upload ke Firebase Storage
-        final ref = FirebaseStorage.instance.ref().child(
-          'store_profile/${DateTime.now().millisecondsSinceEpoch}.jpg',
-        );
-        await ref.putData(compressed);
-        final url = await ref.getDownloadURL();
-
-        if (mounted) {
-          setState(() {
-            _imageUrl = url;
-          });
-        }
-      } catch (e) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Gagal upload gambar: ${e.toString()}')),
-          );
-        }
-      } finally {
-        if (mounted) setState(() => _isLoading = false);
+    if (pickedFile == null) return;
+    if (mounted) setState(() => _isLoading = true);
+    try {
+      final compressed = await FlutterImageCompress.compressWithFile(
+        pickedFile.path,
+        minWidth: 800,
+        minHeight: 800,
+        quality: 75,
+      );
+      if (compressed == null) throw Exception('Gagal kompres gambar');
+      final ref = FirebaseStorage.instance.ref().child(
+        'store_profile/${DateTime.now().millisecondsSinceEpoch}.jpg',
+      );
+      await ref.putData(compressed);
+      final url = await ref.getDownloadURL();
+      if (mounted) {
+        setState(() {
+          _imageUrl = url;
+        });
       }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Gagal upload gambar: ${e.toString()}')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
   // Menyimpan data toko yang telah diubah
+  // Simpan data toko
   Future<void> _saveStore() async {
     if (_nameController.text.isEmpty) {
       if (!mounted) return;
@@ -210,7 +206,6 @@ class _SellerSettingsScreenState extends State<SellerSettingsScreen> {
       );
       return;
     }
-
     if (!mounted) return;
     setState(() => _isLoading = true);
     try {
@@ -238,9 +233,7 @@ class _SellerSettingsScreenState extends State<SellerSettingsScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Pengaturan toko berhasil disimpan')),
       );
-      if (mounted) {
-        Navigator.of(context).pop();
-      }
+      Navigator.of(context).pop();
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(

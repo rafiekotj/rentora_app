@@ -34,14 +34,15 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
   @override
   void initState() {
     super.initState();
+    // Ambil data transaksi saat widget dibuat
     _loadTransactions();
   }
 
+  // Ambil data transaksi user
   Future<void> _loadTransactions() async {
     setState(() {
       _isLoading = true;
     });
-
     try {
       final data = await _transactionController.getCurrentUserTransactions();
       if (!mounted) return;
@@ -57,27 +58,30 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
     }
   }
 
+  // Filter transaksi berdasarkan status tab
   List<TransactionModel> _transactionsByStatus(String status) {
     if (status == 'Semua') return _transactions;
     return _transactions.where((t) => t.status == status).toList();
   }
 
+  // Tampilkan tombol hubungi penjual jika status sesuai
   bool _showContactSellerButton(String status) {
     return status == 'Belum Bayar' ||
         status == 'Diproses' ||
         status == 'Sedang Disewa';
   }
 
+  // Tampilkan tombol beri nilai jika status selesai
   bool _showRateButton(String status) {
     return status == 'Selesai';
   }
 
+  // Widget kartu transaksi
   Widget _buildTransactionCard(TransactionModel transaction) {
     final item = transaction.items.first;
     final imagePath = item.product.images.isNotEmpty
         ? item.product.images.first
         : null;
-
     return Container(
       padding: const EdgeInsets.all(8),
       width: double.infinity,
@@ -92,9 +96,7 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [Text(transaction.storeName), Text(transaction.status)],
           ),
-
           const SizedBox(height: 8),
-
           Row(
             children: [
               Container(
@@ -143,9 +145,7 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
               ),
             ],
           ),
-
           const SizedBox(height: 8),
-
           Align(
             alignment: Alignment.bottomRight,
             child: Row(
@@ -159,9 +159,7 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
               ],
             ),
           ),
-
           const SizedBox(height: 8),
-
           if (_showContactSellerButton(transaction.status))
             Align(
               alignment: Alignment.bottomRight,
@@ -175,7 +173,6 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                 onPressed: () {},
               ),
             ),
-
           if (_showRateButton(transaction.status))
             Align(
               alignment: Alignment.bottomRight,
@@ -194,13 +191,13 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
     );
   }
 
+  // Widget isi tab transaksi
   Widget _buildTabContent(String status) {
     if (_isLoading) {
       return const Center(
         child: CircularProgressIndicator(color: AppColor.primary),
       );
     }
-
     final filtered = _transactionsByStatus(status);
     if (filtered.isEmpty) {
       return const Center(
@@ -217,7 +214,6 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
         ),
       );
     }
-
     return RefreshIndicator(
       onRefresh: _loadTransactions,
       child: ListView.separated(

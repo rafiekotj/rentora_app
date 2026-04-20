@@ -39,9 +39,11 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
   @override
   void initState() {
     super.initState();
+    // Set transaksi dari parameter
     _tx = widget.transaction;
   }
 
+  // Format tanggal ke string
   String _formatDate(String iso) {
     try {
       final dt = DateTime.parse(iso).toLocal();
@@ -51,6 +53,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     }
   }
 
+  // Normalisasi data item produk agar mudah dipakai
   Map<String, dynamic> _normalizeItem(dynamic item) {
     if (item is Map<String, dynamic>) {
       final product = item['product_data'];
@@ -72,7 +75,6 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
         'rental_days': item['rental_days'] ?? widget.transaction.rentalDays,
       };
     }
-
     if (item is CartModel) {
       final ProductModel prod = item.product;
       return {
@@ -85,7 +87,6 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
         'rental_days': item.rentalDays,
       };
     }
-
     return {
       'product': {},
       'quantity': 1,
@@ -93,10 +94,10 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     };
   }
 
+  // Widget baris produk
   Widget _buildProductRow(dynamic rawItem) {
     final item = _normalizeItem(rawItem);
     final product = item['product'] as Map<String, dynamic>;
-
     List<String> images = [];
     final rawImages = product['images'];
     if (rawImages is String) {
@@ -107,7 +108,6 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     } else if (rawImages is List) {
       images = List<String>.from(rawImages);
     }
-
     final firstImage = images.isNotEmpty ? images[0] : null;
     final nama = product['namaProduk'] ?? product['nama'] ?? '-';
     final hargaPerHari = product['hargaPerHari'] ?? 0;
@@ -117,7 +117,6 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
         (int.tryParse(hargaPerHari.toString()) ?? 0) *
         (int.tryParse(quantity.toString()) ?? 0) *
         (int.tryParse(rentalDays.toString()) ?? 0);
-
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
@@ -162,6 +161,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     );
   }
 
+  // Update status transaksi
   Future<void> _updateStatus(String newStatus) async {
     setState(() {
       _updating = true;
@@ -191,6 +191,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     }
   }
 
+  // Handler tombol aksi bawah
   void _onActionPressed() {
     final next = _nextStatusMap[_tx.status];
     if (next != null) {
@@ -198,6 +199,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     }
   }
 
+  // Widget tombol aksi bawah
   Widget? _buildBottomActionBar() {
     final next = _nextStatusMap[_tx.status];
     if (next == null) return null;

@@ -18,11 +18,14 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
   @override
   void initState() {
     super.initState();
+    // Set metode awal dari parent
     selectedMethod = widget.initialSelectedMethod;
   }
 
+  // Cek apakah ada perubahan metode
   bool get _hasChanged => selectedMethod != widget.initialSelectedMethod;
 
+  // Tampilkan dialog simpan jika ada perubahan
   Future<bool?> _showSaveDialog() async {
     return showDialog<bool>(
       context: context,
@@ -51,18 +54,21 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
     );
   }
 
+  // Handler saat user ingin keluar
   Future<bool> _onWillPop() async {
     if (!_hasChanged) return true;
     await _showSaveDialog();
     return false;
   }
 
+  // Pilih metode dan update state
   void _selectAndClose(String method) {
     setState(() {
       selectedMethod = method;
     });
   }
 
+  // Konfirmasi pilihan dan tutup layar
   void _confirmSelection() {
     Navigator.pop(context, selectedMethod);
   }

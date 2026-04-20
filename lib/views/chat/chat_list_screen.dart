@@ -28,9 +28,11 @@ class _ChatListScreenState extends State<ChatListScreen> {
   @override
   void initState() {
     super.initState();
+    // Urutan benar: inisialisasi data user lalu stream chat
     _init();
   }
 
+  // Inisialisasi: ambil user, lalu stream chat
   Future<void> _init() async {
     final user = await _userController.getCurrentUser();
     if (!mounted) return;
@@ -44,6 +46,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
     }
   }
 
+  // Resolve UID lawan chat ke data toko/user
   Future<Map<String, dynamic>?> _resolveOther(String otherUid) async {
     try {
       final store = await _storeService.getStoreByUserId(otherUid);
@@ -54,6 +57,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
     return null;
   }
 
+  // Parsing timestamp universal
   DateTime? _parseTimestamp(dynamic value) {
     try {
       if (value == null) return null;
@@ -72,6 +76,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
     return null;
   }
 
+  // Format waktu thread chat
   String _formatThreadTime(DateTime? dt) {
     if (dt == null) return '';
     final local = dt.toLocal();
@@ -92,7 +97,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColor.primary,
+      backgroundColor: AppColor.backgroundLight,
       appBar: AppBar(
         title: const Text(
           'Pesan',
@@ -157,7 +162,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
 
                 return ListView.separated(
                   itemCount: sortedDocs.length,
-                  separatorBuilder: (_, __) => const Divider(height: 1),
+                  separatorBuilder: (_, _) => const Divider(height: 1),
                   itemBuilder: (context, index) {
                     final d = sortedDocs[index];
                     final data = d.data() as Map<String, dynamic>;

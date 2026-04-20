@@ -24,18 +24,17 @@ class _UserAccountScreenState extends State<UserAccountScreen> {
   @override
   void initState() {
     super.initState();
+    // Ambil data user saat widget dibuat
     _loadUserData();
   }
 
-  // Mengambil data user lengkap
+  // Memuat data user
   Future<void> _loadUserData() async {
     setState(() {
       _isLoadingUser = true;
     });
     final user = await _userController.getCurrentUser();
-
     if (!mounted) return;
-
     setState(() {
       if (user != null) {
         _email = user.email;
@@ -301,7 +300,7 @@ class _UserAccountScreenState extends State<UserAccountScreen> {
                           icon: Symbols.storefront,
                           text: "Toko Saya",
                           subtitle: "Atur produk, pesanan, dan insight toko",
-                          // badge: 'Pro',
+
                           iconColor: Colors.blue,
                           onTap: () {
                             context.push(const SellerHomeScreen());

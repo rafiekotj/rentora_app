@@ -9,13 +9,14 @@ import 'package:rentora_app/services/local_storage/preference_handler.dart';
 import 'package:rentora_app/views/splash/splash_screen.dart';
 import 'package:rentora_app/services/notification/onesignal_legacy.dart';
 
+// Fungsi utama aplikasi
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  // Inisialisasi local storage
   await PreferenceHandler().init();
-
+  // Inisialisasi Firebase
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-
-  // Activate App Check for all platforms, following pub.dev example
+  // Aktifkan AppCheck untuk keamanan
   await FirebaseAppCheck.instance.activate(
     providerAndroid: kDebugMode
         ? const AndroidDebugProvider()
@@ -24,25 +25,24 @@ Future<void> main() async {
         ? const AppleDebugProvider()
         : const AppleDeviceCheckProvider(),
   );
-
+  // Atur warna status bar
   SystemChrome.setSystemUIOverlayStyle(
     SystemUiOverlayStyle(
       statusBarColor: AppColor.primary,
       statusBarBrightness: Brightness.light,
     ),
   );
-
-  // Local notification initialization removed — notifications handled by OneSignal.
-
+  // Inisialisasi OneSignal hanya di Android native
   if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
     try {
       setupOneSignal();
     } catch (_) {}
   }
-
+  // Jalankan aplikasi
   runApp(const MyApp());
 }
 
+// Widget utama aplikasi
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 

@@ -50,18 +50,13 @@ class _LoginScreenState extends State<LoginScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           const Spacer(),
-
-                          // ----- LOGO -----
                           Center(
                             child: Image.asset(
                               "assets/icons/rentora_logo.png",
                               width: 200,
                             ),
                           ),
-
                           const SizedBox(height: 64),
-
-                          // ----- JUDUL -----
                           const Text(
                             "Masuk ke Rentora",
                             style: TextStyle(
@@ -69,10 +64,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-
                           const SizedBox(height: 16),
-
-                          // ----- EMAIL -----
                           CustomTextField(
                             controller: emailController,
                             hintText: "Email",
@@ -87,10 +79,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               return null;
                             },
                           ),
-
                           const SizedBox(height: 8),
-
-                          // ----- PASSWORD -----
                           CustomTextField(
                             controller: passwordController,
                             hintText: "Kata Sandi",
@@ -103,28 +92,9 @@ class _LoginScreenState extends State<LoginScreen> {
                               if (password.isEmpty) {
                                 return "Password tidak boleh kosong";
                               }
-                              if (password.length < 6) {
-                                return "Password minimal 6 karakter";
-                              }
-                              if (!RegExp(r'[A-Z]').hasMatch(password)) {
-                                return "Minimal 1 huruf besar";
-                              }
-                              if (!RegExp(r'[a-z]').hasMatch(password)) {
-                                return "Minimal 1 huruf kecil";
-                              }
-                              if (!RegExp(r'\d').hasMatch(password)) {
-                                return "Minimal 1 angka";
-                              }
-                              if (!RegExp(
-                                r'[!@#$%^&*(),.?":{}|<>_\-\\/\[\];\`~+=]',
-                              ).hasMatch(password)) {
-                                return "Minimal 1 karakter spesial";
-                              }
                               return null;
                             },
                           ),
-
-                          // ----- LUPA PASSWORD -----
                           Padding(
                             padding: const EdgeInsets.symmetric(vertical: 12),
                             child: Align(
@@ -142,32 +112,25 @@ class _LoginScreenState extends State<LoginScreen> {
                               ),
                             ),
                           ),
-
-                          // ----- BUTTON LOGIN -----
                           CustomButton(
                             text: "Masuk",
                             isLoading: _isLoading,
                             onPressed: () async {
                               if (_formKey.currentState!.validate()) {
-                                setState(() {
-                                  _isLoading = true;
-                                });
+                                setState(() => _isLoading = true);
 
                                 final bool isSuccess = await _userController
                                     .login(
                                       email: emailController.text,
                                       password: passwordController.text,
                                     );
-
                                 if (!mounted) return;
-
                                 if (isSuccess) {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     const SnackBar(
                                       content: Text("Login Berhasil"),
                                     ),
                                   );
-
                                   try {
                                     final user = await _userController
                                         .getCurrentUser();
@@ -175,7 +138,6 @@ class _LoginScreenState extends State<LoginScreen> {
                                       await setOneSignalExternalId(user!.uid);
                                     }
                                   } catch (_) {}
-
                                   context.pushAndRemoveAll(
                                     const BottomNavbar(),
                                   );
@@ -188,17 +150,11 @@ class _LoginScreenState extends State<LoginScreen> {
                                     ),
                                   );
                                 }
-
-                                setState(() {
-                                  _isLoading = false;
-                                });
+                                setState(() => _isLoading = false);
                               }
                             },
                           ),
-
                           const SizedBox(height: 16),
-
-                          // ----- ATAU TEXT -----
                           const SizedBox(
                             width: double.infinity,
                             child: Text(
@@ -211,20 +167,14 @@ class _LoginScreenState extends State<LoginScreen> {
                               ),
                             ),
                           ),
-
                           const SizedBox(height: 16),
-
-                          // ----- GOOGLE -----
                           CustomButton(
                             text: "Google",
                             isOutlined: true,
                             iconAsset: "assets/icons/google.png",
                             onPressed: () {},
                           ),
-
                           const Spacer(),
-
-                          // ----- DAFTAR -----
                           Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [

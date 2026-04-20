@@ -43,6 +43,7 @@ class _CartScreenState extends State<CartScreen> {
     super.dispose();
   }
 
+  // Listener perubahan cart, debounce agar tidak terlalu sering update
   void _onCartItemsChanged() {
     final cartItems = _cartController.cartItemsNotifier.value;
     _debounceTimer?.cancel();
@@ -52,68 +53,60 @@ class _CartScreenState extends State<CartScreen> {
     });
   }
 
+  // Load cart dari database
   void _loadCart() async {
     await _cartController.loadCartFromDB();
     setState(() {});
   }
 
+  // Inisialisasi hari sewa per toko
   void _initializeRentalDays(List<CartModel> cartItems) {
-    Map<String, List<CartModel>> groupedByStore = _groupCartItemsByStore(
-      cartItems,
-    );
-
-    Set<String> currentStoreIds = groupedByStore.keys.toSet();
-
+    final groupedByStore = _groupCartItemsByStore(cartItems);
+    final currentStoreIds = groupedByStore.keys.toSet();
     bool needsSetState = false;
-
+    // Hapus store yang sudah tidak ada di cart
     for (String storeUid in _rentalDays.keys.toList()) {
       if (!currentStoreIds.contains(storeUid)) {
         _rentalDays.remove(storeUid);
         needsSetState = true;
       }
     }
-
+    // Tambah store baru
     for (var entry in groupedByStore.entries) {
       String storeUid = entry.key;
       List<CartModel> items = entry.value;
-
       if (!_rentalDays.containsKey(storeUid) && items.isNotEmpty) {
         _rentalDays[storeUid] = items.first.rentalDays;
         needsSetState = true;
       }
     }
-
     if (needsSetState && mounted) {
       setState(() {});
     }
   }
 
+  // Load data toko untuk setiap cart item
   void _loadStoresForCartItems(List<CartModel> cartItems) async {
     final groupedByStore = _groupCartItemsByStore(cartItems);
-
     bool needsSetState = false;
-
+    // Hapus toko yang sudah tidak ada di cart
     for (String storeUid in _stores.keys.toList()) {
       if (!groupedByStore.containsKey(storeUid)) {
         _stores.remove(storeUid);
         needsSetState = true;
       }
     }
-
+    // Ambil toko yang belum ada di cache
     final idsToFetch = groupedByStore.keys
         .where((id) => !_stores.containsKey(id))
         .toList();
-
     if (idsToFetch.isNotEmpty) {
       try {
-        final futures = idsToFetch
-            .map(
-              (id) => _storeController.getStoreById(id).catchError((_) => null),
-            )
-            .toList();
-
-        final results = await Future.wait(futures);
-
+        final results = await Future.wait(
+          idsToFetch.map(
+            (id) => _storeController.getStoreById(id).catchError((_) => null),
+          ),
+        );
         for (int i = 0; i < idsToFetch.length; i++) {
           final id = idsToFetch[i];
           final StoreModel? store = results[i];
@@ -122,153 +115,124 @@ class _CartScreenState extends State<CartScreen> {
         }
       } catch (_) {}
     }
-
     if (needsSetState && mounted) {
       setState(() {});
     }
   }
 
+  // Group cart item berdasarkan toko
   Map<String, List<CartModel>> _groupCartItemsByStore(
     List<CartModel> cartItems,
   ) {
-    Map<String, List<CartModel>> groupedItems = {};
-
+    final Map<String, List<CartModel>> groupedItems = {};
     for (CartModel item in cartItems) {
-      String storeUid = item.product.storeUid;
-
-      if (!groupedItems.containsKey(storeUid)) {
-        groupedItems[storeUid] = [];
-      }
-
-      groupedItems[storeUid]!.add(item);
+      final storeUid = item.product.storeUid;
+      groupedItems.putIfAbsent(storeUid, () => []).add(item);
     }
-
     return groupedItems;
   }
 
+  // Update hari sewa semua item dalam satu toko
   void _applyRentalDaysUpdate(List<CartModel> cartItems, int days) {
     for (final item in cartItems) {
       _cartController.updateRentalDays(item.uid, item, days);
     }
   }
 
+  // Update jumlah barang
   void _applyQuantityUpdate(CartModel cartItem, int newQty) {
     _cartController.updateCartQuantity(cartItem.uid, cartItem, newQty);
-    if (mounted) {
-      setState(() {});
-    }
+    if (mounted) setState(() {});
   }
 
+  // Tampilkan pesan snackbar
   void _showSnack(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(message), duration: const Duration(seconds: 2)),
     );
   }
 
+  // Hitung total harga produk yang dipilih
   int _calculateTotal(
     Map<String, List<CartModel>> groupedItems,
     List<String> selectedProductUids,
   ) {
     int total = 0;
-
     for (var entry in groupedItems.entries) {
-      List<CartModel> items = entry.value;
-
-      for (CartModel item in items) {
-        String productUid = item.product.uid;
-
-        if (selectedProductUids.contains(productUid)) {
-          int harga = item.product.hargaPerHari;
-          int quantity = item.quantity;
-          int days = item.rentalDays;
-
-          total += harga * quantity * days;
+      for (CartModel item in entry.value) {
+        if (selectedProductUids.contains(item.product.uid)) {
+          total += item.product.hargaPerHari * item.quantity * item.rentalDays;
         }
       }
     }
-
     return total;
   }
 
+  // Ambil list cart item yang dipilih
   List<CartModel> _getSelectedCartItems(
     List<CartModel> cartItems,
     List<String> selectedProductUids,
   ) {
-    return cartItems.where((item) {
-      final productUid = item.product.uid;
-      return selectedProductUids.contains(productUid);
-    }).toList();
+    return cartItems
+        .where((item) => selectedProductUids.contains(item.product.uid))
+        .toList();
   }
 
+  // Tambah hari sewa
   void _incrementDays(List<CartModel> cartItems) {
     if (cartItems.isEmpty) return;
-
-    int maxDays = cartItems.first.product.maxHariPinjam;
-
-    for (CartModel item in cartItems) {
-      if (item.product.maxHariPinjam < maxDays) {
-        maxDays = item.product.maxHariPinjam;
-      }
-    }
-
+    int maxDays = cartItems
+        .map((item) => item.product.maxHariPinjam)
+        .reduce((a, b) => a < b ? a : b);
     String storeUid = cartItems.first.product.storeUid;
     int currentRentalDays = _rentalDays[storeUid] ?? 1;
-
     if (currentRentalDays < maxDays) {
       int newDays = currentRentalDays + 1;
-
       setState(() {
         _rentalDays[storeUid] = newDays;
       });
-
       _applyRentalDaysUpdate(cartItems, newDays);
     } else {
       _showSnack('Maksimal sewa untuk salah satu barang adalah $maxDays hari');
     }
   }
 
+  // Kurangi hari sewa
   void _decrementDays(List<CartModel> cartItems) {
     if (cartItems.isEmpty) return;
     String storeUid = cartItems.first.product.storeUid;
     int currentRentalDays = _rentalDays[storeUid] ?? 1;
-
     if (currentRentalDays > 1) {
       int newDays = currentRentalDays - 1;
-
       setState(() {
         _rentalDays[storeUid] = newDays;
       });
-
       _applyRentalDaysUpdate(cartItems, newDays);
     }
   }
 
+  // Tambah jumlah barang
   void _incrementQuantity(CartModel cartItem) {
     int currentQty = cartItem.quantity;
     int maxStock = cartItem.product.stok;
-
     if (currentQty < maxStock) {
-      int newQty = currentQty + 1;
-      _applyQuantityUpdate(cartItem, newQty);
+      _applyQuantityUpdate(cartItem, currentQty + 1);
     }
   }
 
+  // Kurangi jumlah barang
   void _decrementQuantity(CartModel cartItem) {
     int currentQty = cartItem.quantity;
-
     if (currentQty > 1) {
-      int newQty = currentQty - 1;
-      _applyQuantityUpdate(cartItem, newQty);
+      _applyQuantityUpdate(cartItem, currentQty - 1);
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    List<CartModel> cartItems = _cartController.cartItemsNotifier.value;
-
-    Map<String, List<CartModel>> groupedByStore = _groupCartItemsByStore(
-      cartItems,
-    );
+    // Ambil data cart dan group by toko
+    final cartItems = _cartController.cartItemsNotifier.value;
+    final groupedByStore = _groupCartItemsByStore(cartItems);
 
     return Scaffold(
       backgroundColor: AppColor.backgroundLight,
@@ -308,7 +272,6 @@ class _CartScreenState extends State<CartScreen> {
                   final rentalDays =
                       _rentalDays[storeUid] ??
                       (items.isNotEmpty ? items.first.rentalDays : 1);
-
                   return StoreCartCard(
                     key: ValueKey('store-$storeUid'),
                     storeUid: storeUid,
@@ -334,7 +297,6 @@ class _CartScreenState extends State<CartScreen> {
           final totalLabel = selectedProductUids.isEmpty
               ? 'Rp-'
               : 'Rp ${AppFormatters.formatRupiah(totalPrice.toString())}';
-
           return Container(
             decoration: const BoxDecoration(
               color: AppColor.surface,
@@ -370,7 +332,6 @@ class _CartScreenState extends State<CartScreen> {
                             cartItems,
                             selectedProductUids,
                           );
-
                           if (selectedItems.isEmpty) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
@@ -382,13 +343,12 @@ class _CartScreenState extends State<CartScreen> {
                             );
                             return;
                           }
-
                           context.push(
                             CheckoutScreen(cartItems: selectedItems),
                           );
                         },
                         child: Container(
-                          margin: EdgeInsets.symmetric(vertical: 8),
+                          margin: const EdgeInsets.symmetric(vertical: 8),
                           decoration: BoxDecoration(
                             color: AppColor.primary,
                             borderRadius: BorderRadius.circular(4),

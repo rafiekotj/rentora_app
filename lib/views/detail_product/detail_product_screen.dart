@@ -46,6 +46,7 @@ class _DetailProductScreenState extends State<DetailProductScreen> {
   StoreModel? _store;
   int _completedRentCount = 0;
 
+  // Ambil data toko berdasarkan produk
   void _loadStore() async {
     try {
       final store = await _storeController.getStoreById(widget.produk.storeUid);
@@ -61,26 +62,24 @@ class _DetailProductScreenState extends State<DetailProductScreen> {
   void initState() {
     super.initState();
     _pageController = PageController();
+    // Ambil data toko dan jumlah produk yang sudah dikembalikan
     _loadStore();
     _loadProductReturnedCount();
   }
 
+  // Hitung jumlah produk yang sudah pernah disewa dan dikembalikan
   Future<void> _loadProductReturnedCount() async {
     try {
       final transactions = await _transactionController.transactionService
           .getTransactionsByStore(widget.produk.storeUid, ['Dikembalikan']);
-
       int count = 0;
       for (final tx in transactions) {
         for (final item in tx.items) {
-          try {
-            if (item.product.uid == widget.produk.uid) {
-              count += item.quantity;
-            }
-          } catch (_) {}
+          if (item.product.uid == widget.produk.uid) {
+            count += item.quantity;
+          }
         }
       }
-
       if (!mounted) return;
       setState(() {
         _completedRentCount = count;

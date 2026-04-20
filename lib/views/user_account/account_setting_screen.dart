@@ -30,6 +30,7 @@ class _AccountSettingScreenState extends State<AccountSettingScreen> {
   @override
   void initState() {
     super.initState();
+    // Ambil data user saat widget dibuat
     _loadUserData();
   }
 
@@ -41,6 +42,7 @@ class _AccountSettingScreenState extends State<AccountSettingScreen> {
     super.dispose();
   }
 
+  // Memuat data user
   Future<void> _loadUserData() async {
     setState(() => _isLoading = true);
     try {
@@ -58,40 +60,41 @@ class _AccountSettingScreenState extends State<AccountSettingScreen> {
     }
   }
 
+  // Ambil gambar dari galeri dan upload ke storage
   Future<void> _pickImage() async {
     final pickedFile = await _imagePicker.pickImage(
       source: ImageSource.gallery,
     );
-    if (pickedFile != null) {
+    if (pickedFile == null) return;
+    setState(() {
+      _isUploadingImage = true;
+    });
+    try {
+      final fileName =
+          'profile_images/${DateTime.now().millisecondsSinceEpoch}_${pickedFile.name}';
+      final ref = FirebaseStorage.instance.ref().child(fileName);
+      final uploadTask = ref.putData(await pickedFile.readAsBytes());
+      await uploadTask;
+      final url = await ref.getDownloadURL();
       setState(() {
-        _isUploadingImage = true;
+        _imageUrl = url;
       });
-      try {
-        final fileName =
-            'profile_images/${DateTime.now().millisecondsSinceEpoch}_${pickedFile.name}';
-        final ref = FirebaseStorage.instance.ref().child(fileName);
-        final uploadTask = ref.putData(await pickedFile.readAsBytes());
-        await uploadTask;
-        final url = await ref.getDownloadURL();
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Gagal upload foto: ${e.toString()}')),
+        );
+      }
+    } finally {
+      if (mounted) {
         setState(() {
-          _imageUrl = url;
+          _isUploadingImage = false;
         });
-      } catch (e) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Gagal upload foto: ${e.toString()}')),
-          );
-        }
-      } finally {
-        if (mounted) {
-          setState(() {
-            _isUploadingImage = false;
-          });
-        }
       }
     }
   }
 
+  // Simpan data user
   Future<void> _saveUser() async {
     if (_usernameController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -99,7 +102,6 @@ class _AccountSettingScreenState extends State<AccountSettingScreen> {
       );
       return;
     }
-
     setState(() => _isLoading = true);
     try {
       await _userController.updateCurrentUser(
