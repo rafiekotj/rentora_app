@@ -98,6 +98,7 @@ class _ChatScreenState extends State<ChatScreen> {
         ? sName
         : (uName.isNotEmpty ? uName : (eMail.isNotEmpty ? eMail : 'Pengguna'));
     return Scaffold(
+      backgroundColor: AppColor.primary,
       appBar: AppBar(
         backgroundColor: AppColor.primary,
         foregroundColor: AppColor.textOnPrimary,
