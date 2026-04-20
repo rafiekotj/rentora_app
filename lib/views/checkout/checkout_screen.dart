@@ -338,7 +338,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         foregroundColor: AppColor.surface,
         title: Text(
           "Pembayaran",
-          style: TextStyle(fontWeight: FontWeight.bold),
+          style: TextStyle(fontWeight: FontWeight.w600),
         ),
       ),
       body: SingleChildScrollView(
@@ -364,7 +364,12 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   _isLoadingStore
                       ? SizedBox(
                           height: 162,
-                          child: Center(child: CircularProgressIndicator()),
+                          child: Center(
+                            child: CircularProgressIndicator(
+                              color: AppColor.primary,
+                              strokeWidth: 2,
+                            ),
+                          ),
                         )
                       : (_store != null &&
                             _store!.latitude != null &&
@@ -411,7 +416,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                       ? SizedBox(
                           height: 24,
                           child: Center(
-                            child: CircularProgressIndicator(strokeWidth: 2),
+                            child: CircularProgressIndicator(
+                              color: AppColor.primary,
+                              strokeWidth: 2,
+                            ),
                           ),
                         )
                       : Column(
@@ -574,7 +582,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                                               style: TextStyle(
                                                 color: AppColor.secondary,
                                                 fontSize: 14,
-                                                fontWeight: FontWeight.bold,
+                                                fontWeight: FontWeight.w700,
                                               ),
                                             ),
                                             Text(
@@ -671,7 +679,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                         "Metode Pembayaran",
                         style: TextStyle(
                           fontSize: 14,
-                          fontWeight: FontWeight.bold,
+                          fontWeight: FontWeight.w700,
                         ),
                       ),
                       GestureDetector(
@@ -809,7 +817,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                           "Rincian Pembayaran",
                           style: TextStyle(
                             fontSize: 14,
-                            fontWeight: FontWeight.bold,
+                            fontWeight: FontWeight.w700,
                           ),
                         ),
                       ),
@@ -896,7 +904,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     'Rp ${AppFormatters.formatRupiah(_totalPayment)}',
                     style: const TextStyle(
                       fontSize: 16,
-                      fontWeight: FontWeight.bold,
+                      fontWeight: FontWeight.w700,
                       color: AppColor.secondary,
                     ),
                   ),

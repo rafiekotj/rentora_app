@@ -151,11 +151,21 @@ class _ChatScreenState extends State<ChatScreen> {
               stream: _chatController.streamMessages(widget.threadId),
               builder: (context, snapshot) {
                 if (_currentUser == null) {
-                  return const Center(child: CircularProgressIndicator());
+                  return const Center(
+                    child: CircularProgressIndicator(
+                      color: AppColor.primary,
+                      strokeWidth: 2,
+                    ),
+                  );
                 }
 
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
+                  return const Center(
+                    child: CircularProgressIndicator(
+                      color: AppColor.primary,
+                      strokeWidth: 2,
+                    ),
+                  );
                 }
                 if (snapshot.hasError) {
                   return Center(

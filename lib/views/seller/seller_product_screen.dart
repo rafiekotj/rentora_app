@@ -50,85 +50,12 @@ class _SellerProductScreenState extends State<SellerProductScreen> {
           "Produk Saya",
           style: TextStyle(fontWeight: FontWeight.w600),
         ),
-        actions: [
-          IconButton(
-            onPressed: () {},
-            icon: const Icon(Symbols.search, weight: 600),
-          ),
-          const SizedBox(width: 8),
-        ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(8),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 4),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  InkWell(
-                    onTap: () {},
-                    borderRadius: BorderRadius.circular(6),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 6,
-                      ),
-                      child: Row(
-                        children: [
-                          const Icon(
-                            Symbols.sort,
-                            size: 18,
-                            color: AppColor.textPrimary,
-                          ),
-                          const SizedBox(width: 4),
-                          const Text(
-                            "Urutkan",
-                            style: TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w500,
-                              color: AppColor.textPrimary,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  InkWell(
-                    onTap: () {},
-                    borderRadius: BorderRadius.circular(6),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 6,
-                      ),
-                      child: Row(
-                        children: [
-                          const Icon(
-                            Symbols.filter_list,
-                            size: 18,
-                            color: AppColor.textPrimary,
-                          ),
-                          const SizedBox(width: 4),
-                          const Text(
-                            "Filter",
-                            style: TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w500,
-                              color: AppColor.textPrimary,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 8),
             // Daftar produk
             Expanded(
               child: produkList.isEmpty

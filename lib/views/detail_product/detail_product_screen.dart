@@ -145,15 +145,6 @@ class _DetailProductScreenState extends State<DetailProductScreen> {
               ),
               const SizedBox(width: 8),
               IconButton(
-                onPressed: () {},
-                icon: Icon(
-                  Symbols.forward,
-                  color: AppColor.textOnPrimary,
-                  size: 24,
-                  weight: 600,
-                ),
-              ),
-              IconButton(
                 onPressed: () {
                   context.push(const CartScreen());
                 },
@@ -600,21 +591,6 @@ class StoreInfoSection extends StatelessWidget {
                           ],
                         ),
                 ],
-              ),
-              OutlinedButton(
-                onPressed: isLoading ? null : () {},
-                style: OutlinedButton.styleFrom(
-                  minimumSize: const Size(0, 28),
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                  side: const BorderSide(color: AppColor.primary),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-                child: const Text(
-                  "Kunjungi",
-                  style: TextStyle(color: AppColor.primary, fontSize: 12),
-                ),
               ),
             ],
           ),

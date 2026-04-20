@@ -258,7 +258,7 @@ class _SellerSettingsScreenState extends State<SellerSettingsScreen> {
         foregroundColor: AppColor.textOnPrimary,
         title: const Text(
           "Pengaturan Toko",
-          style: TextStyle(fontWeight: FontWeight.w700),
+          style: TextStyle(fontWeight: FontWeight.w600),
         ),
       ),
       body: SingleChildScrollView(
@@ -463,7 +463,7 @@ class _SellerSettingsScreenState extends State<SellerSettingsScreen> {
                                   child: const Center(
                                     child: CircularProgressIndicator(
                                       color: AppColor.primary,
-                                      strokeWidth: 3.5,
+                                      strokeWidth: 2,
                                     ),
                                   ),
                                 ),
@@ -499,7 +499,10 @@ class _SellerSettingsScreenState extends State<SellerSettingsScreen> {
                     Container(
                       height: 220,
                       alignment: Alignment.center,
-                      child: const CircularProgressIndicator(),
+                      child: const CircularProgressIndicator(
+                        color: AppColor.primary,
+                        strokeWidth: 2,
+                      ),
                     ),
                 ],
               ),
@@ -539,7 +542,7 @@ class _SellerSettingsScreenState extends State<SellerSettingsScreen> {
                       valueColor: AlwaysStoppedAnimation<Color>(
                         AppColor.textOnPrimary,
                       ),
-                      strokeWidth: 2.5,
+                      strokeWidth: 2,
                     ),
                   )
                 : const Text(

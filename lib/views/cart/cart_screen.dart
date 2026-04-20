@@ -321,7 +321,7 @@ class _CartScreenState extends State<CartScreen> {
                         totalLabel,
                         style: const TextStyle(
                           fontSize: 16,
-                          fontWeight: FontWeight.bold,
+                          fontWeight: FontWeight.w700,
                           color: AppColor.secondary,
                         ),
                       ),
@@ -585,7 +585,7 @@ class CartItemCard extends StatelessWidget {
                       "Rp${AppFormatters.formatRupiah(cartItem.product.hargaPerHari.toString())}",
                       style: const TextStyle(
                         fontSize: 14,
-                        fontWeight: FontWeight.bold,
+                        fontWeight: FontWeight.w700,
                         color: AppColor.secondary,
                       ),
                     ),

@@ -103,7 +103,10 @@ class _SellerOrderScreenState extends State<SellerOrderScreen> {
   Widget _buildTabContent(String tab) {
     if (_loading) {
       return const Center(
-        child: CircularProgressIndicator(color: AppColor.primary),
+        child: CircularProgressIndicator(
+          color: AppColor.primary,
+          strokeWidth: 2,
+        ),
       );
     }
     if (_error != null) {

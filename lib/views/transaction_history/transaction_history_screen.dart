@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:rentora_app/controllers/transaction_controller.dart';
 import 'package:rentora_app/core/constants/app_color.dart';
+import 'package:rentora_app/core/extensions/navigator.dart';
 import 'package:rentora_app/core/utils/app_formatters.dart';
 import 'package:rentora_app/models/transaction_model.dart';
+import 'package:rentora_app/views/chat/chat_list_screen.dart';
 import 'package:rentora_app/widgets/custom_button.dart';
 import 'dart:io';
 
@@ -154,7 +156,7 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                 Text('Pinjam ${transaction.rentalDays} hari: '),
                 Text(
                   'Rp${AppFormatters.formatRupiah(transaction.totalPayment)}',
-                  style: const TextStyle(fontWeight: FontWeight.bold),
+                  style: const TextStyle(fontWeight: FontWeight.w700),
                 ),
               ],
             ),
@@ -195,7 +197,10 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
   Widget _buildTabContent(String status) {
     if (_isLoading) {
       return const Center(
-        child: CircularProgressIndicator(color: AppColor.primary),
+        child: CircularProgressIndicator(
+          color: AppColor.primary,
+          strokeWidth: 2,
+        ),
       );
     }
     final filtered = _transactionsByStatus(status);
@@ -243,7 +248,12 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
             style: TextStyle(fontWeight: FontWeight.w600),
           ),
           actions: [
-            IconButton(onPressed: () {}, icon: Icon(Symbols.chat, weight: 600)),
+            IconButton(
+              onPressed: () {
+                context.push(const ChatListScreen());
+              },
+              icon: Icon(Symbols.chat, weight: 600),
+            ),
             SizedBox(width: 8),
           ],
           bottom: TabBar(

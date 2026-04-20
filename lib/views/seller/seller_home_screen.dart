@@ -6,6 +6,7 @@ import 'package:rentora_app/controllers/user_controller.dart';
 import 'package:rentora_app/core/constants/app_color.dart';
 import 'package:rentora_app/models/store_model.dart';
 import 'package:rentora_app/models/user_model.dart';
+import 'package:rentora_app/views/notification/notification_screen.dart';
 import 'package:rentora_app/views/seller/seller_order_screen.dart';
 import 'package:rentora_app/views/seller/seller_product_screen.dart';
 import 'package:rentora_app/views/seller/seller_settings_screen.dart';
@@ -55,7 +56,7 @@ class _SellerHomeScreenState extends State<SellerHomeScreen> {
         foregroundColor: AppColor.textOnPrimary,
         title: const Text(
           "Toko Saya",
-          style: TextStyle(fontWeight: FontWeight.w700),
+          style: TextStyle(fontWeight: FontWeight.w600),
         ),
         actions: [
           IconButton(
@@ -68,38 +69,11 @@ class _SellerHomeScreenState extends State<SellerHomeScreen> {
             clipBehavior: Clip.none,
             children: [
               IconButton(
-                onPressed: () {},
+                onPressed: () {
+                  context.push(const NotificationScreen());
+                },
                 icon: const Icon(Symbols.notifications, weight: 650),
               ),
-              if (_pendingShipmentCount > 0)
-                Positioned(
-                  top: 8,
-                  right: 7,
-                  child: Container(
-                    constraints: const BoxConstraints(
-                      minWidth: 16,
-                      minHeight: 16,
-                    ),
-                    padding: const EdgeInsets.symmetric(horizontal: 4),
-                    decoration: BoxDecoration(
-                      color: AppColor.error,
-                      borderRadius: BorderRadius.circular(999),
-                      border: Border.all(color: AppColor.primary, width: 1),
-                    ),
-                    child: Text(
-                      _pendingShipmentCount > 99
-                          ? '99+'
-                          : _pendingShipmentCount.toString(),
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        color: AppColor.textOnPrimary,
-                        fontWeight: FontWeight.w700,
-                        fontSize: 9,
-                        height: 1.2,
-                      ),
-                    ),
-                  ),
-                ),
             ],
           ),
           const SizedBox(width: 8),
@@ -316,24 +290,6 @@ class _SellerHomeScreenState extends State<SellerHomeScreen> {
                             onTap: () {
                               context.push(const SellerOrderScreen());
                             },
-                          ),
-                          const SizedBox(height: 8),
-                          MenuItemCard(
-                            icon: Symbols.account_balance_wallet,
-                            text: "Keuangan",
-                            subtitle:
-                                "Lihat saldo masuk, histori pencairan, dan ringkasan",
-                            iconColor: AppColor.success,
-                            onTap: () {},
-                          ),
-                          const SizedBox(height: 8),
-                          MenuItemCard(
-                            icon: Symbols.insights,
-                            text: "Performa",
-                            subtitle:
-                                "Analisis penjualan, traffic, dan produk unggulan",
-                            iconColor: AppColor.info,
-                            onTap: () {},
                           ),
                           const SizedBox(height: 8),
                           MenuItemCard(

@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import 'package:rentora_app/controllers/chat_controller.dart';
 import 'package:rentora_app/controllers/user_controller.dart';
 import 'package:rentora_app/models/user_model.dart';
@@ -107,7 +108,12 @@ class _ChatListScreenState extends State<ChatListScreen> {
         foregroundColor: AppColor.textOnPrimary,
       ),
       body: _threadsStream == null
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(
+              child: CircularProgressIndicator(
+                color: AppColor.primary,
+                strokeWidth: 2,
+              ),
+            )
           : StreamBuilder<QuerySnapshot>(
               stream: _threadsStream,
               builder: (context, snapshot) {
@@ -125,12 +131,29 @@ class _ChatListScreenState extends State<ChatListScreen> {
                 }
 
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
+                  return const Center(
+                    child: CircularProgressIndicator(
+                      color: AppColor.primary,
+                      strokeWidth: 2,
+                    ),
+                  );
                 }
 
                 final docs = snapshot.data?.docs ?? [];
                 if (docs.isEmpty) {
-                  return const Center(child: Text('Belum ada percakapan'));
+                  return const Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Symbols.chat, size: 56, color: AppColor.textHint),
+                        SizedBox(height: 12),
+                        Text(
+                          'Belum ada percakapan',
+                          style: TextStyle(color: AppColor.textHint),
+                        ),
+                      ],
+                    ),
+                  );
                 }
 
                 final sortedDocs = List<QueryDocumentSnapshot>.from(docs);

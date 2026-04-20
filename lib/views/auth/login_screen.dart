@@ -61,7 +61,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             "Masuk ke Rentora",
                             style: TextStyle(
                               fontSize: 20,
-                              fontWeight: FontWeight.bold,
+                              fontWeight: FontWeight.w700,
                             ),
                           ),
                           const SizedBox(height: 16),
@@ -95,23 +95,24 @@ class _LoginScreenState extends State<LoginScreen> {
                               return null;
                             },
                           ),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                            child: Align(
-                              alignment: Alignment.centerRight,
-                              child: GestureDetector(
-                                onTap: () {},
-                                child: const Text(
-                                  "Lupa Kata Sandi?",
-                                  style: TextStyle(
-                                    color: AppColor.primary,
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
+                          // Padding(
+                          //   padding: const EdgeInsets.symmetric(vertical: 12),
+                          //   child: Align(
+                          //     alignment: Alignment.centerRight,
+                          //     child: GestureDetector(
+                          //       onTap: () {},
+                          //       child: const Text(
+                          //         "Lupa Kata Sandi?",
+                          //         style: TextStyle(
+                          //           color: AppColor.primary,
+                          //           fontSize: 14,
+                          //           fontWeight: FontWeight.w700,
+                          //         ),
+                          //       ),
+                          //     ),
+                          //   ),
+                          // ),
+                          const SizedBox(height: 12),
                           CustomButton(
                             text: "Masuk",
                             isLoading: _isLoading,
@@ -154,26 +155,26 @@ class _LoginScreenState extends State<LoginScreen> {
                               }
                             },
                           ),
-                          const SizedBox(height: 16),
-                          const SizedBox(
-                            width: double.infinity,
-                            child: Text(
-                              "atau masuk dengan",
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                color: AppColor.textHint,
-                                fontSize: 14,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          CustomButton(
-                            text: "Google",
-                            isOutlined: true,
-                            iconAsset: "assets/icons/google.png",
-                            onPressed: () {},
-                          ),
+                          // const SizedBox(height: 16),
+                          // const SizedBox(
+                          //   width: double.infinity,
+                          //   child: Text(
+                          //     "atau masuk dengan",
+                          //     textAlign: TextAlign.center,
+                          //     style: TextStyle(
+                          //       color: AppColor.textHint,
+                          //       fontSize: 14,
+                          //       fontWeight: FontWeight.w500,
+                          //     ),
+                          //   ),
+                          // ),
+                          // const SizedBox(height: 16),
+                          // CustomButton(
+                          //   text: "Google",
+                          //   isOutlined: true,
+                          //   iconAsset: "assets/icons/google.png",
+                          //   onPressed: () {},
+                          // ),
                           const Spacer(),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.center,
@@ -190,7 +191,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                   "Daftar sekarang",
                                   style: TextStyle(
                                     color: AppColor.primary,
-                                    fontWeight: FontWeight.bold,
+                                    fontWeight: FontWeight.w700,
                                   ),
                                 ),
                               ),

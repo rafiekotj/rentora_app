@@ -29,7 +29,7 @@ Future<void> main() async {
   SystemChrome.setSystemUIOverlayStyle(
     SystemUiOverlayStyle(
       statusBarColor: AppColor.primary,
-      statusBarBrightness: Brightness.light,
+      statusBarBrightness: Brightness.dark,
     ),
   );
   // Inisialisasi OneSignal hanya di Android native
@@ -58,6 +58,7 @@ class MyApp extends StatelessWidget {
           displayColor: AppColor.textPrimary,
         ),
         textSelectionTheme: const TextSelectionThemeData(
+          selectionColor: AppColor.primary,
           selectionHandleColor: AppColor.secondary,
           cursorColor: AppColor.primary,
         ),

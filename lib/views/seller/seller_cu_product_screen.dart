@@ -1036,7 +1036,7 @@ class _OptionTile extends StatelessWidget {
   }
 }
 
-class _NumericInputTile extends StatelessWidget {
+class _NumericInputTile extends StatefulWidget {
   final IconData icon;
   final String title;
   final TextEditingController controller;
@@ -1048,14 +1048,41 @@ class _NumericInputTile extends StatelessWidget {
   });
 
   @override
+  State<_NumericInputTile> createState() => _NumericInputTileState();
+}
+
+class _NumericInputTileState extends State<_NumericInputTile> {
+  late FocusNode _focusNode;
+
+  @override
+  void initState() {
+    super.initState();
+    _focusNode = FocusNode();
+    _focusNode.addListener(_handleFocus);
+  }
+
+  void _handleFocus() {
+    if (_focusNode.hasFocus && widget.controller.text == "0") {
+      widget.controller.clear();
+    }
+  }
+
+  @override
+  void dispose() {
+    _focusNode.removeListener(_handleFocus);
+    _focusNode.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return ListTile(
       dense: true,
       contentPadding: const EdgeInsets.only(left: 16, right: 16),
-      leading: Icon(icon, color: AppColor.textPrimary, size: 22),
+      leading: Icon(widget.icon, color: AppColor.textPrimary, size: 22),
       title: RichText(
         text: TextSpan(
-          text: "$title ",
+          text: "${widget.title} ",
           style: const TextStyle(color: AppColor.textPrimary, fontSize: 14),
           children: const [
             TextSpan(
@@ -1068,7 +1095,8 @@ class _NumericInputTile extends StatelessWidget {
       trailing: SizedBox(
         width: 60,
         child: TextField(
-          controller: controller,
+          controller: widget.controller,
+          focusNode: _focusNode,
           keyboardType: TextInputType.number,
           textAlign: TextAlign.end,
           style: const TextStyle(color: AppColor.textPrimary, fontSize: 14),

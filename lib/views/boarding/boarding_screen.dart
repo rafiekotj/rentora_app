@@ -48,7 +48,7 @@ class _BoardingScreenState extends State<BoardingScreen> {
                           textAlign: TextAlign.center,
                           style: TextStyle(
                             fontSize: 20,
-                            fontWeight: FontWeight.bold,
+                            fontWeight: FontWeight.w700,
                             color: AppColor.textPrimary,
                           ),
                         ),

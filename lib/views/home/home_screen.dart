@@ -638,7 +638,10 @@ class _HomeScreenState extends State<HomeScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: isLoading
                   ? const Center(
-                      child: CircularProgressIndicator(color: AppColor.primary),
+                      child: CircularProgressIndicator(
+                        color: AppColor.primary,
+                        strokeWidth: 2,
+                      ),
                     )
                   : Builder(
                       builder: (context) {

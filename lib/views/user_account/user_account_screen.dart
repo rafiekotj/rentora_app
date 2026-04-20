@@ -6,6 +6,7 @@ import 'package:rentora_app/core/extensions/navigator.dart';
 import 'package:rentora_app/views/seller/seller_home_screen.dart';
 import 'package:rentora_app/views/settings/settings_screen.dart';
 import 'package:rentora_app/views/transaction_history/transaction_history_screen.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class UserAccountScreen extends StatefulWidget {
   const UserAccountScreen({super.key});
@@ -49,6 +50,14 @@ class _UserAccountScreenState extends State<UserAccountScreen> {
     });
   }
 
+  Future<void> _launchEmail() async {
+    final Uri emailLaunchUri = Uri(
+      scheme: 'mailto',
+      path: 'rafiekotj03@gmail.com',
+    );
+    await launchUrl(emailLaunchUri);
+  }
+
   @override
   Widget build(BuildContext context) {
     final displayName = (_username ?? '').isNotEmpty ? _username! : _email;
@@ -81,7 +90,7 @@ class _UserAccountScreenState extends State<UserAccountScreen> {
         child: Column(
           children: [
             SizedBox(
-              height: 182,
+              height: 114,
               child: Stack(
                 clipBehavior: Clip.none,
                 children: [
@@ -188,16 +197,16 @@ class _UserAccountScreenState extends State<UserAccountScreen> {
                               ),
                             ],
                           ),
-                          const SizedBox(height: 14),
-                          const Divider(color: AppColor.divider, height: 1),
-                          const SizedBox(height: 12),
-                          const Row(
-                            children: [
-                              _ProfileStatItem(label: 'Transaksi', value: '40'),
-                              _ProfileStatItem(label: 'Pengikut', value: '10'),
-                              _ProfileStatItem(label: 'Mengikuti', value: '10'),
-                            ],
-                          ),
+                          // const SizedBox(height: 14),
+                          // const Divider(color: AppColor.divider, height: 1),
+                          // const SizedBox(height: 12),
+                          // const Row(
+                          //   children: [
+                          //     _ProfileStatItem(label: 'Transaksi', value: '0'),
+                          //     _ProfileStatItem(label: 'Pengikut', value: '10'),
+                          //     _ProfileStatItem(label: 'Mengikuti', value: '10'),
+                          //   ],
+                          // ),
                         ],
                       ),
                     ),
@@ -264,33 +273,32 @@ class _UserAccountScreenState extends State<UserAccountScreen> {
 
                   const SizedBox(height: 12),
 
-                  SectionCard(
-                    title: "Aktivitas",
-                    subtitle: "Semua jejak belanja dan sewa ada di sini",
-                    child: Column(
-                      children: [
-                        MenuItemCard(
-                          icon: Symbols.favorite,
-                          text: "Favorit Saya",
-                          subtitle: "Simpan dulu, checkout kapan pun kamu siap",
-                          fill: 1,
-                          iconColor: Colors.red,
-                          onTap: () {},
-                        ),
-                        const SizedBox(height: 8),
-                        MenuItemCard(
-                          icon: Symbols.workspace_premium,
-                          text: "Member Rentora",
-                          subtitle: "Unlock promo spesial dan benefit member",
-                          iconColor: Colors.indigo,
-                          onTap: () {},
-                        ),
-                      ],
-                    ),
-                  ),
+                  // SectionCard(
+                  //   title: "Aktivitas",
+                  //   subtitle: "Semua jejak belanja dan sewa ada di sini",
+                  //   child: Column(
+                  //     children: [
+                  //       MenuItemCard(
+                  //         icon: Symbols.favorite,
+                  //         text: "Favorit Saya",
+                  //         subtitle: "Simpan dulu, checkout kapan pun kamu siap",
+                  //         fill: 1,
+                  //         iconColor: Colors.red,
+                  //         onTap: () {},
+                  //       ),
+                  //       const SizedBox(height: 8),
+                  //       MenuItemCard(
+                  //         icon: Symbols.workspace_premium,
+                  //         text: "Member Rentora",
+                  //         subtitle: "Unlock promo spesial dan benefit member",
+                  //         iconColor: Colors.indigo,
+                  //         onTap: () {},
+                  //       ),
+                  //     ],
+                  //   ),
+                  // ),
 
-                  const SizedBox(height: 12),
-
+                  // const SizedBox(height: 12),
                   SectionCard(
                     title: "Seller",
                     subtitle: "Pantau performa toko langsung dari dashboard",
@@ -322,7 +330,7 @@ class _UserAccountScreenState extends State<UserAccountScreen> {
                           text: "Pusat Bantuan",
                           subtitle: "FAQ, komplain, dan respon cepat 24/7",
                           iconColor: AppColor.info,
-                          onTap: () {},
+                          onTap: _launchEmail,
                         ),
                       ],
                     ),
@@ -607,32 +615,32 @@ class MenuItemCard extends StatelessWidget {
   }
 }
 
-class _ProfileStatItem extends StatelessWidget {
-  final String label;
-  final String value;
+// class _ProfileStatItem extends StatelessWidget {
+//   final String label;
+//   final String value;
 
-  const _ProfileStatItem({required this.label, required this.value});
+//   const _ProfileStatItem({required this.label, required this.value});
 
-  @override
-  Widget build(BuildContext context) {
-    return Expanded(
-      child: Column(
-        children: [
-          Text(
-            value,
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w700,
-              color: AppColor.textPrimary,
-            ),
-          ),
-          const SizedBox(height: 2),
-          Text(
-            label,
-            style: const TextStyle(fontSize: 11, color: AppColor.textSecondary),
-          ),
-        ],
-      ),
-    );
-  }
-}
+//   @override
+//   Widget build(BuildContext context) {
+//     return Expanded(
+//       child: Column(
+//         children: [
+//           Text(
+//             value,
+//             style: const TextStyle(
+//               fontSize: 16,
+//               fontWeight: FontWeight.w700,
+//               color: AppColor.textPrimary,
+//             ),
+//           ),
+//           const SizedBox(height: 2),
+//           Text(
+//             label,
+//             style: const TextStyle(fontSize: 11, color: AppColor.textSecondary),
+//           ),
+//         ],
+//       ),
+//     );
+//   }
+// }

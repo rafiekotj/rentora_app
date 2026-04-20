@@ -136,7 +136,7 @@ class _AccountSettingScreenState extends State<AccountSettingScreen> {
         foregroundColor: AppColor.textOnPrimary,
         title: const Text(
           "Pengaturan Akun",
-          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+          style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
         ),
       ),
       body: SingleChildScrollView(
@@ -177,7 +177,7 @@ class _AccountSettingScreenState extends State<AccountSettingScreen> {
                               height: 28,
                               child: CircularProgressIndicator(
                                 color: AppColor.primary,
-                                strokeWidth: 3,
+                                strokeWidth: 2,
                               ),
                             ),
                           ),

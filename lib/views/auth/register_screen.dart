@@ -61,7 +61,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             "Daftar di Rentora",
                             style: TextStyle(
                               fontSize: 20,
-                              fontWeight: FontWeight.bold,
+                              fontWeight: FontWeight.w700,
                             ),
                           ),
                           const SizedBox(height: 16),
@@ -198,7 +198,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                   "Masuk sekarang",
                                   style: TextStyle(
                                     color: AppColor.primary,
-                                    fontWeight: FontWeight.bold,
+                                    fontWeight: FontWeight.w700,
                                   ),
                                 ),
                               ),

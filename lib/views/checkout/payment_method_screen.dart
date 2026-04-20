@@ -88,7 +88,7 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
           foregroundColor: AppColor.surface,
           title: const Text(
             "Pilih Metode Pembayaran",
-            style: TextStyle(fontWeight: FontWeight.bold),
+            style: TextStyle(fontWeight: FontWeight.w600),
           ),
           leading: BackButton(
             onPressed: () async {

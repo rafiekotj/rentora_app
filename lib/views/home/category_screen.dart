@@ -135,7 +135,10 @@ class _CategoryScreenState extends State<CategoryScreen> {
       ),
       body: isLoading
           ? const Center(
-              child: CircularProgressIndicator(color: AppColor.primary),
+              child: CircularProgressIndicator(
+                color: AppColor.primary,
+                strokeWidth: 2,
+              ),
             )
           : Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -155,7 +158,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
                         widget.categoryValue,
                         style: const TextStyle(
                           fontSize: 16,
-                          fontWeight: FontWeight.bold,
+                          fontWeight: FontWeight.w700,
                         ),
                       ),
                     ],
@@ -196,7 +199,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
                                   "Rekomendasi",
                                   style: TextStyle(
                                     fontSize: 16,
-                                    fontWeight: FontWeight.bold,
+                                    fontWeight: FontWeight.w700,
                                   ),
                                 ),
                               ),

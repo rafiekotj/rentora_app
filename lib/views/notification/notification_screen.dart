@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:rentora_app/core/constants/app_color.dart';
+import 'package:rentora_app/core/extensions/navigator.dart';
 import 'package:rentora_app/services/local_storage/preference_handler.dart';
+import 'package:rentora_app/views/chat/chat_list_screen.dart';
 
 class NotificationScreen extends StatefulWidget {
   const NotificationScreen({super.key});
@@ -41,7 +43,12 @@ class _NotificationScreenState extends State<NotificationScreen> {
           style: TextStyle(fontWeight: FontWeight.w600),
         ),
         actions: [
-          IconButton(onPressed: () {}, icon: Icon(Symbols.chat, weight: 600)),
+          IconButton(
+            onPressed: () {
+              context.push(ChatListScreen());
+            },
+            icon: Icon(Symbols.chat, weight: 600),
+          ),
           const SizedBox(width: 8),
         ],
       ),
@@ -51,7 +58,12 @@ class _NotificationScreenState extends State<NotificationScreen> {
           future: _futureNotifications,
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator());
+              return const Center(
+                child: CircularProgressIndicator(
+                  color: AppColor.primary,
+                  strokeWidth: 2,
+                ),
+              );
             }
 
             final items = snapshot.data ?? [];
