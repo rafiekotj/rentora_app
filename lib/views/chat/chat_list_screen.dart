@@ -219,11 +219,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
                         );
 
                         int unreadCount = 0;
-                        final unreadRaw =
-                            data['unread'] ??
-                            data['unread_count'] ??
-                            data['unreadCounts'] ??
-                            data['unread_counts'];
+                        final unreadRaw = data['unread'];
                         try {
                           if (unreadRaw is int) {
                             unreadCount = unreadRaw;

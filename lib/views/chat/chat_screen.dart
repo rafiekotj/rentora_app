@@ -32,6 +32,8 @@ class _ChatScreenState extends State<ChatScreen> {
   UserModel? _currentUser;
   bool _scrolledToBottomOnOpen = false;
 
+  int _lastMessageCount = 0;
+
   @override
   void initState() {
     super.initState();
@@ -186,6 +188,16 @@ class _ChatScreenState extends State<ChatScreen> {
                       ),
                     )
                     .toList();
+
+                // Auto-scroll & mark read jika ada pesan baru
+                if (messages.length > _lastMessageCount) {
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    _scrollToBottom();
+                    _chatController.markThreadRead(widget.threadId);
+                  });
+                }
+                _lastMessageCount = messages.length;
+
                 if (!_scrolledToBottomOnOpen && messages.isNotEmpty) {
                   WidgetsBinding.instance.addPostFrameCallback((_) {
                     _scrollToBottom(animate: false);

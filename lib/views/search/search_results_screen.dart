@@ -175,32 +175,32 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
                             _performSearch();
                           },
                         ),
-                        RadioListTile<String>(
-                          title: Text(
-                            'Terbaru',
-                            style: TextStyle(
-                              color: _sortOption == 'Terbaru'
-                                  ? AppColor.primary
-                                  : const Color(0xFF222222),
-                              fontWeight: _sortOption == 'Terbaru'
-                                  ? FontWeight.w600
-                                  : FontWeight.normal,
-                            ),
-                          ),
-                          value: 'Terbaru',
-                          groupValue: _sortOption,
-                          controlAffinity: ListTileControlAffinity.trailing,
-                          activeColor: AppColor.primary,
-                          contentPadding: EdgeInsets.zero,
-                          onChanged: (v) {
-                            if (v == null) return;
-                            setModalState(() {
-                              _sortOption = v;
-                              priceOrder = '';
-                            });
-                            _performSearch();
-                          },
-                        ),
+                        // RadioListTile<String>(
+                        //   title: Text(
+                        //     'Terbaru',
+                        //     style: TextStyle(
+                        //       color: _sortOption == 'Terbaru'
+                        //           ? AppColor.primary
+                        //           : const Color(0xFF222222),
+                        //       fontWeight: _sortOption == 'Terbaru'
+                        //           ? FontWeight.w600
+                        //           : FontWeight.normal,
+                        //     ),
+                        //   ),
+                        //   value: 'Terbaru',
+                        //   groupValue: _sortOption,
+                        //   controlAffinity: ListTileControlAffinity.trailing,
+                        //   activeColor: AppColor.primary,
+                        //   contentPadding: EdgeInsets.zero,
+                        //   onChanged: (v) {
+                        //     if (v == null) return;
+                        //     setModalState(() {
+                        //       _sortOption = v;
+                        //       priceOrder = '';
+                        //     });
+                        //     _performSearch();
+                        //   },
+                        // ),
                         RadioListTile<String>(
                           title: Text(
                             'Harga Tertinggi',
@@ -253,32 +253,32 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
                             _performSearch();
                           },
                         ),
-                        RadioListTile<String>(
-                          title: Text(
-                            'Terlaris',
-                            style: TextStyle(
-                              color: _sortOption == 'Terlaris'
-                                  ? AppColor.primary
-                                  : const Color(0xFF222222),
-                              fontWeight: _sortOption == 'Terlaris'
-                                  ? FontWeight.w600
-                                  : FontWeight.normal,
-                            ),
-                          ),
-                          value: 'Terlaris',
-                          groupValue: _sortOption,
-                          controlAffinity: ListTileControlAffinity.trailing,
-                          activeColor: AppColor.primary,
-                          contentPadding: EdgeInsets.zero,
-                          onChanged: (v) {
-                            if (v == null) return;
-                            setModalState(() {
-                              _sortOption = v;
-                              priceOrder = '';
-                            });
-                            _performSearch();
-                          },
-                        ),
+                        // RadioListTile<String>(
+                        //   title: Text(
+                        //     'Terlaris',
+                        //     style: TextStyle(
+                        //       color: _sortOption == 'Terlaris'
+                        //           ? AppColor.primary
+                        //           : const Color(0xFF222222),
+                        //       fontWeight: _sortOption == 'Terlaris'
+                        //           ? FontWeight.w600
+                        //           : FontWeight.normal,
+                        //     ),
+                        //   ),
+                        //   value: 'Terlaris',
+                        //   groupValue: _sortOption,
+                        //   controlAffinity: ListTileControlAffinity.trailing,
+                        //   activeColor: AppColor.primary,
+                        //   contentPadding: EdgeInsets.zero,
+                        //   onChanged: (v) {
+                        //     if (v == null) return;
+                        //     setModalState(() {
+                        //       _sortOption = v;
+                        //       priceOrder = '';
+                        //     });
+                        //     _performSearch();
+                        //   },
+                        // ),
                       ],
                     ),
                   ),

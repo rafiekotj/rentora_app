@@ -171,8 +171,6 @@ class ChatService {
     final threadRef = chatsCollection.doc(threadId);
     final updates = <String, dynamic>{};
     updates['unread.$userUid'] = 0;
-    updates['unread_counts.$userUid'] = 0;
-    updates['unreadCounts.$userUid'] = 0;
     batch.update(threadRef, updates);
 
     await batch.commit();

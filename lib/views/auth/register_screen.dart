@@ -155,33 +155,32 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                     content: Text("Pendaftaran Berhasil"),
                                   ),
                                 );
-                                await context.pushAndRemoveAll(
-                                  const BottomNavbar(),
-                                );
+                                // Navigasi langsung, proses lain di background jika perlu
+                                context.pushAndRemoveAll(const BottomNavbar());
                               }
                               setState(() => _isLoading = false);
                             },
                           ),
-                          const SizedBox(height: 16),
-                          const SizedBox(
-                            width: double.infinity,
-                            child: Text(
-                              "atau daftar dengan",
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                color: AppColor.textHint,
-                                fontSize: 14,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          CustomButton(
-                            text: "Google",
-                            isOutlined: true,
-                            iconAsset: "assets/icons/google.png",
-                            onPressed: () {},
-                          ),
+                          // const SizedBox(height: 16),
+                          // const SizedBox(
+                          //   width: double.infinity,
+                          //   child: Text(
+                          //     "atau daftar dengan",
+                          //     textAlign: TextAlign.center,
+                          //     style: TextStyle(
+                          //       color: AppColor.textHint,
+                          //       fontSize: 14,
+                          //       fontWeight: FontWeight.w500,
+                          //     ),
+                          //   ),
+                          // ),
+                          // const SizedBox(height: 16),
+                          // CustomButton(
+                          //   text: "Google",
+                          //   isOutlined: true,
+                          //   iconAsset: "assets/icons/google.png",
+                          //   onPressed: () {},
+                          // ),
                           const Spacer(),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.center,

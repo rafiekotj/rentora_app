@@ -132,16 +132,20 @@ class _LoginScreenState extends State<LoginScreen> {
                                       content: Text("Login Berhasil"),
                                     ),
                                   );
-                                  try {
-                                    final user = await _userController
-                                        .getCurrentUser();
-                                    if (user?.uid != null) {
-                                      await setOneSignalExternalId(user!.uid);
-                                    }
-                                  } catch (_) {}
+                                  // Navigasi langsung, proses lain di background
                                   context.pushAndRemoveAll(
                                     const BottomNavbar(),
                                   );
+                                  // Inisialisasi OneSignal di background
+                                  Future(() async {
+                                    try {
+                                      final user = await _userController
+                                          .getCurrentUser();
+                                      if (user?.uid != null) {
+                                        await setOneSignalExternalId(user!.uid);
+                                      }
+                                    } catch (_) {}
+                                  });
                                 } else {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     const SnackBar(
