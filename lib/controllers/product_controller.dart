@@ -7,41 +7,50 @@ class ProductController {
   final _productService = ProductService();
 
   Future<String> addProduct(ProductModel product) async {
+    // Tambah produk baru
     return await _productService.addProduct(product);
   }
 
   Future<void> updateProduct(String productId, ProductModel product) async {
+    // Update data produk
     await _productService.updateProduct(productId, product);
   }
 
   Future<void> deleteProduct(String productId) async {
+    // Hapus produk
     await _productService.deleteProduct(productId);
   }
 
   Future<List<ProductModel>> getMyProducts() async {
+    // Ambil produk milik store user
     final store = await _storeController.getStore();
     if (store == null) {
+      // Jika belum punya store, kembalikan list kosong
       return [];
     }
     return await _productService.getProductsByStore(store.uid);
   }
 
   Future<List<ProductModel>> getProductByKategori(String kategori) async {
+    // Ambil produk berdasarkan kategori
     return await _productService.getProductByKategori(kategori);
   }
 
   Future<List<ProductModel>> getAllProduct() async {
+    // Ambil semua produk
     return await _productService.getAllProduct();
   }
 
   Future<List<ProductModel>> searchProducts({
     String? query,
     String? district,
-    String? priceOrder, // 'asc' or 'desc'
+    String? priceOrder,
   }) async {
+    // Ambil semua produk
     final all = await _productService.getAllProduct();
     var results = all;
 
+    // Filter berdasarkan query pencarian
     if (query != null && query.trim().isNotEmpty) {
       final q = query.trim().toLowerCase();
       results = results.where((p) {
@@ -52,6 +61,7 @@ class ProductController {
       }).toList();
     }
 
+    // Filter berdasarkan district
     if (district != null && district.trim().isNotEmpty) {
       final storeUids = results
           .map((p) => p.storeUid)
@@ -66,6 +76,7 @@ class ProductController {
       }).toList();
     }
 
+    // Urutkan berdasarkan harga jika diminta
     if (priceOrder != null && priceOrder.isNotEmpty) {
       if (priceOrder == 'asc') {
         results.sort((a, b) => a.hargaPerHari.compareTo(b.hargaPerHari));

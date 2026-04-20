@@ -25,49 +25,55 @@ class CartController {
 
   Future<void> loadCartFromDB() async {
     final user = await _userController.getCurrentUser();
-    if (user?.uid == null) {
+    if (user == null) {
+      // Jika user belum login, kosongkan cart dan pilihan
       cartItemsNotifier.value = [];
+      selectedStoreUid.value = null;
+      selectedProductUids.value = [];
+    } else {
+      // Jika user sudah login, ambil cart dari database
+      final cartList = await _cartService.getAllCart(userUid: user.uid);
+      cartItemsNotifier.value = cartList;
+    }
+  }
+
+  void selectStore(String storeUid) {
+    // Jika store yang dipilih sama dengan yang sudah dipilih, batalkan pilihan
+    if (selectedStoreUid.value == storeUid) {
       selectedStoreUid.value = null;
       selectedProductUids.value = [];
       return;
     }
-    final cartList = await _cartService.getAllCart(userUid: user!.uid);
-    cartItemsNotifier.value = cartList;
-  }
-
-  void selectStore(String storeUid) {
-    if (selectedStoreUid.value == storeUid) {
-      selectedStoreUid.value = null;
-      selectedProductUids.value = [];
-    } else {
-      selectedStoreUid.value = storeUid;
-      final storeProductUids = cartItemsNotifier.value
-          .where((item) => item.product.storeUid == storeUid)
-          .map((item) => item.product.uid)
-          .whereType<String>()
-          .toList();
-      selectedProductUids.value = storeProductUids;
-    }
+    // Pilih store dan produk-produk di store tersebut
+    selectedStoreUid.value = storeUid;
+    selectedProductUids.value = cartItemsNotifier.value
+        .where((item) => item.product.storeUid == storeUid)
+        .map((item) => item.product.uid)
+        .whereType<String>()
+        .toList();
   }
 
   void selectProduct(String productUid) {
+    // Salin daftar produk yang dipilih
     final newSelectedProductUids = List<String>.from(selectedProductUids.value);
     if (newSelectedProductUids.contains(productUid)) {
+      // Jika produk sudah dipilih, hapus dari daftar
       newSelectedProductUids.remove(productUid);
     } else {
+      // Jika produk belum dipilih, tambahkan ke daftar
       newSelectedProductUids.add(productUid);
     }
     selectedProductUids.value = newSelectedProductUids;
 
+    // Jika tidak ada produk dari store yang sedang dipilih, batalkan pilihan store
     final currentStoreUid = selectedStoreUid.value;
     if (currentStoreUid != null) {
-      final hasSelectedProductInCurrentStore = cartItemsNotifier.value.any(
+      final adaProdukDiStore = cartItemsNotifier.value.any(
         (item) =>
             item.product.storeUid == currentStoreUid &&
             newSelectedProductUids.contains(item.product.uid),
       );
-
-      if (!hasSelectedProductInCurrentStore) {
+      if (!adaProdukDiStore) {
         selectedStoreUid.value = null;
       }
     }
@@ -80,19 +86,23 @@ class CartController {
       throw Exception('User belum login');
     }
 
+    // Tidak boleh menambah produk sendiri ke keranjang
     final store = await _storeController.getStoreById(
       cartItem.product.storeUid,
     );
-    if (store != null && store.userUid == user!.uid) {
+    if (store != null && store.userUid == userUid) {
       throw Exception('Tidak bisa menambahkan produk sendiri ke keranjang');
     }
 
+    // Cek apakah produk sudah ada di cart
     final existingIndex = cartItemsNotifier.value.indexWhere(
       (element) => element.product.uid == cartItem.product.uid,
     );
     if (existingIndex >= 0) {
+      // Jika sudah ada, tambahkan jumlahnya
       cartItemsNotifier.value[existingIndex].quantity += cartItem.quantity;
     } else {
+      // Jika belum ada, tambahkan ke database dan cart
       final docRef = await _cartService.cartsCollection.add({
         'userUid': userUid,
         ...cartItem.toMap(),
@@ -112,6 +122,7 @@ class CartController {
 
   Future<void> removeFromCart(String cartUid) async {
     await _cartService.deleteCart(cartUid);
+    // Hapus item dari cart secara lokal
     cartItemsNotifier.value = cartItemsNotifier.value
         .where((e) => e.uid != cartUid)
         .toList();
@@ -122,6 +133,7 @@ class CartController {
     CartModel cartItem,
     int quantity,
   ) async {
+    // Update jumlah item di cart
     cartItem.quantity = quantity;
     await _cartService.updateCart(cartUid, cartItem);
     cartItemsNotifier.value = List.from(cartItemsNotifier.value);
@@ -132,12 +144,14 @@ class CartController {
     CartModel cartItem,
     int days,
   ) async {
+    // Update lama sewa item di cart
     cartItem.rentalDays = days;
     await _cartService.updateCart(cartUid, cartItem);
     cartItemsNotifier.value = List.from(cartItemsNotifier.value);
   }
 
   void removeMultipleLocally(List<String> cartUids) {
+    // Hapus beberapa item dari cart secara lokal
     cartItemsNotifier.value = cartItemsNotifier.value
         .where((e) => !cartUids.contains(e.uid))
         .toList();

@@ -4,14 +4,15 @@ import 'package:rentora_app/services/database/store_service.dart';
 
 class StoreController {
   final StoreService _storeService = StoreService();
-  // Cache sederhana in-memory per instance untuk mengurangi panggilan Firestore berulang
+
   final Map<String, StoreModel> _cache = {};
 
-  // Mengambil beberapa toko berdasarkan daftar ID (Firestore pakai String ID)
   Future<List<StoreModel>> getStoresByIds(List<String> storeIds) async {
-    // Ambil terlebih dahulu dari cache, dan hanya minta yang belum ada.
+    // Ambil store berdasarkan list id, gunakan cache jika ada
     final ids = storeIds.where((id) => id.isNotEmpty).toList();
-    if (ids.isEmpty) return [];
+    if (ids.isEmpty) {
+      return [];
+    }
 
     final missing = <String>[];
     final results = <StoreModel>[];
@@ -35,37 +36,46 @@ class StoreController {
     return results;
   }
 
-  // Mengambil semua toko yang dimiliki oleh seorang user berdasarkan userId (Firestore pakai String userId)
   Future<List<StoreModel>> getStoresByUser(String userId) async {
+    // Ambil semua store milik user tertentu
     return await _storeService.getStoresByUser(userId);
   }
 
-  // Mengambil data satu toko berdasarkan ID toko
   Future<StoreModel?> getStoreById(String storeId) async {
-    if (storeId.isEmpty) return null;
+    // Ambil store berdasarkan id, gunakan cache jika ada
+    if (storeId.isEmpty) {
+      return null;
+    }
     final cached = _cache[storeId];
-    if (cached != null) return cached;
+    if (cached != null) {
+      return cached;
+    }
     final store = await _storeService.getStoreById(storeId);
-    if (store != null) _cache[storeId] = store;
+    if (store != null) {
+      _cache[storeId] = store;
+    }
     return store;
   }
 
-  // Mengambil data satu toko berdasarkan ID user yang memiliki toko tersebut
   Future<StoreModel?> getStoreByUserId(String userId) async {
+    // Ambil store milik user tertentu
     final store = await _storeService.getStoreByUserId(userId);
-    if (store != null) _cache[store.uid] = store;
+    if (store != null) {
+      _cache[store.uid] = store;
+    }
     return store;
   }
 
-  // Mengambil data toko milik user yang sedang login saat ini
   Future<StoreModel?> getStore() async {
+    // Ambil store milik user yang sedang login
     final userController = UserController();
     final user = await userController.getCurrentUser();
-    if (user == null) return null;
+    if (user == null) {
+      return null;
+    }
     return await getStoreByUserId(user.uid);
   }
 
-  // Menyimpan data toko untuk user yang sedang login
   Future<void> saveStore({
     required String name,
     String? location,
@@ -78,6 +88,7 @@ class StoreController {
     double? latitude,
     double? longitude,
   }) async {
+    // Simpan data store milik user yang sedang login
     final userController = UserController();
     final user = await userController.getCurrentUser();
     if (user == null) {

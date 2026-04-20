@@ -14,6 +14,7 @@ class TransactionService {
       .collection('outgoing_notifications');
 
   Future<String> createTransaction(TransactionModel transaction) async {
+    // Buat transaksi baru dan simpan ke database
     final docRef = transactionsCollection.doc();
     final data = transaction.toMap();
     data['uid'] = docRef.id;
@@ -25,6 +26,7 @@ class TransactionService {
     TransactionModel transaction,
     List<String> cartIds,
   ) async {
+    // Buat transaksi baru, hapus cart, dan update stok produk dalam satu batch
     final batch = FirebaseFirestore.instance.batch();
 
     final docRef = transactionsCollection.doc();
@@ -32,10 +34,12 @@ class TransactionService {
     data['uid'] = docRef.id;
     batch.set(docRef, data);
 
+    // Hapus semua cart yang sudah di-checkout
     for (final cartId in cartIds) {
       batch.delete(cartsCollection.doc(cartId));
     }
 
+    // Tambah notifikasi transaksi baru
     try {
       final noteRef = notificationsCollection.doc();
       batch.set(noteRef, {
@@ -51,8 +55,7 @@ class TransactionService {
       });
     } catch (_) {}
 
-    // If the transaction is already in 'Diproses' state (e.g. non-COD payment),
-    // decrement product stock for every item in the transaction in the same batch.
+    // Jika status transaksi sudah 'Diproses', stok produk langsung dikurangi
     try {
       if (transaction.status.toLowerCase() == 'diproses') {
         final productsCollection = FirebaseFirestore.instance.collection(
@@ -75,9 +78,10 @@ class TransactionService {
   }
 
   Future<List<TransactionModel>> getTransactionsByUser(String userUid) async {
+    // Ambil semua transaksi milik user tertentu
     final snapshot = await transactionsCollection
         .where('user_uid', isEqualTo: userUid)
-        .get();
+        .get(const GetOptions(source: Source.serverAndCache));
     return snapshot.docs
         .map(
           (doc) => TransactionModel.fromMap(doc.data() as Map<String, dynamic>),
@@ -89,10 +93,11 @@ class TransactionService {
     String storeUid,
     List<String> statuses,
   ) async {
+    // Ambil semua transaksi milik store tertentu dengan status tertentu
     final snapshot = await transactionsCollection
         .where('store_uid', isEqualTo: storeUid)
         .where('status', whereIn: statuses)
-        .get();
+        .get(const GetOptions(source: Source.serverAndCache));
     return snapshot.docs
         .map(
           (doc) => TransactionModel.fromMap(doc.data() as Map<String, dynamic>),
@@ -101,8 +106,11 @@ class TransactionService {
   }
 
   Future<void> updateTransactionStatus(String uid, String status) async {
+    // Update status transaksi dan stok produk jika perlu
     final txRef = transactionsCollection.doc(uid);
-    final doc = await txRef.get();
+    final doc = await txRef.get(
+      const GetOptions(source: Source.serverAndCache),
+    );
     if (!doc.exists) {
       throw Exception('Transaction not found: $uid');
     }
@@ -113,7 +121,7 @@ class TransactionService {
     final batch = FirebaseFirestore.instance.batch();
     batch.update(txRef, {'status': status});
 
-    // Parse items_data (stored as JSON string or list)
+    // Parse items_data (bisa string JSON atau list)
     List<dynamic> items = [];
     try {
       if (data['items_data'] is String) {
@@ -129,7 +137,7 @@ class TransactionService {
       'products',
     );
 
-    // When moving TO 'Diproses' from a previous state, decrement stock
+    // Jika status berubah ke 'Diproses', stok produk dikurangi
     if (oldStatus.toLowerCase() != 'diproses' &&
         status.toLowerCase() == 'diproses') {
       for (final raw in items) {
@@ -165,7 +173,7 @@ class TransactionService {
       }
     }
 
-    // When moving TO 'Dikembalikan', increment stock back
+    // Jika status berubah ke 'Dikembalikan', stok produk dikembalikan
     if (oldStatus.toLowerCase() != 'dikembalikan' &&
         status.toLowerCase() == 'dikembalikan') {
       for (final raw in items) {

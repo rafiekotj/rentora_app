@@ -6,11 +6,12 @@ class UserFirestoreService {
       FirebaseFirestore.instance;
 
   static Future<UserModel?> getUserByEmail(String email) async {
+    // Ambil user berdasarkan email
     final query = await _firebaseFirestore
         .collection('users')
         .where('email', isEqualTo: email)
         .limit(1)
-        .get();
+        .get(const GetOptions(source: Source.serverAndCache));
     if (query.docs.isNotEmpty) {
       return UserModel.fromMap(query.docs.first.data());
     }
@@ -23,6 +24,7 @@ class UserFirestoreService {
     String? phone,
     String? image,
   }) async {
+    // Update data user berdasarkan uid
     final data = <String, dynamic>{};
     if (username != null) data['username'] = username;
     if (phone != null) data['phone'] = phone;
@@ -31,7 +33,11 @@ class UserFirestoreService {
   }
 
   static Future<UserModel?> getUserByUid(String uid) async {
-    final doc = await _firebaseFirestore.collection('users').doc(uid).get();
+    // Ambil user berdasarkan uid
+    final doc = await _firebaseFirestore
+        .collection('users')
+        .doc(uid)
+        .get(const GetOptions(source: Source.serverAndCache));
     if (doc.exists) {
       return UserModel.fromMap(doc.data()!);
     }

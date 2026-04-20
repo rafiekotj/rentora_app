@@ -11,6 +11,7 @@ class FirebaseService {
     required String username,
     required String phone,
   }) async {
+    // Register user baru dengan email dan password
     final cred = await _auth.createUserWithEmailAndPassword(
       email: email,
       password: password,
@@ -25,6 +26,7 @@ class FirebaseService {
       image: null,
     );
 
+    // Simpan data user ke Firestore
     await FirebaseFirestore.instance
         .collection('users')
         .doc(user.uid)
@@ -36,6 +38,7 @@ class FirebaseService {
     required String email,
     required String password,
   }) async {
+    // Login user dengan email dan password
     final cred = await _auth.signInWithEmailAndPassword(
       email: email,
       password: password,

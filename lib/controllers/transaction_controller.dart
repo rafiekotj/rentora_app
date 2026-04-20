@@ -20,21 +20,25 @@ class TransactionController {
     required int serviceFee,
     String? storeName,
   }) async {
+    // Ambil user yang sedang login
     final user = await _userController.getCurrentUser();
     if (user?.uid == null) {
       throw Exception('User belum login');
     }
 
+    // Cek jika cart kosong
     if (cartItems.isEmpty) {
       throw Exception('Item checkout kosong');
     }
 
+    // Ambil store jika perlu
     final storeUid = cartItems.first.product.storeUid;
     StoreModel? store;
     if (storeName == null) {
       store = await _storeController.getStoreById(storeUid);
     }
 
+    // Hitung subtotal dan total produk
     int subtotal = 0;
     int totalProducts = 0;
     for (final item in cartItems) {
@@ -46,6 +50,7 @@ class TransactionController {
     final totalPayment = subtotal + serviceFee;
     final status = paymentMethod == 'cod' ? 'Belum Bayar' : 'Diproses';
 
+    // Buat model transaksi
     final transaction = TransactionModel(
       uid: '',
       userUid: user!.uid,
@@ -74,22 +79,26 @@ class TransactionController {
     String? userUid,
     String? storeName,
   }) async {
+    // Ambil user yang sedang login (atau dari argumen)
     final currentUserUid =
         userUid ?? (await _userController.getCurrentUser())?.uid;
     if (currentUserUid == null) {
       throw Exception('User belum login');
     }
 
+    // Cek jika cart kosong
     if (cartItems.isEmpty) {
       throw Exception('Item checkout kosong');
     }
 
+    // Ambil store jika perlu
     final storeUid = cartItems.first.product.storeUid;
     StoreModel? store;
     if (storeName == null) {
       store = await _storeController.getStoreById(storeUid);
     }
 
+    // Hitung subtotal dan total produk
     int subtotal = 0;
     int totalProducts = 0;
     for (final item in cartItems) {
@@ -101,6 +110,7 @@ class TransactionController {
     final totalPayment = subtotal + serviceFee;
     final status = paymentMethod == 'cod' ? 'Belum Bayar' : 'Diproses';
 
+    // Buat model transaksi
     final transaction = TransactionModel(
       uid: '',
       userUid: currentUserUid,
@@ -118,6 +128,7 @@ class TransactionController {
       createdAt: DateTime.now().toIso8601String(),
     );
 
+    // Ambil id cart untuk dihapus
     final cartIds = cartItems.map((e) => e.uid).whereType<String>().toList();
     return await _transactionService.createTransactionAndClearCarts(
       transaction,
@@ -126,6 +137,7 @@ class TransactionController {
   }
 
   Future<List<TransactionModel>> getCurrentUserTransactions() async {
+    // Ambil transaksi milik user yang sedang login
     final user = await _userController.getCurrentUser();
     if (user?.uid == null) {
       return [];
@@ -134,6 +146,7 @@ class TransactionController {
   }
 
   Future<int> getPendingShipmentCountForCurrentSeller() async {
+    // Hitung jumlah item yang belum dikirim untuk seller
     final user = await _userController.getCurrentUser();
     if (user?.uid == null) {
       return 0;
@@ -160,6 +173,7 @@ class TransactionController {
   }
 
   Future<int> getRentedItemCountForCurrentSeller() async {
+    // Hitung jumlah item yang sedang disewa untuk seller
     final user = await _userController.getCurrentUser();
     if (user?.uid == null) {
       return 0;
@@ -186,6 +200,7 @@ class TransactionController {
   }
 
   Future<int> getReturnedItemCountForCurrentSeller() async {
+    // Hitung jumlah item yang sudah dikembalikan untuk seller
     final user = await _userController.getCurrentUser();
     if (user?.uid == null) {
       return 0;

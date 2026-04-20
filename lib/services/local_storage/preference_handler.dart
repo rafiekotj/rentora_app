@@ -10,6 +10,7 @@ class PreferenceHandler {
   PreferenceHandler._internal();
 
   Future<void> init() async {
+    // Inisialisasi SharedPreferences
     _preferences = await SharedPreferences.getInstance();
   }
 
@@ -18,20 +19,23 @@ class PreferenceHandler {
   static const String _notificationsKey = 'notifications_list';
 
   Future<void> storingIsLogin(bool isLogin) async {
-    _preferences.setBool(_isLogin, isLogin);
+    // Simpan status login
+    await _preferences.setBool(_isLogin, isLogin);
   }
 
   Future<void> storingUserEmail(String? email) async {
-    _preferences.setString(_userEmail, email ?? "");
+    // Simpan email user
+    await _preferences.setString(_userEmail, email ?? "");
   }
 
   static Future<bool?> getIsLogin() async {
+    // Ambil status login
     final prefs = await SharedPreferences.getInstance();
-    var data = prefs.getBool(_isLogin);
-    return data;
+    return prefs.getBool(_isLogin);
   }
 
   static Future<String?> getUserEmail() async {
+    // Ambil email user
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString(_userEmail);
   }
@@ -41,11 +45,12 @@ class PreferenceHandler {
     required String body,
     Map<String, dynamic>? data,
   }) async {
+    // Tambah notifikasi ke local storage
     SharedPreferences prefs;
     try {
       prefs = _preferences;
     } catch (_) {
-      // fallback if init() hasn't been called yet
+      // fallback jika init() belum dipanggil
       prefs = await SharedPreferences.getInstance();
     }
 
@@ -61,21 +66,25 @@ class PreferenceHandler {
   }
 
   static Future<List<Map<String, dynamic>>> getNotifications() async {
+    // Ambil semua notifikasi dari local storage
     final prefs = await SharedPreferences.getInstance();
     final list = prefs.getStringList(_notificationsKey) ?? <String>[];
     return list.map((s) => jsonDecode(s) as Map<String, dynamic>).toList();
   }
 
   static Future<void> clearNotifications() async {
+    // Hapus semua notifikasi dari local storage
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_notificationsKey);
   }
 
   Future<void> deleteIsLogin() async {
+    // Hapus status login
     await _preferences.remove(_isLogin);
   }
 
   Future<void> deleteUserEmail() async {
+    // Hapus email user
     await _preferences.remove(_userEmail);
   }
 }

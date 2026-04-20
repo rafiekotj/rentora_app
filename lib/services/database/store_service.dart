@@ -6,16 +6,18 @@ class StoreService {
       .collection('stores');
 
   Future<List<StoreModel>> getStoresByIds(List<String> storeIds) async {
+    // Ambil banyak store berdasarkan id, optimasi chunk dan cache
     final filteredIds = storeIds.where((id) => id.isNotEmpty).toSet().toList();
     if (filteredIds.isEmpty) return [];
 
+    // Firestore whereIn maksimal 10 id, jadi dipecah chunk
     const int chunkSize = 10;
     final chunks = <List<String>>[];
     for (var i = 0; i < filteredIds.length; i += chunkSize) {
       chunks.add(
         filteredIds.sublist(
           i,
-          i + chunkSize > filteredIds.length
+          (i + chunkSize > filteredIds.length)
               ? filteredIds.length
               : i + chunkSize,
         ),
@@ -25,7 +27,7 @@ class StoreService {
     final futures = chunks.map((c) async {
       final snapshot = await storesCollection
           .where(FieldPath.documentId, whereIn: c)
-          .get();
+          .get(const GetOptions(source: Source.serverAndCache));
       return snapshot.docs
           .map((doc) => StoreModel.fromMap(doc.data() as Map<String, dynamic>))
           .toList();
@@ -36,16 +38,20 @@ class StoreService {
   }
 
   Future<List<StoreModel>> getStoresByUser(String userUid) async {
+    // Ambil semua store milik user tertentu
     final snapshot = await storesCollection
         .where('userUid', isEqualTo: userUid)
-        .get();
+        .get(const GetOptions(source: Source.serverAndCache));
     return snapshot.docs
         .map((doc) => StoreModel.fromMap(doc.data() as Map<String, dynamic>))
         .toList();
   }
 
   Future<StoreModel?> getStoreById(String storeId) async {
-    final doc = await storesCollection.doc(storeId).get();
+    // Ambil store berdasarkan id
+    final doc = await storesCollection
+        .doc(storeId)
+        .get(const GetOptions(source: Source.serverAndCache));
     if (doc.exists) {
       return StoreModel.fromMap(doc.data() as Map<String, dynamic>);
     }
@@ -53,10 +59,11 @@ class StoreService {
   }
 
   Future<StoreModel?> getStoreByUserId(String userUid) async {
+    // Ambil store milik user tertentu
     final snapshot = await storesCollection
         .where('userUid', isEqualTo: userUid)
         .limit(1)
-        .get();
+        .get(const GetOptions(source: Source.serverAndCache));
     if (snapshot.docs.isNotEmpty) {
       return StoreModel.fromMap(
         snapshot.docs.first.data() as Map<String, dynamic>,
@@ -78,6 +85,7 @@ class StoreService {
     double? latitude,
     double? longitude,
   }) async {
+    // Simpan data store, update jika sudah ada, tambah jika belum
     final data = {
       'userUid': userUid,
       'name': name,
@@ -94,7 +102,7 @@ class StoreService {
     final snapshot = await storesCollection
         .where('userUid', isEqualTo: userUid)
         .limit(1)
-        .get();
+        .get(const GetOptions(source: Source.serverAndCache));
     if (snapshot.docs.isNotEmpty) {
       final docId = snapshot.docs.first.id;
       await storesCollection.doc(docId).update({...data, 'uid': docId});

@@ -12,10 +12,12 @@ class ChatService {
       .collection('chats');
 
   static String threadIdFor(String a, String b) {
-    return a.compareTo(b) <= 0 ? '${a}_${b}' : '${b}_${a}';
+    // Buat id thread unik dari 2 user
+    return a.compareTo(b) <= 0 ? '${a}_$b' : '${b}_$a';
   }
 
   Future<String> getOrCreateThread(String userA, String userB) async {
+    // Ambil atau buat thread chat antara 2 user
     final id = threadIdFor(userA, userB);
     final docRef = chatsCollection.doc(id);
     final doc = await docRef.get();
@@ -31,12 +33,14 @@ class ChatService {
   }
 
   Stream<QuerySnapshot> streamThreadsForUser(String uid) {
+    // Stream semua thread yang diikuti user
     return chatsCollection
         .where('participants', arrayContains: uid)
         .snapshots();
   }
 
   Stream<QuerySnapshot> streamMessages(String threadId) {
+    // Stream pesan pada thread tertentu
     return chatsCollection
         .doc(threadId)
         .collection('messages')
@@ -49,6 +53,7 @@ class ChatService {
     required String senderUid,
     required String text,
   }) async {
+    // Kirim pesan ke thread
     final msgRef = chatsCollection.doc(threadId).collection('messages').doc();
     final data = {
       'uid': msgRef.id,
@@ -64,8 +69,7 @@ class ChatService {
       'last_updated': FieldValue.serverTimestamp(),
     });
 
-    // Send OneSignal notification to other participants (client-side push).
-    // If server-side notifications are enabled, Cloud Functions or server should handle notifications.
+    // Kirim notifikasi OneSignal ke peserta lain (client-side push)
     if (!AppConfig.useServerSideNotifications) {
       Future.microtask(() async {
         try {
@@ -120,7 +124,7 @@ class ChatService {
             }
 
             if (resp.statusCode != 200 && resp.statusCode != 201) {
-              // retry once after short delay if no recipients or not subscribed
+              // retry sekali jika gagal
               await Future.delayed(const Duration(milliseconds: 900));
               final resp2 = await http
                   .post(
@@ -148,6 +152,7 @@ class ChatService {
   }
 
   Future<void> markThreadRead(String threadId, String userUid) async {
+    // Tandai semua pesan dari user lain sebagai sudah dibaca
     final msgsRef = chatsCollection.doc(threadId).collection('messages');
     final snapshot = await msgsRef.where('read', isEqualTo: false).get();
 
@@ -158,12 +163,11 @@ class ChatService {
     }).toList();
 
     final batch = FirebaseFirestore.instance.batch();
-
     for (final d in toUpdate) {
       batch.update(d.reference, {'read': true});
     }
 
-    // Also update thread-level unread maps so UI badges relying on doc fields clear.
+    // Update field unread agar badge UI langsung hilang
     final threadRef = chatsCollection.doc(threadId);
     final updates = <String, dynamic>{};
     updates['unread.$userUid'] = 0;
@@ -175,6 +179,7 @@ class ChatService {
   }
 
   Future<int> getUnreadCount(String threadId, String currentUid) async {
+    // Hitung jumlah pesan belum dibaca dari user lain
     try {
       final snapshot = await chatsCollection
           .doc(threadId)
@@ -194,17 +199,20 @@ class ChatService {
   }
 
   Stream<int> streamUnreadThreadsCountForUser(String uid) {
+    // Stream jumlah thread yang ada pesan belum dibaca
     return chatsCollection
         .where('participants', arrayContains: uid)
         .snapshots()
         .asyncMap((query) async {
           try {
+            // Optimasi: ambil hanya 1 pesan unread per thread
             final futures = query.docs.map((d) async {
               try {
                 final msgs = await chatsCollection
                     .doc(d.id)
                     .collection('messages')
                     .where('read', isEqualTo: false)
+                    .limit(1)
                     .get();
                 for (final m in msgs.docs) {
                   final data = m.data();
