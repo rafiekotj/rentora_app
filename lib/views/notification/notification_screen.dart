@@ -68,7 +68,21 @@ class _NotificationScreenState extends State<NotificationScreen> {
 
             final items = snapshot.data ?? [];
 
-            if (items.isEmpty) {
+            // Hanya tampilkan notifikasi pesanan dengan status tertentu
+            final filteredItems = items.where((item) {
+              final title = (item['title'] as String? ?? '')
+                  .toString()
+                  .toLowerCase();
+              final body = (item['body'] as String? ?? '')
+                  .toString()
+                  .toLowerCase();
+              const allowedStatuses = ['diproses', 'disewa', 'dikembalikan'];
+              return allowedStatuses.any(
+                (s) => title.contains(s) || body.contains(s),
+              );
+            }).toList();
+
+            if (filteredItems.isEmpty) {
               return LayoutBuilder(
                 builder: (context, constraints) {
                   return SingleChildScrollView(
@@ -102,10 +116,10 @@ class _NotificationScreenState extends State<NotificationScreen> {
 
             return ListView.separated(
               padding: const EdgeInsets.all(12),
-              itemCount: items.length,
+              itemCount: filteredItems.length,
               separatorBuilder: (context, index) => const SizedBox(height: 8),
               itemBuilder: (context, index) {
-                final item = items[index];
+                final item = filteredItems[index];
                 final title = item['title'] as String? ?? '';
                 final body = item['body'] as String? ?? '';
                 final createdAt = item['createdAt'] as String? ?? '';
